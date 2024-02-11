@@ -25,7 +25,7 @@ BaseAudioAppComponent::~BaseAudioAppComponent()
 {
 
 }
-void BaseAudioAppComponent::zoomEvent(const MouseEvent& event, const MouseWheelDetails& wheel)
+void BaseAudioAppComponent::zoomEvent(const MouseEvent&, const MouseWheelDetails&)
 {}
 void BaseAudioAppComponent::mouseWheelMove(const MouseEvent& event, const MouseWheelDetails& wheel)
 {
@@ -36,8 +36,8 @@ void BaseAudioAppComponent::mouseWheelMove(const MouseEvent& event, const MouseW
     else
     {
         juce::Rectangle<int> rect = getBounds();
-        float originalSize = rect.getWidth();
-        float newSize = (float)rect.getWidth() * (1 + wheel.deltaY);
+        //int originalSize = rect.getWidth();
+        int newSize = rect.getWidth() * (1 + (int)wheel.deltaY);
         if (newSize <= minSize)
         {
             newSize = minSize;
@@ -46,7 +46,7 @@ void BaseAudioAppComponent::mouseWheelMove(const MouseEvent& event, const MouseW
         setBounds(rect);
     }
 }
-void BaseAudioAppComponent::paint(Graphics& g)
+void BaseAudioAppComponent::paint(Graphics&)
 {
     
 }
@@ -95,7 +95,7 @@ void BaseAudioAppComponent::mouseDrag(const juce::MouseEvent& event)
     getParentComponent()->repaint();
 }
 
-void BaseAudioAppComponent::mouseUp(const juce::MouseEvent& event)
+void BaseAudioAppComponent::mouseUp(const juce::MouseEvent&)
 {
 
 }

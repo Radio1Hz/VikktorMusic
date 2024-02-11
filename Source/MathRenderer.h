@@ -71,7 +71,7 @@ public:
         //delete rootNode;
     }
 
-    void MathRenderer::generateRandomTree(int start)
+    void MathRenderer::generateRandomTree(int)
     {
         /*int iter = 0;
         rootNode.clear(true);
@@ -86,9 +86,9 @@ public:
         }*/
 
     }
-    void MathRenderer::generateCollatzTree(int start)
+    void MathRenderer::generateCollatzTree(int)
     {
-        int iter = 0;
+        //int iter = 0;
 
         /*rootNode.clear(true);
         int startInt = start;
@@ -110,24 +110,24 @@ public:
         node->childNodes.clear(true);
     }
 
-    void MathRenderer::Draw(Graphics& g, const Rectangle<float> area)
+    void MathRenderer::Draw(Graphics& g, const Rectangle<float> rectarea)
     {
         g.setColour(juce::Colours::lightgrey);
-        area_width = (float)area.getWidth();
-        area_height = (float)area.getHeight();
+        area_width = (float)rectarea.getWidth();
+        area_height = (float)rectarea.getHeight();
         screen_math_ratio = std::min(area_width, area_height) / math_max_size;
         math_width = area_width / screen_math_ratio;
         math_height = area_height / screen_math_ratio;
 
-        screen_center = area.getCentre();
+        screen_center = rectarea.getCentre();
         x0 = juce::Point<float>(screen_center.x - math_center.x * screen_math_ratio, screen_center.y + math_center.y * screen_math_ratio);
         g.setColour(juce::Colours::darkgrey);
-        g.drawRect(area, 0.5f);
+        g.drawRect(rectarea, 0.5f);
         DoYourThing(g);
        
     }
 
-    void MathRenderer::changeListenerCallback(juce::ChangeBroadcaster* source)
+    void MathRenderer::changeListenerCallback(juce::ChangeBroadcaster*)
     {
         generalIterator++;
         generateRandomTree(generalIterator);
@@ -154,9 +154,9 @@ public:
         this->math_max_size = math_max_size * (1 + delta);
     }
 
-    void MathRenderer::SetNewFontSize(float font_size)
+    void MathRenderer::SetNewFontSize(float font_size_new)
     {
-        this->font_size = font_size;
+        this->font_size = font_size_new;
     }
 
     Point<float> MathRenderer::ScreenToMathPoint(juce::Point<float> screen_point_par)
@@ -225,7 +225,7 @@ private:
 
     void MathRenderer::DrawTree(Graphics& g, TreeNode* node)
     {
-        float opc = rnd.nextFloat();
+        //float opc = rnd.nextFloat();
         DrawPoint(g, node->location, Colours::lightgrey, 0.5f);
         for (TreeNode* nO : node->childNodes)
         {
@@ -445,10 +445,10 @@ protected:
         }
     }
 
-    void MathRenderer::DrawMathematicalLine(Graphics& g, juce::Point<float> start, juce::Point<float> end, juce::Colour col, bool dashed = false, float opacity = 1.0f)
+    void MathRenderer::DrawMathematicalLine(Graphics& g, juce::Point<float> start_point, juce::Point<float> end, juce::Colour col, bool dashed = false, float opacity = 1.0f)
     {
         g.setColour(col);
-        juce::Line<float> screenLine = juce::Line<float>(MathToScreenPoint(start), MathToScreenPoint(end));
+        juce::Line<float> screenLine = juce::Line<float>(MathToScreenPoint(start_point), MathToScreenPoint(end));
         float dashPattern[2];
         dashPattern[0] = 2.0;
         dashPattern[1] = 4.0;

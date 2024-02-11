@@ -31,7 +31,7 @@ void MarkovMatrixComponent::resetMatrix()
 {
     for (int i = 0; i < size; i++)
     {
-        Array<double> arr = getProbabilitiesArray();
+        Array<double> arr = getProbabilitiesArray(true);
         for (int j = 0; j < size; j++)
         {
             matrix->operator()(i, j) = arr[j];
@@ -181,7 +181,7 @@ void MarkovMatrixComponent::rearrangeMatrix(ProbabilitySlider* d, int /*algoryth
 //    repaint();
 //}
 
-juce::Array<double> MarkovMatrixComponent::getProbabilitiesArray()
+juce::Array<double> MarkovMatrixComponent::getProbabilitiesArray(bool test = false)
 {
     juce::Array<double> arr;
     juce::Array<double> ret;
@@ -191,10 +191,18 @@ juce::Array<double> MarkovMatrixComponent::getProbabilitiesArray()
 
     for (int i = 0; i < size - 1; i++)
     {
-        arr.add(juce::Random::getSystemRandom().nextDouble());
+        if (test)
+        {
+
+            arr.add(i==0?1:0);
+        }
+        else
+        {
+            arr.add(juce::Random::getSystemRandom().nextDouble());
+        }
     }
 
-    arr.sort();
+    //arr.sort();
     ret.clear();
 
     for (int i = 0; i < size - 1; i++)
@@ -259,8 +267,8 @@ void MarkovMatrixComponent::resized()
     int sliders_height = getReducedLocalBounds().getHeight();
     
     int smaller_dim = juce::jmin(sliders_width, sliders_height);
-    smaller_size = smaller_dim * 0.9;
-    int padding = smaller_dim * 0.1;
+    smaller_size = smaller_dim * 9/10;
+    int padding = smaller_dim * 1/10;
 
     for (auto* sO : sliders)
     {

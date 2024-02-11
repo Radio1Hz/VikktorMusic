@@ -61,9 +61,9 @@ public:
         return File("C:/Data/SOUNDFONTS/");
     }
 
-    const File getFileFromName(const String& name)
+    const File getFileFromName(const String& filename)
     {
-        return soundfontFiles[soundfontNames.indexOf(name)];
+        return soundfontFiles[soundfontNames.indexOf(filename)];
     }
 
 private:

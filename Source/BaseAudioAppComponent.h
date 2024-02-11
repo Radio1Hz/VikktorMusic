@@ -24,7 +24,7 @@ enum TransportState
 
 //==============================================================================
 
-class BaseAudioAppComponent  : public juce::AudioAppComponent, public MouseListener
+class BaseAudioAppComponent  : public juce::AudioAppComponent
 {
 public:
     BaseAudioAppComponent();

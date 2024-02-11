@@ -27,7 +27,7 @@ public:
     void paint (juce::Graphics&) override;
     void markCurrentState();
     void resized() override;
-    juce::Array<double> getProbabilitiesArray();
+    juce::Array<double> getProbabilitiesArray(bool);
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     
     void nextStep();

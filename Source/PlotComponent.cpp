@@ -31,7 +31,7 @@ void PlotComponent::paint (juce::Graphics& g)
     drawOutline(g);
 }
 
-void PlotComponent::zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+void PlotComponent::zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails&)
 {
     repaint();
 }
@@ -48,17 +48,17 @@ void PlotComponent::controlDoubleClickEvent(const juce::MouseEvent& event)
     repaint();
 }
 
-void PlotComponent::controlMouseDownEvent(const juce::MouseEvent& event)
+void PlotComponent::controlMouseDownEvent(const juce::MouseEvent&)
 {
     
     repaint();
 }
-void PlotComponent::controlMouseUpEvent(const juce::MouseEvent& event)
+void PlotComponent::controlMouseUpEvent(const juce::MouseEvent&)
 {
 
     repaint();
 }
-void PlotComponent::controlDragEvent(const juce::MouseEvent& event)
+void PlotComponent::controlDragEvent(const juce::MouseEvent&)
 {
     repaint();
 }
@@ -71,7 +71,7 @@ void PlotComponent::resized()
     
 }
 
-void PlotComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+void PlotComponent::changeListenerCallback(juce::ChangeBroadcaster*)
 {
    
     repaint();

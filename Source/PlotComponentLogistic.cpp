@@ -116,7 +116,7 @@ void PlotComponentLogistic::paint (juce::Graphics& g)
     renderer->Draw(g, remainingRect.toFloat());
 
 }
-void PlotComponentLogistic::zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+void PlotComponentLogistic::zoomEvent(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel)
 {
     renderer->SetNewMathSize(-wheel.deltaY);
     renderer->SetNewFontSize(getFontSize());
@@ -145,16 +145,16 @@ void PlotComponentLogistic::resized()
 }
 
 
-void PlotComponentLogistic::controlMouseDownEvent(const juce::MouseEvent& event)
+void PlotComponentLogistic::controlMouseDownEvent(const juce::MouseEvent&)
 {
     repaint();
 }
-void PlotComponentLogistic::controlMouseUpEvent(const juce::MouseEvent& event)
+void PlotComponentLogistic::controlMouseUpEvent(const juce::MouseEvent&)
 {
 
     repaint();
 }
-void PlotComponentLogistic::controlDragEvent(const juce::MouseEvent& event)
+void PlotComponentLogistic::controlDragEvent(const juce::MouseEvent&)
 {
     repaint();
 }
