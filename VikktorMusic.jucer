@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="jDs3bC" name="VikktorMusic" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
+  <MAINGROUP id="OhT960" name="VikktorMusic">
+    <GROUP id="{5C6FDB9F-F673-9806-6C25-EFB0EA0B91CB}" name="Source">
+      <GROUP id="{36A40A63-14CF-CA68-20D9-141B59BDD9DD}" name="Fluidlite">
+        <GROUP id="{4FB8E3D9-7BAA-AE13-3839-24CA24BCDA36}" name="include">
+          <GROUP id="{4A972335-A057-D3AF-A32A-5DCDE3C7C07D}" name="fluidsynth">
+            <FILE id="igU3JV" name="gen.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/gen.h"/>
+            <FILE id="Pd3w0X" name="log.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/log.h"/>
+            <FILE id="emxhyh" name="misc.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/misc.h"/>
+            <FILE id="AtTpUe" name="mod.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/mod.h"/>
+            <FILE id="c6qCqF" name="ramsfont.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/ramsfont.h"/>
+            <FILE id="d8Ie3o" name="settings.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/settings.h"/>
+            <FILE id="Arzqxc" name="sfont.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/sfont.h"/>
+            <FILE id="TC2gZP" name="synth.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/synth.h"/>
+            <FILE id="fnp8fg" name="types.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/types.h"/>
+            <FILE id="TGPrcP" name="version.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/version.h"/>
+            <FILE id="nVKnMs" name="voice.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/voice.h"/>
+          </GROUP>
+          <FILE id="Y0oV4W" name="fluidlite.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidlite.h"/>
+        </GROUP>
+        <GROUP id="{51B0BB9A-EB23-CD3F-5D62-43953CA8F5B9}" name="src">
+          <FILE id="wWowzU" name="fluid_chan.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_chan.c"/>
+          <FILE id="XCvIiV" name="fluid_chan.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_chan.h"/>
+          <FILE id="iMp5eV" name="fluid_chorus.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_chorus.c"/>
+          <FILE id="VglxUK" name="fluid_chorus.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_chorus.h"/>
+          <FILE id="L8LbdX" name="fluid_config.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_config.h"/>
+          <FILE id="To4rLU" name="fluid_conv.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_conv.c"/>
+          <FILE id="YcTRB8" name="fluid_conv.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_conv.h"/>
+          <FILE id="Y8C06A" name="fluid_defsfont.c" compile="1" resource="0"
+                file="Source/Fluidlite/src/fluid_defsfont.c"/>
+          <FILE id="SlMOyP" name="fluid_defsfont.h" compile="0" resource="0"
+                file="Source/Fluidlite/src/fluid_defsfont.h"/>
+          <FILE id="n4azk8" name="fluid_dsp_float.c" compile="1" resource="0"
+                file="Source/Fluidlite/src/fluid_dsp_float.c"/>
+          <FILE id="ipkR4v" name="fluid_dsp_simple.c" compile="1" resource="0"
+                file="Source/Fluidlite/src/fluid_dsp_simple.c"/>
+          <FILE id="Mkmc56" name="fluid_gen.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_gen.c"/>
+          <FILE id="NJtTsQ" name="fluid_gen.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_gen.h"/>
+          <FILE id="ffToIv" name="fluid_hash.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_hash.c"/>
+          <FILE id="dpKlvU" name="fluid_hash.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_hash.h"/>
+          <FILE id="TE8Cbx" name="fluid_list.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_list.c"/>
+          <FILE id="thfKAn" name="fluid_list.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_list.h"/>
+          <FILE id="i29qOY" name="fluid_midi.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_midi.h"/>
+          <FILE id="lQ8Lgp" name="fluid_mod.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_mod.c"/>
+          <FILE id="TCFXJx" name="fluid_mod.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_mod.h"/>
+          <FILE id="Vwy2oB" name="fluid_phase.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_phase.h"/>
+          <FILE id="vorYOo" name="fluid_ramsfont.c" compile="1" resource="0"
+                file="Source/Fluidlite/src/fluid_ramsfont.c"/>
+          <FILE id="RelKUL" name="fluid_ramsfont.h" compile="0" resource="0"
+                file="Source/Fluidlite/src/fluid_ramsfont.h"/>
+          <FILE id="q8vBkm" name="fluid_rev.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_rev.c"/>
+          <FILE id="ihaai7" name="fluid_rev.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_rev.h"/>
+          <FILE id="l292Gn" name="fluid_settings.c" compile="1" resource="0"
+                file="Source/Fluidlite/src/fluid_settings.c"/>
+          <FILE id="asiA6o" name="fluid_settings.h" compile="0" resource="0"
+                file="Source/Fluidlite/src/fluid_settings.h"/>
+          <FILE id="DL36Zr" name="fluid_sfont.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_sfont.h"/>
+          <FILE id="RAqNn6" name="fluid_synth.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_synth.c"/>
+          <FILE id="oT28Oe" name="fluid_synth.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_synth.h"/>
+          <FILE id="Q6UEtO" name="fluid_sys.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_sys.c"/>
+          <FILE id="NaAb18" name="fluid_sys.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_sys.h"/>
+          <FILE id="OFtX2z" name="fluid_tuning.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_tuning.c"/>
+          <FILE id="S7mpNA" name="fluid_tuning.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_tuning.h"/>
+          <FILE id="vnA1EX" name="fluid_voice.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_voice.c"/>
+          <FILE id="LsNzfF" name="fluid_voice.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_voice.h"/>
+          <FILE id="enGX3i" name="fluidsynth.c" compile="1" resource="0" file="Source/Fluidlite/src/fluidsynth.c"/>
+          <FILE id="FUcL6v" name="fluidsynth_priv.h" compile="0" resource="0"
+                file="Source/Fluidlite/src/fluidsynth_priv.h"/>
+        </GROUP>
+      </GROUP>
+      <GROUP id="{760B33E4-26B0-9C02-BA5C-80C644384CAA}" name="Math">
+        <FILE id="lUBp2M" name="BjorklundAlgorithm.cpp" compile="1" resource="0"
+              file="Source/BjorklundAlgorithm.cpp"/>
+        <FILE id="z4gm6J" name="BjorklundAlgorithm.h" compile="0" resource="0"
+              file="Source/BjorklundAlgorithm.h"/>
+        <FILE id="VLdlQP" name="ComplexNumber.cpp" compile="1" resource="0"
+              file="Source/ComplexNumber.cpp"/>
+        <FILE id="nNMPET" name="ComplexNumber.h" compile="0" resource="0" file="Source/ComplexNumber.h"/>
+        <FILE id="Ge9q3A" name="FunctionProvider.cpp" compile="1" resource="0"
+              file="Source/FunctionProvider.cpp"/>
+        <FILE id="mfac84" name="FunctionProvider.h" compile="0" resource="0"
+              file="Source/FunctionProvider.h"/>
+        <FILE id="RxLvo1" name="FunctionProviderComplex.cpp" compile="1" resource="0"
+              file="Source/FunctionProviderComplex.cpp"/>
+        <FILE id="O3WIUY" name="FunctionProviderComplex.h" compile="0" resource="0"
+              file="Source/FunctionProviderComplex.h"/>
+        <FILE id="xAmAP9" name="MarkovMatrix.cpp" compile="1" resource="0"
+              file="Source/MarkovMatrix.cpp"/>
+        <FILE id="Tlnmv3" name="MarkovMatrix.h" compile="0" resource="0" file="Source/MarkovMatrix.h"/>
+        <FILE id="GcjVKY" name="MathRenderer.cpp" compile="1" resource="0"
+              file="Source/MathRenderer.cpp"/>
+        <FILE id="H50SrH" name="MathRenderer.h" compile="0" resource="0" file="Source/MathRenderer.h"/>
+        <FILE id="TmNasb" name="MathRendererComplex.cpp" compile="1" resource="0"
+              file="Source/MathRendererComplex.cpp"/>
+        <FILE id="X31mN2" name="MathRendererComplex.h" compile="0" resource="0"
+              file="Source/MathRendererComplex.h"/>
+      </GROUP>
+      <FILE id="SIC0Mc" name="ComponentStateController.cpp" compile="1" resource="0"
+            file="Source/ComponentStateController.cpp"/>
+      <FILE id="AKuEAC" name="ComponentStateController.h" compile="0" resource="0"
+            file="Source/ComponentStateController.h"/>
+      <FILE id="kJGQo4" name="EuclidianRythmTimerComponent.cpp" compile="1"
+            resource="0" file="Source/EuclidianRythmTimerComponent.cpp"/>
+      <FILE id="si9vfQ" name="EuclidianRythmTimerComponent.h" compile="0"
+            resource="0" file="Source/EuclidianRythmTimerComponent.h"/>
+      <FILE id="zMwLZO" name="MIDISynthComponent.cpp" compile="1" resource="0"
+            file="Source/MIDISynthComponent.cpp"/>
+      <FILE id="u91S1A" name="PlotComponentLogistic.cpp" compile="1" resource="0"
+            file="Source/PlotComponentLogistic.cpp"/>
+      <FILE id="a3hog0" name="PlotComponentLogistic.h" compile="0" resource="0"
+            file="Source/PlotComponentLogistic.h"/>
+      <FILE id="BBecl3" name="MIDISynthComponent.h" compile="0" resource="0"
+            file="Source/MIDISynthComponent.h"/>
+      <FILE id="mfcJt5" name="SoundFontAudioSource.cpp" compile="1" resource="0"
+            file="Source/SoundFontAudioSource.cpp"/>
+      <FILE id="MIsUtj" name="SoundFontAudioSource.h" compile="0" resource="0"
+            file="Source/SoundFontAudioSource.h"/>
+      <FILE id="Wr9rjk" name="TreeNode.cpp" compile="1" resource="0" file="Source/TreeNode.cpp"/>
+      <FILE id="VIowKh" name="TreeNode.h" compile="0" resource="0" file="Source/TreeNode.h"/>
+      <FILE id="PlUmrP" name="BaseAudioAppComponent.cpp" compile="1" resource="0"
+            file="Source/BaseAudioAppComponent.cpp"/>
+      <FILE id="CJNbX5" name="BaseAudioAppComponent.h" compile="0" resource="0"
+            file="Source/BaseAudioAppComponent.h"/>
+      <FILE id="rQX4fH" name="AudioComponent.cpp" compile="1" resource="0"
+            file="Source/AudioComponent.cpp"/>
+      <FILE id="n83NAS" name="AudioComponent.h" compile="0" resource="0"
+            file="Source/AudioComponent.h"/>
+      <FILE id="i8nVlz" name="ArraySorter.cpp" compile="1" resource="0" file="Source/ArraySorter.cpp"/>
+      <FILE id="NTnaVe" name="ArraySorter.h" compile="0" resource="0" file="Source/ArraySorter.h"/>
+      <FILE id="VckWDW" name="PlotComponent.cpp" compile="1" resource="0"
+            file="Source/PlotComponent.cpp"/>
+      <FILE id="rRgfTM" name="PlotComponent.h" compile="0" resource="0" file="Source/PlotComponent.h"/>
+      <FILE id="ijT2SI" name="CommunicationAgent.cpp" compile="1" resource="0"
+            file="Source/CommunicationAgent.cpp"/>
+      <FILE id="ESoD5X" name="CommunicationAgent.h" compile="0" resource="0"
+            file="Source/CommunicationAgent.h"/>
+      <FILE id="XzALns" name="BaseComponent.cpp" compile="1" resource="0"
+            file="Source/BaseComponent.cpp"/>
+      <FILE id="yk3jYh" name="BaseComponent.h" compile="0" resource="0" file="Source/BaseComponent.h"/>
+      <FILE id="VE1iNp" name="ProbabilitySlider.cpp" compile="1" resource="0"
+            file="Source/ProbabilitySlider.cpp"/>
+      <FILE id="LhisJs" name="ProbabilitySlider.h" compile="0" resource="0"
+            file="Source/ProbabilitySlider.h"/>
+      <FILE id="Tzc2Ca" name="MarkovMatrixComponent.cpp" compile="1" resource="0"
+            file="Source/MarkovMatrixComponent.cpp"/>
+      <FILE id="wetIOw" name="MarkovMatrixComponent.h" compile="0" resource="0"
+            file="Source/MarkovMatrixComponent.h"/>
+      <FILE id="elGUIW" name="TimeObject.cpp" compile="1" resource="0" file="Source/TimeObject.cpp"/>
+      <FILE id="cNP99B" name="TimeObject.h" compile="0" resource="0" file="Source/TimeObject.h"/>
+      <FILE id="EDfsGo" name="LogSpaceComponent.h" compile="0" resource="0"
+            file="Source/LogSpaceComponent.h"/>
+      <FILE id="y6R9YG" name="TimerComponent.cpp" compile="1" resource="0"
+            file="Source/TimerComponent.cpp"/>
+      <FILE id="p8HhAm" name="TimerComponent.h" compile="0" resource="0"
+            file="Source/TimerComponent.h"/>
+      <FILE id="tQtXDG" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="uXRW4r" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="Iy2BFn" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="Vdd3kV" name="DebugComponent.cpp" compile="1" resource="0"
+            file="Source/DebugComponent.cpp"/>
+      <FILE id="r9Mrlf" name="DebugComponent.h" compile="0" resource="0"
+            file="Source/DebugComponent.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_box2d" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_dsp" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_osc" path="../../juce"/>
+        <MODULEPATH id="juce_video" path="../../juce"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_box2d" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <WINDOWS/>
+  </LIVE_SETTINGS>
+</JUCERPROJECT>
