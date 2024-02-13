@@ -75,8 +75,8 @@ private:
     Array<File> soundfontFiles;
     File defaultSoundFontFile;
     StringArray soundfontNames;
-    ScopedPointer<MidiKeyboardComponent> keyboardComponent;
-    ScopedPointer<ComboBox> soundfontSelector;
+    std::unique_ptr<MidiKeyboardComponent> keyboardComponent;
+    std::unique_ptr<ComboBox> soundfontSelector;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MIDISynthComponent)
 };

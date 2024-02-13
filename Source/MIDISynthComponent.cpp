@@ -27,13 +27,13 @@ MIDISynthComponent::MIDISynthComponent()
         }
         index++;
     }
-
-    addAndMakeVisible(soundfontSelector = new ComboBox("SoundfontSelector"));
+    soundfontSelector = std::make_unique<ComboBox>("SoundfontSelector");
+    addAndMakeVisible(*soundfontSelector);
     soundfontSelector->addListener(this);
     soundfontSelector->addItemList(soundfontNames, 1);
     soundfontSelector->setSelectedItemIndex(selIndex);
-
-    addAndMakeVisible(keyboardComponent = new MidiKeyboardComponent(keyState, MidiKeyboardComponent::horizontalKeyboard));
+    keyboardComponent = std::make_unique<MidiKeyboardComponent>(keyState, MidiKeyboardComponent::horizontalKeyboard);
+    addAndMakeVisible(*keyboardComponent);
     keyState.addListener(this);
 
     // Make sure you set the size of the component after
@@ -51,7 +51,7 @@ MIDISynthComponent::~MIDISynthComponent()
     shutdownAudio();
 }
 
-void MIDISynthComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+void MIDISynthComponent::changeListenerCallback(juce::ChangeBroadcaster*)
 {
     soundfontPlayer.noteOn(51, 1 * 127, 1);
     soundfontPlayer.noteOff(51, 1);
@@ -126,7 +126,7 @@ void MIDISynthComponent::resized()
 
 void MIDISynthComponent::comboBoxChanged(ComboBox* comboBoxThatWasChanged)
 {
-    if (comboBoxThatWasChanged == soundfontSelector) {
+    if ((std::unique_ptr<ComboBox>)comboBoxThatWasChanged == soundfontSelector) {
         File soundfontFile = getFileFromName(soundfontSelector->getText());
         if (!soundfontPlayer.loadSoundfont(soundfontFile)) {
             // Error loading soundfont
@@ -137,12 +137,12 @@ void MIDISynthComponent::comboBoxChanged(ComboBox* comboBoxThatWasChanged)
     }
 }
 
-void MIDISynthComponent::handleNoteOn(MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity)
+void MIDISynthComponent::handleNoteOn(MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity)
 {
-    soundfontPlayer.noteOn(midiNoteNumber, velocity * 127, midiChannel);
+    soundfontPlayer.noteOn(midiNoteNumber, (int)velocity * 127, midiChannel);
 }
 
-void MIDISynthComponent::handleNoteOff(MidiKeyboardState* source,  int midiChannel, int midiNoteNumber, float velocity)
+void MIDISynthComponent::handleNoteOff(MidiKeyboardState*,  int midiChannel, int midiNoteNumber, float)
 {
     soundfontPlayer.noteOff(midiNoteNumber, midiChannel);
 }
