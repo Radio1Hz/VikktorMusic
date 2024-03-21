@@ -37,7 +37,7 @@ public:
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
-    TransportState state;
+    
     juce::AudioThumbnailCache thumbnailCache;                  // [1]
     juce::AudioThumbnail thumbnail;
 private:

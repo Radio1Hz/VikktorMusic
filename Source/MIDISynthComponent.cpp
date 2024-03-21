@@ -53,14 +53,14 @@ MIDISynthComponent::~MIDISynthComponent()
 
 void MIDISynthComponent::changeListenerCallback(juce::ChangeBroadcaster*)
 {
-    soundfontPlayer.noteOn(51, 1 * 127, 1);
-    soundfontPlayer.noteOff(51, 1);
+    /*soundfontPlayer.noteOn(51, 1 * 127, 1);
+    soundfontPlayer.noteOff(51, 1);*/
     //this->startTimer(100);
 }
 
 void MIDISynthComponent::timerCallback()
 {
-    soundfontPlayer.noteOff(56, 1);
+    //soundfontPlayer.noteOff(56, 1);
     //stopTimer();
 }
 //==============================================================================
@@ -74,7 +74,7 @@ void MIDISynthComponent::prepareToPlay(int samplesPerBlockExpected, double sampl
 
     // For more details, see the help for AudioProcessor::prepareToPlay()
 
-    soundfontPlayer.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    //soundfontPlayer.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void MIDISynthComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
@@ -87,7 +87,7 @@ void MIDISynthComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferT
     // (to prevent the output of random noise)
     bufferToFill.clearActiveBufferRegion();
 
-    soundfontPlayer.getNextAudioBlock(bufferToFill);
+    //soundfontPlayer.getNextAudioBlock(bufferToFill);
 }
 
 void MIDISynthComponent::releaseResources()
@@ -97,7 +97,7 @@ void MIDISynthComponent::releaseResources()
 
     // For more details, see the help for AudioProcessor::releaseResources()
 
-    soundfontPlayer.releaseResources();
+    //soundfontPlayer.releaseResources();
 }
 
 //==============================================================================
@@ -128,21 +128,16 @@ void MIDISynthComponent::comboBoxChanged(ComboBox* comboBoxThatWasChanged)
 {
     if ((std::unique_ptr<ComboBox>)comboBoxThatWasChanged == soundfontSelector) {
         File soundfontFile = getFileFromName(soundfontSelector->getText());
-        if (!soundfontPlayer.loadSoundfont(soundfontFile)) {
-            // Error loading soundfont
-            /*AlertWindow::showMessageBox(AlertWindow::WarningIcon, "Invalid .sf2 File",
-                "Could not find your soundfont file: "
-                + soundfontFile.getFullPathName());*/
-        }
+        
     }
 }
 
 void MIDISynthComponent::handleNoteOn(MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity)
 {
-    soundfontPlayer.noteOn(midiNoteNumber, (int)velocity * 127, midiChannel);
+    //soundfontPlayer.noteOn(midiNoteNumber, (int)velocity * 127, midiChannel);
 }
 
 void MIDISynthComponent::handleNoteOff(MidiKeyboardState*,  int midiChannel, int midiNoteNumber, float)
 {
-    soundfontPlayer.noteOff(midiNoteNumber, midiChannel);
+    //soundfontPlayer.noteOff(midiNoteNumber, midiChannel);
 }

@@ -11,7 +11,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "SoundfontAudioSource.h"
 #include "BaseAudioAppComponent.h"
 #include "CommunicationAgent.h"
 
@@ -70,7 +69,6 @@ private:
     //==============================================================================
     // Your private member variables go here...
 
-    SoundfontAudioSource soundfontPlayer;
     MidiKeyboardState keyState;
     Array<File> soundfontFiles;
     File defaultSoundFontFile;

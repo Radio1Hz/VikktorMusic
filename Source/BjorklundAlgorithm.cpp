@@ -41,7 +41,7 @@ void Bjorklund::iter() {
     int index = 0; //we start algorithm from first index.
 
     while (true) {
-        count.push_back(std::floor(divisor / remainder[index]));
+        count.push_back((int)std::floor(divisor / remainder[index]));
         remainder.push_back(divisor % remainder[index]);
         divisor = remainder.at(index);
         index += 1; //move to next step.

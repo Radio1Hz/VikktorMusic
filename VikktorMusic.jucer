@@ -4,73 +4,6 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="OhT960" name="VikktorMusic">
     <GROUP id="{5C6FDB9F-F673-9806-6C25-EFB0EA0B91CB}" name="Source">
-      <GROUP id="{36A40A63-14CF-CA68-20D9-141B59BDD9DD}" name="Fluidlite">
-        <GROUP id="{4FB8E3D9-7BAA-AE13-3839-24CA24BCDA36}" name="include">
-          <GROUP id="{4A972335-A057-D3AF-A32A-5DCDE3C7C07D}" name="fluidsynth">
-            <FILE id="igU3JV" name="gen.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/gen.h"/>
-            <FILE id="Pd3w0X" name="log.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/log.h"/>
-            <FILE id="emxhyh" name="misc.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/misc.h"/>
-            <FILE id="AtTpUe" name="mod.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/mod.h"/>
-            <FILE id="c6qCqF" name="ramsfont.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/ramsfont.h"/>
-            <FILE id="d8Ie3o" name="settings.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/settings.h"/>
-            <FILE id="Arzqxc" name="sfont.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/sfont.h"/>
-            <FILE id="TC2gZP" name="synth.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/synth.h"/>
-            <FILE id="fnp8fg" name="types.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/types.h"/>
-            <FILE id="TGPrcP" name="version.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/version.h"/>
-            <FILE id="nVKnMs" name="voice.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidsynth/voice.h"/>
-          </GROUP>
-          <FILE id="Y0oV4W" name="fluidlite.h" compile="0" resource="0" file="Source/Fluidlite/include/fluidlite.h"/>
-        </GROUP>
-        <GROUP id="{51B0BB9A-EB23-CD3F-5D62-43953CA8F5B9}" name="src">
-          <FILE id="wWowzU" name="fluid_chan.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_chan.c"/>
-          <FILE id="XCvIiV" name="fluid_chan.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_chan.h"/>
-          <FILE id="iMp5eV" name="fluid_chorus.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_chorus.c"/>
-          <FILE id="VglxUK" name="fluid_chorus.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_chorus.h"/>
-          <FILE id="L8LbdX" name="fluid_config.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_config.h"/>
-          <FILE id="To4rLU" name="fluid_conv.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_conv.c"/>
-          <FILE id="YcTRB8" name="fluid_conv.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_conv.h"/>
-          <FILE id="Y8C06A" name="fluid_defsfont.c" compile="1" resource="0"
-                file="Source/Fluidlite/src/fluid_defsfont.c"/>
-          <FILE id="SlMOyP" name="fluid_defsfont.h" compile="0" resource="0"
-                file="Source/Fluidlite/src/fluid_defsfont.h"/>
-          <FILE id="n4azk8" name="fluid_dsp_float.c" compile="1" resource="0"
-                file="Source/Fluidlite/src/fluid_dsp_float.c"/>
-          <FILE id="ipkR4v" name="fluid_dsp_simple.c" compile="1" resource="0"
-                file="Source/Fluidlite/src/fluid_dsp_simple.c"/>
-          <FILE id="Mkmc56" name="fluid_gen.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_gen.c"/>
-          <FILE id="NJtTsQ" name="fluid_gen.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_gen.h"/>
-          <FILE id="ffToIv" name="fluid_hash.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_hash.c"/>
-          <FILE id="dpKlvU" name="fluid_hash.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_hash.h"/>
-          <FILE id="TE8Cbx" name="fluid_list.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_list.c"/>
-          <FILE id="thfKAn" name="fluid_list.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_list.h"/>
-          <FILE id="i29qOY" name="fluid_midi.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_midi.h"/>
-          <FILE id="lQ8Lgp" name="fluid_mod.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_mod.c"/>
-          <FILE id="TCFXJx" name="fluid_mod.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_mod.h"/>
-          <FILE id="Vwy2oB" name="fluid_phase.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_phase.h"/>
-          <FILE id="vorYOo" name="fluid_ramsfont.c" compile="1" resource="0"
-                file="Source/Fluidlite/src/fluid_ramsfont.c"/>
-          <FILE id="RelKUL" name="fluid_ramsfont.h" compile="0" resource="0"
-                file="Source/Fluidlite/src/fluid_ramsfont.h"/>
-          <FILE id="q8vBkm" name="fluid_rev.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_rev.c"/>
-          <FILE id="ihaai7" name="fluid_rev.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_rev.h"/>
-          <FILE id="l292Gn" name="fluid_settings.c" compile="1" resource="0"
-                file="Source/Fluidlite/src/fluid_settings.c"/>
-          <FILE id="asiA6o" name="fluid_settings.h" compile="0" resource="0"
-                file="Source/Fluidlite/src/fluid_settings.h"/>
-          <FILE id="DL36Zr" name="fluid_sfont.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_sfont.h"/>
-          <FILE id="RAqNn6" name="fluid_synth.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_synth.c"/>
-          <FILE id="oT28Oe" name="fluid_synth.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_synth.h"/>
-          <FILE id="Q6UEtO" name="fluid_sys.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_sys.c"/>
-          <FILE id="NaAb18" name="fluid_sys.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_sys.h"/>
-          <FILE id="OFtX2z" name="fluid_tuning.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_tuning.c"/>
-          <FILE id="S7mpNA" name="fluid_tuning.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_tuning.h"/>
-          <FILE id="vnA1EX" name="fluid_voice.c" compile="1" resource="0" file="Source/Fluidlite/src/fluid_voice.c"/>
-          <FILE id="LsNzfF" name="fluid_voice.h" compile="0" resource="0" file="Source/Fluidlite/src/fluid_voice.h"/>
-          <FILE id="enGX3i" name="fluidsynth.c" compile="1" resource="0" file="Source/Fluidlite/src/fluidsynth.c"/>
-          <FILE id="FUcL6v" name="fluidsynth_priv.h" compile="0" resource="0"
-                file="Source/Fluidlite/src/fluidsynth_priv.h"/>
-        </GROUP>
-      </GROUP>
       <GROUP id="{760B33E4-26B0-9C02-BA5C-80C644384CAA}" name="Math">
         <FILE id="lUBp2M" name="BjorklundAlgorithm.cpp" compile="1" resource="0"
               file="Source/BjorklundAlgorithm.cpp"/>
@@ -114,10 +47,6 @@
             file="Source/PlotComponentLogistic.h"/>
       <FILE id="BBecl3" name="MIDISynthComponent.h" compile="0" resource="0"
             file="Source/MIDISynthComponent.h"/>
-      <FILE id="mfcJt5" name="SoundFontAudioSource.cpp" compile="1" resource="0"
-            file="Source/SoundFontAudioSource.cpp"/>
-      <FILE id="MIsUtj" name="SoundFontAudioSource.h" compile="0" resource="0"
-            file="Source/SoundFontAudioSource.h"/>
       <FILE id="Wr9rjk" name="TreeNode.cpp" compile="1" resource="0" file="Source/TreeNode.cpp"/>
       <FILE id="VIowKh" name="TreeNode.h" compile="0" resource="0" file="Source/TreeNode.h"/>
       <FILE id="PlUmrP" name="BaseAudioAppComponent.cpp" compile="1" resource="0"

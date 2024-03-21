@@ -83,7 +83,7 @@ void ComponentStateController::resized()
     //renderedInitialized = true;
 }
 
-void ComponentStateController::changeListenerCallback(ChangeBroadcaster* source)
+void ComponentStateController::changeListenerCallback(ChangeBroadcaster* /*source*/)
 {
     //((CommunicationAgent*)source)->id;
 }

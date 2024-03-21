@@ -32,7 +32,7 @@ void DebugComponent::paint (juce::Graphics& g)
        drawing code..
     */
     
-    g.fillAll (juce::Colours::darkblue);   // clear the background
+    g.fillAll (juce::Colours::darkblue); // clear the background
 
     g.setColour (juce::Colours::white);
     g.setFont (12.0f);
