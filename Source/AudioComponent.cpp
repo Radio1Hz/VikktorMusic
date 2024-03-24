@@ -73,16 +73,17 @@ void AudioComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffe
     // (to prevent the output of random noise)
     if (masterBuffer == NULL) 
     {
-        masterBuffer = new AudioSampleBuffer(bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+        masterBuffer = new AudioSampleBuffer(2, bufferToFill.numSamples);
         masterBuffer->clear();
         
         for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
         {
-            auto* buffer = masterBuffer->getWritePointer(channel, bufferToFill.startSample);
-           //masterBuffer->setSample(channel, 0, Random::getSystemRandom().nextFloat());
-            for (auto sample = 0; sample < bufferSize; ++sample)
-            //buffer[sample] = Random::getSystemRandom().nextFloat() * 0.25f - 0.125f;
-            buffer[sample] = 0.5f * (float)sin(100 * MathConstants<double>::twoPi*((double)sample/(double)bufferSize) + MathConstants<double>::halfPi * (double)channel);
+            auto* buffer = masterBuffer->getWritePointer(channel, 0);
+            //masterBuffer->setSample(channel, 0, Random::getSystemRandom().nextFloat());
+            for (auto sample = 0; sample < bufferToFill.numSamples; sample++)
+            {
+                buffer[sample] = 0.5f * (float)sin(1.0 * MathConstants<double>::twoPi * ((double)sample / (double)bufferToFill.numSamples));
+            }
         }
         
     }
@@ -92,12 +93,12 @@ void AudioComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffe
         //masterBuffer.makeCopyOf(bufferToFill.buffer, true);
         // Get a pointer to the start sample in the buffer for this audio output channel
         //auto* buffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
-        bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, masterBuffer->getReadPointer(channel), bufferToFill.numSamples);
+        bufferToFill.buffer->copyFrom(channel, 0, masterBuffer->getReadPointer(channel), masterBuffer->getNumSamples());
         //// Fill the required number of samples with noise between -0.125 and +0.125
         //for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
         //    buffer[sample] = sin(sample) * 0.25f - 0.125f;
     }
-    sendChangeMessage();
+    //sendChangeMessage();
 }
 
 void AudioComponent::releaseResources()

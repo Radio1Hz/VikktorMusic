@@ -18,7 +18,6 @@ BaseAudioAppComponent::BaseAudioAppComponent()
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-
 }
 
 BaseAudioAppComponent::~BaseAudioAppComponent()

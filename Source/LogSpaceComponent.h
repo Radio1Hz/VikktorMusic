@@ -95,11 +95,11 @@ public:
 			tO->start();
 		}*/
 
-		/*stateControllerObjects.add(new ComponentStateController());
+		stateControllerObjects.add(new ComponentStateController());
 		for (auto* cO : stateControllerObjects)
 		{
 			addAndMakeVisible(cO);
-		}*/
+		}
 
 		//addNewPlot();
 
@@ -192,7 +192,7 @@ public:
 	void LogSpaceComponent::addNewAudioComponent()
 	{
 		AudioComponent* aO = new AudioComponent();
-		aO->iWillListenToYou(timerObjects[0]);
+		//aO->iWillListenToYou(timerObjects[0]);
 		addAndMakeVisible(aO);
 		audioObjects.add(aO);
 		resized();

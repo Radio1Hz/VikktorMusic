@@ -23,7 +23,9 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    void setInformation(juce::String info);
 
 private:
+    juce::String information;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DebugComponent)
 };

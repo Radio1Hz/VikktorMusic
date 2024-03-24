@@ -95,17 +95,17 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
     }
     else
     {
-        juce::Rectangle<int> rect = getBounds();
+        juce::Rectangle<float> rect = getBounds().toFloat();
         //float originalSize = rect.getWidth();
-        Point<int> originalCenter = rect.getCentre();
-        int newSize = rect.getWidth() * (1 + (int)wheel.deltaY);
-        if (newSize <= minSize)
+        Point<float> originalCenter = rect.getCentre();
+        float newSize = rect.getWidth() * (1.0f + wheel.deltaY);
+        if (newSize <= (float)minSize)
         {
-            newSize = minSize;
+            newSize = (float)minSize;
         }
         rect.setSize(newSize, newSize);
         rect.setCentre(originalCenter);
-        setBounds(rect);
+        setBounds((int)rect.getX(), (int)rect.getY(), (int)rect.getWidth(), (int)rect.getHeight());
         getParentComponent()->repaint();
     }
 }

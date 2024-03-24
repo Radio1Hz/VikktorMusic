@@ -18,6 +18,12 @@ DebugComponent::DebugComponent()
     // initialise any special settings that your component needs.
 }
 
+void DebugComponent::setInformation(juce::String info)
+{
+    this->information = juce::String(info);
+    repaint();
+}
+
 DebugComponent::~DebugComponent()
 {
     
@@ -34,10 +40,11 @@ void DebugComponent::paint (juce::Graphics& g)
     
     g.fillAll (juce::Colours::darkblue); // clear the background
 
-    g.setColour (juce::Colours::white);
+    g.setColour (juce::Colours::orange);
     g.setFont (12.0f);
-    g.drawText (juce::String(getWidth()) + "x" + juce::String(getHeight()), getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
+
+    g.drawText (information, getLocalBounds(),
+                juce::Justification::left, true);   // draw some placeholder text
 }
 
 void DebugComponent::resized()

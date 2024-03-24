@@ -4,7 +4,17 @@
 //==============================================================================
 
 
-MainComponent::MainComponent() : state(TransportState::Stopped)
+MainComponent::MainComponent() : state(TransportState::Stopped), 
+audioSetupComp(
+	deviceManager,
+	0,     // minimum input channels
+	256,   // maximum input channels
+	0,     // minimum output channels
+	256,   // maximum output channels
+	false, // ability to select midi inputs
+	false, // ability to select midi output device
+	false, // treat channels as stereo pairs
+	false) // hide advanced options)
 {
 	// Make sure you set the size of the component after
 	// you add any child components.
@@ -14,12 +24,15 @@ MainComponent::MainComponent() : state(TransportState::Stopped)
 	transportSource.addChangeListener(this);
 	setAudioChannels(0, 2); // no inputs, two outputs
 
-	audioToggleButton.setButtonText("Audio On");
-	audioToggleButton.onClick = [this] { updateToggleState(&audioToggleButton); };
+	audioOnToggleButton.setButtonText("Audio On");
+	audioOnToggleButton.onClick = [this] { updateToggleStateAudio(&audioOnToggleButton); };
+
+	audioSettingsToggleButton.setButtonText("Settings");
+	audioSettingsToggleButton.onClick = [this] { updateToggleStateSettings(&audioSettingsToggleButton); };
 	
-	if (!audioOn)
+	if (!internalBufferAudioOn)
 	{
-		audioToggleButton.triggerClick();
+		audioOnToggleButton.triggerClick();
 	}
 
 	playButton.setButtonText("Play");
@@ -40,13 +53,16 @@ MainComponent::MainComponent() : state(TransportState::Stopped)
 	timeLabel.setText(juce::String(juce::RelativeTime::seconds(0.0).getDescription()), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
 
-	addAndMakeVisible(logSpaceComponent, -1);
-	addAndMakeVisible(audioToggleButton);
+	addAndMakeVisible(logSpaceComponent);
+	addAndMakeVisible(audioOnToggleButton);
 	addAndMakeVisible(&playButton);
 	addAndMakeVisible(&stopButton);
 	addAndMakeVisible(&loadButton);
 	addAndMakeVisible(timeLabel);
-	//addAndMakeVisible(debugComponent, -1);
+	addAndMakeVisible(audioSetupComp);
+	addAndMakeVisible(debugComponent);
+	addAndMakeVisible(audioSettingsToggleButton);
+	audioSetupComp.setVisible(false);
 	setSize(800, 600);
 	startTimer(100);
 }
@@ -80,6 +96,7 @@ void MainComponent::chooseFile()
 				readerSource.reset(newSource.release());
 				delete reader;
 			}
+			this->internalBufferTotalLengthInSeconds = transportSource.getLengthInSeconds();
 			ReadSamplesToImage();
 		}
 	});
@@ -89,22 +106,22 @@ void MainComponent::ReadSamplesToImage()
 {
 
 	int numberOfSamples = internalAudioBuffer.getNumSamples();
-	Graphics g0(sampleBufferImage0);
-	Graphics g1(sampleBufferImage1);
+	Graphics g0(internalBufferSamplesImage0);
+	Graphics g1(internalBufferSamplesImage1);
 	g0.fillAll(Colours::black);
 	g1.fillAll(Colours::black);
 	int sampleIndex = 0;
 	int prevSampleIndex = 0;
 
 	// Draw signal in images Channel 0
-	for (int i = 1; i < sampleBufferImage0.getWidth(); i++)
+	for (int i = 1; i < internalBufferSamplesImage0.getWidth(); i++)
 	{
 		
-		sampleIndex = (int)((i*1.0f / sampleBufferImage0.getWidth()*1.0f) * numberOfSamples);
+		sampleIndex = (int)((i*1.0f / internalBufferSamplesImage0.getWidth()*1.0f) * numberOfSamples);
 		int sampleRange = sampleIndex - prevSampleIndex;
 		auto valueRange = internalAudioBuffer.findMinMax(0, prevSampleIndex, sampleRange);
 		g0.setColour(Colours::darkgrey);
-		g0.drawLine((float)i, (0.5f - valueRange.getStart()/2) * sampleBufferImage0.getHeight(), (float)i, (0.5f - valueRange.getEnd()/2) * sampleBufferImage0.getHeight(), 1.0f);
+		g0.drawLine((float)i, (0.5f - valueRange.getStart()/2) * internalBufferSamplesImage0.getHeight(), (float)i, (0.5f - valueRange.getEnd()/2) * internalBufferSamplesImage0.getHeight(), 1.0f);
 		prevSampleIndex = sampleIndex;
 	}
 
@@ -113,24 +130,24 @@ void MainComponent::ReadSamplesToImage()
 	if (internalAudioBuffer.getNumChannels() > 1)
 	{
 		// Draw signal in images Channel 1
-		for (int i = 1; i < sampleBufferImage1.getWidth(); i++)
+		for (int i = 1; i < internalBufferSamplesImage1.getWidth(); i++)
 		{
-			sampleIndex = (int)((i * 1.0f / sampleBufferImage1.getWidth() * 1.0f) * numberOfSamples);
+			sampleIndex = (int)((i * 1.0f / internalBufferSamplesImage1.getWidth() * 1.0f) * numberOfSamples);
 			int sampleRange = sampleIndex - prevSampleIndex;
 			auto valueRange = internalAudioBuffer.findMinMax(1, prevSampleIndex, sampleRange);
 			g1.setColour(Colours::darkgrey);
-			g1.drawLine((float)i, (0.5f - valueRange.getStart()/2) * sampleBufferImage1.getHeight(), (float)i, (0.5f - valueRange.getEnd()/2) * sampleBufferImage1.getHeight(), 1.0f);
+			g1.drawLine((float)i, (0.5f - valueRange.getStart()/2) * internalBufferSamplesImage1.getHeight(), (float)i, (0.5f - valueRange.getEnd()/2) * internalBufferSamplesImage1.getHeight(), 1.0f);
 			prevSampleIndex = sampleIndex;
-
 		}
-
 	}
 	repaint();
 }
 
 MainComponent::~MainComponent()
 {
+	stopTimer();
 	shutdownAudio();
+	transportSource.setSource(nullptr);
 	removeAllChildren();
 	deleteAllChildren();
 }
@@ -177,6 +194,9 @@ void MainComponent::changeState(TransportState newState)
 			stopButton.setButtonText("Stop");
 			stopButton.setEnabled(false);
 			transportSource.setPosition(0.0);
+			internalBufferCurrentPositionInSeconds = 0.0;
+			internalBufferPointerRasterX = 0;
+			repaint();
 			break;
 
 		case Starting:
@@ -207,10 +227,21 @@ void MainComponent::changeState(TransportState newState)
 void MainComponent::timerCallback()
 {
 	timeLabel.setText(juce::String(juce::RelativeTime::seconds(transportSource.getCurrentPosition()).getDescription()), NotificationType::dontSendNotification);
-	repaint();
+	if (transportSource.isPlaying() && internalBufferTotalLengthInSeconds > 0.0)
+	{
+		double percent = internalBufferCurrentPositionInSeconds / internalBufferTotalLengthInSeconds;
+		int newRasterX = (int)((double)internalBufferSamplesImage0.getWidth() * percent);
+		if (newRasterX != internalBufferPointerRasterX)
+		{
+			internalBufferPointerRasterX = newRasterX;
+			repaint();
+		}
+	}
+	double cpuUsage = deviceManager.getCpuUsage();
+	debugComponent.setInformation("CPU: " + juce::String(cpuUsage*100.00) + "%");
 }
 
-void MainComponent::updateToggleState(juce::Button* button)
+void MainComponent::updateToggleStateAudio(juce::Button* button)
 {
 	bool stateOn = button->getToggleState();
 	if (stateOn)
@@ -223,20 +254,25 @@ void MainComponent::updateToggleState(juce::Button* button)
 	}
 }
 
+void MainComponent::updateToggleStateSettings(juce::Button* button)
+{
+	audioSetupComp.setVisible(button->getToggleState());
+}
+
 void MainComponent::setAudioOn()
 {
-	if (!audioOn)
+	if (!internalBufferAudioOn)
 	{
-		audioOn = true;
+		internalBufferAudioOn = true;
 	}
 }
 
 void MainComponent::setAudioOff()
 {
 	// This shuts down the audio device and clears the audio source.
-	if (audioOn)
+	if (internalBufferAudioOn)
 	{
-		audioOn = false;
+		internalBufferAudioOn = false;
 	}
 }
 
@@ -244,8 +280,8 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 {
 	juce::String message;
 
-	currentSampleRate = sampleRate;
-	currentSamplesPerBlock = samplesPerBlockExpected;
+	internalBufferSampleRate = sampleRate;
+	internalBufferSamplesPerBlock = samplesPerBlockExpected;
 	
 	transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
 	transportSource.setLooping(true);
@@ -262,7 +298,8 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 		bufferToFill.clearActiveBufferRegion();
 		return;
 	}
-	if (audioOn)
+
+	if (internalBufferAudioOn)
 	{
 		transportSource.getNextAudioBlock(bufferToFill);
 	}
@@ -271,6 +308,8 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 		transportSource.getNextAudioBlock(bufferToFill);
 		bufferToFill.clearActiveBufferRegion();
 	}
+
+	internalBufferCurrentPositionInSeconds = transportSource.getCurrentPosition();
 }
 
 void MainComponent::releaseResources()
@@ -293,31 +332,25 @@ void MainComponent::paint(juce::Graphics& g)
 	Rectangle<float> rectMain = Rectangle<float>((float)getWidth(), 30.0f);
 	g.setColour(Colour::fromRGB(255, 255, 255));
 	rectMain.translate(0.0f, (float)getHeight() - 30.0f);
-	g.drawText("Sample Rate: " + String(currentSampleRate) + ", Samples per block: " + String(currentSamplesPerBlock), rectMain, Justification::left);
+	g.drawText("Sample Rate: " + String(internalBufferSampleRate) + ", Samples per block: " + String(internalBufferSamplesPerBlock), rectMain, Justification::left);
 	int signalImagesOffsetFromBottom = 60;
 	Rectangle<float> sampleBufferImageRect = Rectangle<float>((float)getWidth(), 30.0f);
 	sampleBufferImageRect.translate(0, (float)getHeight() - signalImagesOffsetFromBottom);
 	g.setColour(juce::Colours::darkgrey);
-	g.drawImage(sampleBufferImage0, sampleBufferImageRect);
+	g.drawImage(internalBufferSamplesImage0, sampleBufferImageRect);
 	g.drawRect(sampleBufferImageRect);
 	sampleBufferImageRect.translate(0, -30);
-	g.drawImage(sampleBufferImage1, sampleBufferImageRect);
+	g.drawImage(internalBufferSamplesImage1, sampleBufferImageRect);
 	g.drawRect(sampleBufferImageRect);
 
 	g.setColour(juce::Colours::lightyellow);
 
-	double total_length = transportSource.getLengthInSeconds();
 
-	if (total_length)
-	{
-		double current_pos = transportSource.getCurrentPosition();
-		double percent = current_pos / total_length;
+	juce::Point<int> topLeft0 = sampleBufferImageRect.getTopLeft().toInt();
+	juce::Point<int> bottomRight1 = sampleBufferImageRect.getBottomRight().toInt();
 
-		juce::Point<float> topLeft0 = sampleBufferImageRect.getTopLeft();
-		juce::Point<float> bottomRight1 = sampleBufferImageRect.getBottomRight();
+	g.fillRect(internalBufferPointerRasterX, topLeft0.getY(), 1, 2 * (int)sampleBufferImageRect.getHeight());
 
-		g.fillRect(sampleBufferImageRect.getWidth() * (float)percent, topLeft0.getY(), 1.0f, 2*sampleBufferImageRect.getHeight());
-	}
 }
 
 void MainComponent::resized()
@@ -325,22 +358,34 @@ void MainComponent::resized()
 	// This is called when the MainContentComponent is resized.
 	// If you add any child components, this is where you should
 	// update their positions.
-	int controlsAreaOffsetFromBottom = 120; // 60 px from the bottom of the screen
-	
-	logSpaceComponent.setSize(getWidth(), getHeight() - controlsAreaOffsetFromBottom);
+	int controlsAreaOffsetFromBottom = 120;
+
 	debugComponent.setBounds(0, 0, getWidth(), 30);
-	audioToggleButton.setBounds(0, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	logSpaceComponent.setBounds(0, 30, getWidth(), getHeight() - controlsAreaOffsetFromBottom-30);
+	audioSettingsToggleButton.setBounds(getWidth()-80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
+	audioOnToggleButton.setBounds(0, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	stopButton.setBounds(180, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	loadButton.setBounds(60, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	playButton.setBounds(120, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	timeLabel.setBounds(240, getHeight() - controlsAreaOffsetFromBottom, 120, 30);
-	sampleBufferImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
-	sampleBufferImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
-	sampleBufferImage0.clear(sampleBufferImage0.getBounds(), juce::Colours::black);
-	sampleBufferImage1.clear(sampleBufferImage1.getBounds(), juce::Colours::black);
+
+	internalBufferSamplesImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
+	internalBufferSamplesImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
+
+	internalBufferSamplesImage0.clear(internalBufferSamplesImage0.getBounds(), juce::Colours::black);
+	internalBufferSamplesImage1.clear(internalBufferSamplesImage1.getBounds(), juce::Colours::black);
+
 	if (internalAudioBuffer.getNumSamples())
 	{
 		ReadSamplesToImage();
 	}
-	
+
+	if (getWidth() > 400)
+	{
+		audioSetupComp.setBounds(getWidth() - 400, getHeight() - controlsAreaOffsetFromBottom - 300, 400, 300);
+	}
+	else
+	{
+		audioSetupComp.setVisible(false);
+	}
 }
