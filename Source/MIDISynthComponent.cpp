@@ -64,7 +64,7 @@ void MIDISynthComponent::timerCallback()
     //stopTimer();
 }
 //==============================================================================
-void MIDISynthComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
+void MIDISynthComponent::prepareToPlay(int /*samplesPerBlockExpected*/, double /*sampleRate*/)
 {
     // This function will be called when the audio device is started, or when
     // its settings (i.e. sample rate, block size, etc) are changed.
@@ -132,12 +132,12 @@ void MIDISynthComponent::comboBoxChanged(ComboBox* comboBoxThatWasChanged)
     }
 }
 
-void MIDISynthComponent::handleNoteOn(MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity)
+void MIDISynthComponent::handleNoteOn(MidiKeyboardState*, int /*midiChannel*/, int /*midiNoteNumber*/, float /*velocity*/)
 {
     //soundfontPlayer.noteOn(midiNoteNumber, (int)velocity * 127, midiChannel);
 }
 
-void MIDISynthComponent::handleNoteOff(MidiKeyboardState*,  int midiChannel, int midiNoteNumber, float)
+void MIDISynthComponent::handleNoteOff(MidiKeyboardState*,  int /*midiChannel*/, int /*midiNoteNumber*/, float)
 {
     //soundfontPlayer.noteOff(midiNoteNumber, midiChannel);
 }

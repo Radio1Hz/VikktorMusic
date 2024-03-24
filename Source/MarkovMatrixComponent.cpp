@@ -21,7 +21,7 @@ MarkovMatrixComponent::MarkovMatrixComponent(int size)
 {
 	this->size = size;
 	this->name = "Markov Matrix " + String(size);
-	matrix = new juce::dsp::Matrix<double>(size, size);
+	matrix = new juce::dsp::Matrix<float>(size, size);
 	resetMatrix();
 	createChildren();
 	addMouseListener(this, true);
@@ -31,7 +31,7 @@ void MarkovMatrixComponent::resetMatrix()
 {
 	for (int i = 0; i < size; i++)
 	{
-		Array<double> arr = getProbabilitiesArray(false);
+		Array<float> arr = getProbabilitiesArray(false);
 		for (int j = 0; j < size; j++)
 		{
 			matrix->operator()(i, j) = arr[j];
@@ -85,10 +85,9 @@ void MarkovMatrixComponent::changeListenerCallback(juce::ChangeBroadcaster* sour
 
 void MarkovMatrixComponent::rearrangeMatrix(ProbabilitySlider* d, int /*algorythmId*/)
 {
-	double currentVal = matrix->operator()(d->row, d->col);
-	double newValue = d->getValue();
-	double difference = newValue - currentVal;
-	double tempVal = 0;
+	float currentVal = matrix->operator()(d->row, d->col);
+	float newValue = d->getValue();
+	float difference = newValue - currentVal;
 	matrix->operator()(d->row, d->col) = newValue;
 
 	if (difference != 0)
@@ -126,77 +125,18 @@ void MarkovMatrixComponent::rearrangeMatrix(ProbabilitySlider* d, int /*algoryth
 	repaint();
 }
 
-// Original
-//void MarkovMatrixComponent::rearrangeMatrix(ProbabilitySlider* d, int /*algorythmId*/)
-//{
-//    double currentValue = matrix->operator()(d->row, d->col);
-//    double newValue = d->getValue();
-//    double totalDiff = newValue - currentValue;
-//    //double restDiff = totalDiff;
-//    
-//    bool isNegative = signbit(totalDiff);
-//
-//    int nonZeroElementsNumber = 0;
-//
-//    for (int i = 0; i < size; i++)
-//    {
-//        if (matrix->operator()(d->row, i) > 0 && i!=d->col)
-//        {
-//            nonZeroElementsNumber++;
-//        }
-//    }
-//
-//    double localDiff = totalDiff / ((double)nonZeroElementsNumber);
-//    matrix->operator()(d->row, d->col) = d->getValue();
-//
-//    if (isNegative)
-//    {
-//        for (int i = 0; i < size; i++)
-//        {
-//            if (i != d->col)
-//            {
-//                matrix->operator()(d->row, i) -= localDiff;
-//                if (matrix->operator()(d->row, i) > 1)
-//                {
-//                    matrix->operator()(d->row, i) = 1;
-//                    
-//                    localDiff -= 1-matrix->operator()(d->row, i);
-//                }
-//                sliders[d->row * size + i]->setValue(matrix->operator()(d->row, i));
-//            }
-//        }
-//    }
-//    else
-//    {
-//        for (int i = 0; i < size; i++)
-//        {
-//            if (i != d->col)
-//            {
-//                matrix->operator()(d->row, i) -= localDiff;
-//                if (matrix->operator()(d->row, i) < 0)
-//                {
-//                    matrix->operator()(d->row, i) = 0;
-//                    localDiff += -matrix->operator()(d->row, i);
-//                }
-//                sliders[d->row * size + i]->setValue(matrix->operator()(d->row, i));
-//            }
-//        }
-//    }
-//    
-//    repaint();
-//}
 
-juce::Array<double> MarkovMatrixComponent::getProbabilitiesArray(bool test = false)
+juce::Array<float> MarkovMatrixComponent::getProbabilitiesArray(bool test = false)
 {
-	juce::Array<double> arr;
-	juce::Array<double> ret;
-	double sum = 0;
+	juce::Array<float> arr;
+	juce::Array<float> ret;
+	float sum = 0;
 
 	arr.clear();
 
 	for (int i = 0; i < size - 1; i++)
 	{
-		arr.add(juce::Random::getSystemRandom().nextDouble());
+		arr.add(juce::Random::getSystemRandom().nextFloat());
 	}
 
 	arr.sort();
@@ -207,7 +147,7 @@ juce::Array<double> MarkovMatrixComponent::getProbabilitiesArray(bool test = fal
 	{
 		for (int i = 0; i < size - 1; i++)
 		{
-			ret.add(i == 0 ? 1 : 0);
+			ret.add(i == 0 ? 1.0f : 0.0f);
 		}
 	}
 	else

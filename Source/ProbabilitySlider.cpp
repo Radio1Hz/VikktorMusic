@@ -15,7 +15,7 @@
 
 
 
-ProbabilitySlider::ProbabilitySlider(double value, int row, int col)
+ProbabilitySlider::ProbabilitySlider(float value, int row, int col)
 {
     this->row = row;
     this->col = col;
@@ -38,56 +38,56 @@ ProbabilitySlider::~ProbabilitySlider()
     deleteAllChildren();
 }
 
-void ProbabilitySlider::sliderValueChanged(juce::Slider* slider)
+void ProbabilitySlider::sliderValueChanged(juce::Slider* sourceSlider)
 {
-    value = slider->getValue();
+    value = (float)sourceSlider->getValue();
     sendChangeMessage();
     this->slider.repaint();
 }
 
-void ProbabilitySlider::mouseDoubleClick(const juce::MouseEvent& event)
+void ProbabilitySlider::mouseDoubleClick(const juce::MouseEvent& /*event*/)
 {
 
 }
 
-void ProbabilitySlider::mouseDrag(const juce::MouseEvent& event)
+void ProbabilitySlider::mouseDrag(const juce::MouseEvent& /*event*/)
 {
    
 }
 
-void ProbabilitySlider::mouseUp(const juce::MouseEvent& event)
+void ProbabilitySlider::mouseUp(const juce::MouseEvent& /*event*/)
 {
 
 }
 
-void ProbabilitySlider::mouseDown(const juce::MouseEvent& event)
-{
-    
-}
-
-void ProbabilitySlider::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+void ProbabilitySlider::mouseDown(const juce::MouseEvent& /*event*/)
 {
     
 }
 
-void ProbabilitySlider::mouseEnter(const juce::MouseEvent& event)
+void ProbabilitySlider::mouseWheelMove(const juce::MouseEvent& /*event*/, const juce::MouseWheelDetails& /*wheel*/)
+{
+    
+}
+
+void ProbabilitySlider::mouseEnter(const juce::MouseEvent& /*event*/)
 {
     mouseOver = true;
     repaint();
 }
 
-void ProbabilitySlider::mouseExit(const juce::MouseEvent& event)
+void ProbabilitySlider::mouseExit(const juce::MouseEvent& /*event*/)
 {
     mouseOver = false;
     repaint();
 }
 
-double ProbabilitySlider::getValue()
+float ProbabilitySlider::getValue()
 {
     return this->value;
 }
 
-void ProbabilitySlider::setValue(double val)
+void ProbabilitySlider::setValue(float val)
 {
     this->value = val;
     slider.setValue(val);
@@ -121,13 +121,13 @@ void ProbabilitySlider::paint (juce::Graphics& g)
     center_point.addXY(-slider.getWidth()/2, 0);
     
     float font_size = 120.0f * local_bounds.getWidth() / r.getWidth();
-    float max_radius = local_bounds.getWidth() * 0.75;
+    float max_radius = local_bounds.getWidth() * 0.75f;
     
     g.setFont(font_size);
     
-    g.fillEllipse(center_point.getX() - max_radius * value/2, center_point.getY() - max_radius * value/2, max_radius * value, max_radius * value);   // draw some placeholder text
-    g.drawText("[" + juce::String(row) + "," + juce::String(col) + "]", getLocalBounds().getX() + line_width/2, getLocalBounds().getY() + getLocalBounds().getHeight() - font_size - line_width/2, max_radius/2, font_size, juce::Justification::topLeft, true);
-    g.drawText(juce::String(this->value), getLocalBounds().getX() + getLocalBounds().getWidth() / 2, getLocalBounds().getY() + getLocalBounds().getHeight() - font_size - line_width/2, max_radius/2, font_size, juce::Justification::topLeft, true);
+    g.fillEllipse((float)center_point.getX() - max_radius * value/2, (float)center_point.getY() - max_radius * value/2, max_radius * value, max_radius * value);   // draw some placeholder text
+    g.drawText("[" + juce::String(row) + "," + juce::String(col) + "]", getLocalBounds().getX() + (int)line_width/2, getLocalBounds().getY() + getLocalBounds().getHeight() - (int)font_size - (int)line_width/2, (int)max_radius/2, (int)font_size, juce::Justification::topLeft, true);
+    g.drawText(juce::String(this->value), getLocalBounds().getX() + getLocalBounds().getWidth() / 2, getLocalBounds().getY() + getLocalBounds().getHeight() - (int)font_size - (int)line_width/2, (int)max_radius/2, (int)font_size, juce::Justification::topLeft, true);
 }
 
 void ProbabilitySlider::resized()

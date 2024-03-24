@@ -24,7 +24,7 @@ CommunicationAgent::~CommunicationAgent()
 {
 
 }
-void CommunicationAgent::messageReceived(CommunicationAgent* agent) {}
+void CommunicationAgent::messageReceived(CommunicationAgent* /*agent*/) {}
 
 void CommunicationAgent::iWillListenToYou(CommunicationAgent* agent)
 {

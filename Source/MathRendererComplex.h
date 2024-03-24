@@ -77,8 +77,8 @@ public:
     void DrawCoordinateSys(Graphics& g)
     {
         g.setColour(juce::Colours::lightpink);
-        g.drawHorizontalLine((int)x0.y, area.getX(), area_width);
-        g.drawVerticalLine((int)x0.x, area.getY(), area_height);
+        g.drawHorizontalLine((int)x0.y, (float)area.getX(), (float)area_width);
+        g.drawVerticalLine((int)x0.x, (float)area.getY(), (float)area_height);
 
         juce::Point<float> min_math_point = juce::Point<float>(ScreenToMathPoint(juce::Point<float>(0, 0)));
         juce::Point<float> max_math_point = juce::Point<float>(ScreenToMathPoint(juce::Point<float>(area_width, area_height)));

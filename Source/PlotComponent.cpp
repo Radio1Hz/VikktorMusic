@@ -31,7 +31,7 @@ void PlotComponent::paint (juce::Graphics& g)
     drawOutline(g);
 }
 
-void PlotComponent::zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails&)
+void PlotComponent::zoomEvent(const juce::MouseEvent& /*event*/, const juce::MouseWheelDetails&)
 {
     repaint();
 }

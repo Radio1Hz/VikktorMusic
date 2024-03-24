@@ -8,7 +8,8 @@ MainComponent::MainComponent() : state(TransportState::Stopped)
 {
 	// Make sure you set the size of the component after
 	// you add any child components.
-	setSize(800, 600);
+	setOpaque(true);
+	
 	formatManager.registerBasicFormats();
 	transportSource.addChangeListener(this);
 	setAudioChannels(0, 2); // no inputs, two outputs
@@ -31,34 +32,101 @@ MainComponent::MainComponent() : state(TransportState::Stopped)
 	stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
 	stopButton.setEnabled(false);
 
+	loadButton.setButtonText("Load");
+	loadButton.onClick = [this] { chooseFile(); };
+	loadButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blueviolet);
+	loadButton.setEnabled(true);
+
 	timeLabel.setText(juce::String(juce::RelativeTime::seconds(0.0).getDescription()), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
 
 	addAndMakeVisible(logSpaceComponent, -1);
-	addAndMakeVisible(audioToggleButton, -1);
+	addAndMakeVisible(audioToggleButton);
 	addAndMakeVisible(&playButton);
 	addAndMakeVisible(&stopButton);
+	addAndMakeVisible(&loadButton);
 	addAndMakeVisible(timeLabel);
 	//addAndMakeVisible(debugComponent, -1);
-
-	auto file = juce::File(juce::String(CharPointer_UTF8("C:\\Data\\Samples\\Ashtar.wav")));
-
-	if (file != juce::File{})                                                // [9]
-	{
-		auto* reader = formatManager.createReaderFor(file);                 // [10]
-
-		if (reader != nullptr)
-		{
-			auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);   // [11]
-			transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);       // [12]
-			playButton.setEnabled(true);                                                      // [13]
-			readerSource.reset(newSource.release());                                          // [14]
-		}
-	}
-
+	setSize(800, 600);
 	startTimer(100);
 }
 
+void MainComponent::chooseFile()
+{
+	fileChooser = std::make_unique<FileChooser>("Please select the .wav file you want to load...", File("C:\\Data\\Samples"), "*.wav");
+
+	auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+
+	fileChooser->launchAsync(folderChooserFlags, [this](const FileChooser& chooser)
+	{
+		File file(chooser.getResult());
+
+		if (file != juce::File{})
+		{
+			AudioFormatReader* reader = formatManager.createReaderFor(file);
+			WavAudioFormat wavFormat;
+			if (reader != nullptr)
+			{
+				internalAudioBuffer.setSize(reader->numChannels, (int)reader->lengthInSamples);
+
+				auto memoryMappedReader = wavFormat.createMemoryMappedReader(file);
+				memoryMappedReader->mapEntireFile();
+
+				memoryMappedReader->read(internalAudioBuffer.getArrayOfWritePointers(), reader->numChannels, 0, (int)reader->lengthInSamples);
+				auto newSource = std::make_unique<juce::AudioFormatReaderSource>(memoryMappedReader, true);
+				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+				
+				playButton.setEnabled(true);
+				readerSource.reset(newSource.release());
+				delete reader;
+			}
+			ReadSamplesToImage();
+		}
+	});
+}
+
+void MainComponent::ReadSamplesToImage()
+{
+
+	int numberOfSamples = internalAudioBuffer.getNumSamples();
+	Graphics g0(sampleBufferImage0);
+	Graphics g1(sampleBufferImage1);
+	g0.fillAll(Colours::black);
+	g1.fillAll(Colours::black);
+	int sampleIndex = 0;
+	int prevSampleIndex = 0;
+
+	// Draw signal in images Channel 0
+	for (int i = 1; i < sampleBufferImage0.getWidth(); i++)
+	{
+		
+		sampleIndex = (int)((i*1.0f / sampleBufferImage0.getWidth()*1.0f) * numberOfSamples);
+		int sampleRange = sampleIndex - prevSampleIndex;
+		auto valueRange = internalAudioBuffer.findMinMax(0, prevSampleIndex, sampleRange);
+		g0.setColour(Colours::darkgrey);
+		g0.drawLine((float)i, (0.5f - valueRange.getStart()/2) * sampleBufferImage0.getHeight(), (float)i, (0.5f - valueRange.getEnd()/2) * sampleBufferImage0.getHeight(), 1.0f);
+		prevSampleIndex = sampleIndex;
+	}
+
+	prevSampleIndex = 0;
+
+	if (internalAudioBuffer.getNumChannels() > 1)
+	{
+		// Draw signal in images Channel 1
+		for (int i = 1; i < sampleBufferImage1.getWidth(); i++)
+		{
+			sampleIndex = (int)((i * 1.0f / sampleBufferImage1.getWidth() * 1.0f) * numberOfSamples);
+			int sampleRange = sampleIndex - prevSampleIndex;
+			auto valueRange = internalAudioBuffer.findMinMax(1, prevSampleIndex, sampleRange);
+			g1.setColour(Colours::darkgrey);
+			g1.drawLine((float)i, (0.5f - valueRange.getStart()/2) * sampleBufferImage1.getHeight(), (float)i, (0.5f - valueRange.getEnd()/2) * sampleBufferImage1.getHeight(), 1.0f);
+			prevSampleIndex = sampleIndex;
+
+		}
+
+	}
+	repaint();
+}
 
 MainComponent::~MainComponent()
 {
@@ -139,6 +207,7 @@ void MainComponent::changeState(TransportState newState)
 void MainComponent::timerCallback()
 {
 	timeLabel.setText(juce::String(juce::RelativeTime::seconds(transportSource.getCurrentPosition()).getDescription()), NotificationType::dontSendNotification);
+	repaint();
 }
 
 void MainComponent::updateToggleState(juce::Button* button)
@@ -173,40 +242,13 @@ void MainComponent::setAudioOff()
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-	//const auto currentDevice = deviceManager.getAvailableDeviceTypes();
 	juce::String message;
 
-	message << "Preparing to play audio...\n";
-	message << " samplesPerBlockExpected = " << samplesPerBlockExpected << "\n";
-	message << " sampleRate = " << sampleRate;
 	currentSampleRate = sampleRate;
 	currentSamplesPerBlock = samplesPerBlockExpected;
 	
 	transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
-	// ---------------------------- buffer Init -----------------------------------
-
-	//internalAudioBuffer = juce::AudioBuffer<float>(2, currentSampleRate * numSeconds);
-	//internalAudioBuffer.clear(0, 0, currentSampleRate * numSeconds); //left
-	//internalAudioBuffer.clear(1, 0, currentSampleRate * numSeconds); //right
-
-	//for (int i = 0; i < numSeconds; i++)
-	//{
-	//	internalAudioBuffer.addSample(0, i * currentSampleRate, 0.90f);
-	//	internalAudioBuffer.addSample(1, i * currentSampleRate, 0.90f);
-	//}
-
-	//auto file = juce::File("C:\\Data\\Samples\\mixkit-arcade-retro-game-over-213.wav");
-	
-	//internalAudioBuffer = getAudioBufferFromFile(file);
-
-	//std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
-	//if (reader)
-	//{
-	//	juce::AudioBuffer<float> tempBuffer;
-	//	auto duration = (float)reader->lengthInSamples / reader->sampleRate;
-	//	reader->readSamples(& tempBuffer, 2, 0, internalAudioBuffer.getNumSamples());
-	//	//internalAudioBuffer = juce::AudioBuffer<float>(2, currentSampleRate * duration);
-	//}
+	transportSource.setLooping(true);
 
 	//-----------------------------------------------------------------------------
 
@@ -246,11 +288,36 @@ bool MainComponent::keyPressed(const KeyPress& /*key*/, Component* /*originating
 void MainComponent::paint(juce::Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
+
 	g.fillAll(juce::Colours::black);
 	Rectangle<float> rectMain = Rectangle<float>((float)getWidth(), 30.0f);
 	g.setColour(Colour::fromRGB(255, 255, 255));
-	rectMain.translate(60.0f, (float)getHeight() - 30.0f);
+	rectMain.translate(0.0f, (float)getHeight() - 30.0f);
 	g.drawText("Sample Rate: " + String(currentSampleRate) + ", Samples per block: " + String(currentSamplesPerBlock), rectMain, Justification::left);
+	int signalImagesOffsetFromBottom = 60;
+	Rectangle<float> sampleBufferImageRect = Rectangle<float>((float)getWidth(), 30.0f);
+	sampleBufferImageRect.translate(0, (float)getHeight() - signalImagesOffsetFromBottom);
+	g.setColour(juce::Colours::darkgrey);
+	g.drawImage(sampleBufferImage0, sampleBufferImageRect);
+	g.drawRect(sampleBufferImageRect);
+	sampleBufferImageRect.translate(0, -30);
+	g.drawImage(sampleBufferImage1, sampleBufferImageRect);
+	g.drawRect(sampleBufferImageRect);
+
+	g.setColour(juce::Colours::lightyellow);
+
+	double total_length = transportSource.getLengthInSeconds();
+
+	if (total_length)
+	{
+		double current_pos = transportSource.getCurrentPosition();
+		double percent = current_pos / total_length;
+
+		juce::Point<float> topLeft0 = sampleBufferImageRect.getTopLeft();
+		juce::Point<float> bottomRight1 = sampleBufferImageRect.getBottomRight();
+
+		g.fillRect(sampleBufferImageRect.getWidth() * (float)percent, topLeft0.getY(), 1.0f, 2*sampleBufferImageRect.getHeight());
+	}
 }
 
 void MainComponent::resized()
@@ -258,10 +325,22 @@ void MainComponent::resized()
 	// This is called when the MainContentComponent is resized.
 	// If you add any child components, this is where you should
 	// update their positions.
-	logSpaceComponent.setSize(getWidth(), getHeight() - 30);
+	int controlsAreaOffsetFromBottom = 120; // 60 px from the bottom of the screen
+	
+	logSpaceComponent.setSize(getWidth(), getHeight() - controlsAreaOffsetFromBottom);
 	debugComponent.setBounds(0, 0, getWidth(), 30);
-	audioToggleButton.setBounds(0, getHeight() - 30, 60, 30);
-	stopButton.setBounds(60, getHeight() - 60, 60, 30);
-	playButton.setBounds(0, getHeight() - 60, 60, 30);
-	timeLabel.setBounds(120, getHeight() - 60, 120, 30);
+	audioToggleButton.setBounds(0, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	stopButton.setBounds(180, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	loadButton.setBounds(60, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	playButton.setBounds(120, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	timeLabel.setBounds(240, getHeight() - controlsAreaOffsetFromBottom, 120, 30);
+	sampleBufferImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
+	sampleBufferImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
+	sampleBufferImage0.clear(sampleBufferImage0.getBounds(), juce::Colours::black);
+	sampleBufferImage1.clear(sampleBufferImage1.getBounds(), juce::Colours::black);
+	if (internalAudioBuffer.getNumSamples())
+	{
+		ReadSamplesToImage();
+	}
+	
 }

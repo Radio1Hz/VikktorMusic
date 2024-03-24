@@ -27,7 +27,7 @@ public:
     void paint (juce::Graphics&) override;
     void markCurrentState();
     void resized() override;
-    juce::Array<double> getProbabilitiesArray(bool);
+    juce::Array<float> getProbabilitiesArray(bool);
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     
     void nextStep();
@@ -41,7 +41,7 @@ private:
     int smaller_size = 1;
     void rearrangeMatrix(ProbabilitySlider* d, int algorythmId);
     //************************   JUCE complex objects   ************************
-    juce::dsp::Matrix<double> *matrix;
+    juce::dsp::Matrix<float> *matrix;
     juce::OwnedArray<ProbabilitySlider> sliders;
 
     //************************   functions, methods   ************************

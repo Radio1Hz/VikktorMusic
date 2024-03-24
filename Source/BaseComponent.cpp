@@ -61,13 +61,13 @@ void BaseComponent::resized()
     setSize(250, 250);
 }
 
-void BaseComponent::zoomEvent(const juce::MouseEvent & event, const juce::MouseWheelDetails & wheel){}
-void BaseComponent::controlClickEvent(const juce::MouseEvent& event) {}
-void BaseComponent::controlDragEvent(const juce::MouseEvent& event) {}
-void BaseComponent::controlDoubleClickEvent(const juce::MouseEvent& event) {}
-void BaseComponent::controlMouseDownEvent(const juce::MouseEvent& event) {}
-void BaseComponent::controlMouseUpEvent(const juce::MouseEvent& event) {}
-void BaseComponent::shiftMouseDownEvent(const juce::MouseEvent& event) {}
+void BaseComponent::zoomEvent(const juce::MouseEvent & /*event*/, const juce::MouseWheelDetails & /*wheel*/){}
+void BaseComponent::controlClickEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::controlDragEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::controlDoubleClickEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::controlMouseDownEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::controlMouseUpEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::shiftMouseDownEvent(const juce::MouseEvent& /*event*/) {}
 
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
@@ -96,9 +96,9 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
     else
     {
         juce::Rectangle<int> rect = getBounds();
-        float originalSize = rect.getWidth();
+        //float originalSize = rect.getWidth();
         Point<int> originalCenter = rect.getCentre();
-        float newSize = (float)rect.getWidth() * (1 + wheel.deltaY);
+        int newSize = rect.getWidth() * (1 + (int)wheel.deltaY);
         if (newSize <= minSize)
         {
             newSize = minSize;

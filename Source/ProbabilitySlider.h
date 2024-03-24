@@ -17,7 +17,7 @@ using namespace juce;
 class ProbabilitySlider  : public juce::Component, public juce::Slider::Listener, public juce::ChangeBroadcaster
 {
 public:
-    ProbabilitySlider(double value, int row, int col);
+    ProbabilitySlider(float value, int row, int col);
     ~ProbabilitySlider() override;
 public:
     int row = 0;
@@ -34,13 +34,13 @@ public:
     void mouseExit(const juce::MouseEvent& event) override;
     void sliderValueChanged(juce::Slider* slider) override;
 
-    double getValue();
-    void setValue(double val);
+    float getValue();
+    void setValue(float val);
 
 private:
     juce::Slider slider;
     bool mouseOver = false;
-    double value = 0;
+    float value = 0.0f;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ProbabilitySlider)
 };

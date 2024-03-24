@@ -48,7 +48,7 @@ AudioComponent::~AudioComponent()
 }
 
 //==============================================================================
-void AudioComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
+void AudioComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRateExpected)
 {
     // This function will be called when the audio device is started, or when
     // its settings (i.e. sample rate, block size, etc) are changed.
@@ -57,7 +57,7 @@ void AudioComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRat
     // but be careful - it will be called on the audio thread, not the GUI thread.
 
     // For more details, see the help for AudioProcessor::prepareToPlay()
-    this->sampleRate = sampleRate;
+    this->sampleRate = sampleRateExpected;
     this->bufferSize = samplesPerBlockExpected;
 
     this->name += ": " + String(round(sampleRate)) + "/" + String(bufferSize);
@@ -82,7 +82,7 @@ void AudioComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffe
            //masterBuffer->setSample(channel, 0, Random::getSystemRandom().nextFloat());
             for (auto sample = 0; sample < bufferSize; ++sample)
             //buffer[sample] = Random::getSystemRandom().nextFloat() * 0.25f - 0.125f;
-            buffer[sample] = 0.5 * sin(100 * MathConstants<float>::twoPi*((double)sample/(double)bufferSize) + MathConstants<float>::halfPi * channel);
+            buffer[sample] = 0.5f * (float)sin(100 * MathConstants<double>::twoPi*((double)sample/(double)bufferSize) + MathConstants<double>::halfPi * (double)channel);
         }
         
     }
@@ -91,7 +91,7 @@ void AudioComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffe
     {
         //masterBuffer.makeCopyOf(bufferToFill.buffer, true);
         // Get a pointer to the start sample in the buffer for this audio output channel
-        auto* buffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
+        //auto* buffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
         bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, masterBuffer->getReadPointer(channel), bufferToFill.numSamples);
         //// Fill the required number of samples with noise between -0.125 and +0.125
         //for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)

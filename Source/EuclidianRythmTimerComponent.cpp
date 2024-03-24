@@ -29,7 +29,7 @@ EuclidianRythmTimerComponent::EuclidianRythmTimerComponent(int size, int pulses)
     sliderPulses.addListener(this);
     sliderPulses.setValue(numberOfPulses);
 
-    int res = gcd(numberOfSteps, numberOfPulses);
+    //int res = gcd(numberOfSteps, numberOfPulses);
     generateSequence();
     name = "Euclidian Rhythm";
 }
@@ -59,13 +59,13 @@ void EuclidianRythmTimerComponent::sliderValueChanged(Slider* sliderParam)
 {
     if (sliderParam == &sliderTotal)
     {
-        numberOfSteps = sliderTotal.getValue();
+        numberOfSteps = (int)sliderTotal.getValue();
         sliderPulses.setRange(1, (double)numberOfSteps, 1);
         
     }
     if (sliderParam == &sliderPulses)
     {
-        numberOfPulses = sliderPulses.getValue();
+        numberOfPulses = (int)sliderPulses.getValue();
         
     }
     generateSequence();
@@ -84,7 +84,7 @@ void EuclidianRythmTimerComponent::paint(Graphics& g)
     int unitWidth = reducedBounds.getWidth() / numberOfSteps;
     reducedBounds.setWidth(unitWidth);
     Rectangle<float> unitRectangle(reducedBounds.toFloat());
-    unitRectangle.setHeight(unitWidth);
+    unitRectangle.setHeight((float)unitWidth);
 
     for (int i = 0; i < numberOfSteps; i++)
     {
@@ -101,8 +101,8 @@ void EuclidianRythmTimerComponent::paint(Graphics& g)
 
         g.setColour(Colours::lightgrey);
         Rectangle<int> elRect;
-        elRect.setWidth(unitWidth * rhythm[i]);
-        elRect.setHeight(unitWidth * rhythm[i]);
+        elRect.setWidth((int)((float)unitWidth * rhythm[i]));
+        elRect.setHeight((int)((float)unitWidth * rhythm[i]));
         elRect.setCentre(unitRectangle.getCentre().toInt());
 
         if (rhythm[i] < 0.5)
@@ -110,9 +110,9 @@ void EuclidianRythmTimerComponent::paint(Graphics& g)
             g.setColour(juce::Colours::darkgrey);
         }
         
-        g.fillEllipse(elRect.getX(), elRect.getY(), unitWidth * rhythm[i], unitWidth * rhythm[i]);
+        g.fillEllipse((float)elRect.getX(), (float)elRect.getY(), (float)unitWidth * rhythm[i], (float)unitWidth * rhythm[i]);
 
-        unitRectangle.translate(unitWidth, 0);
+        unitRectangle.translate((float)unitWidth, 0.0f);
     }
 }
 void EuclidianRythmTimerComponent::resized()

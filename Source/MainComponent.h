@@ -17,6 +17,8 @@ class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public
 public:
 	//==============================================================================
 	MainComponent();
+	void chooseFile();
+	void ReadSamplesToImage();
 	~MainComponent() override;
 
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
@@ -46,9 +48,8 @@ public:
 	ToggleButton audioToggleButton;
 	juce::TextButton playButton;
 	juce::TextButton stopButton;
+	juce::TextButton loadButton;
 	juce::Label timeLabel;
-
-private:
 
 	enum TransportState
 	{
@@ -59,20 +60,29 @@ private:
 		Paused,
 		Stopping
 	};
-	
+
+private:
+
 	// Inherited via Timer
 	void timerCallback() override;
 	void changeState(TransportState newState);
 	juce::AudioFormatManager formatManager;
+	juce::AudioBuffer<float> internalAudioBuffer;
 	std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 	juce::AudioTransportSource transportSource;
+	
+	juce::Image sampleBufferImage0;
+	juce::Image sampleBufferImage1;
+
 	TransportState state;
+	std::unique_ptr<FileChooser> fileChooser;
+	
 	int currentSamplesPerBlock = 0;
 	bool audioOn = false;
 	double currentSampleRate = 0.0;
 	juce::Random random;
 	DebugComponent debugComponent;
-	juce::AudioBuffer<float> internalAudioBuffer;
+	
 	int currentSamplePlaying = 0;
 	int numSeconds = 10;
 

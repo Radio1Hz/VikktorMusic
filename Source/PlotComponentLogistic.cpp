@@ -47,12 +47,12 @@ void PlotComponentLogistic::sliderValueChanged(juce::Slider* sliderParam)
 {
     if (sliderParam == &sliderR)
     {
-        renderer->lambda = sliderR.getValue();
+        renderer->lambda = (float)sliderR.getValue();
         repaint();
     }
     if (sliderParam == &sliderStart)
     {
-        renderer->start = sliderStart.getValue();
+        renderer->start = (float)sliderStart.getValue();
         
         /*for (float rv = 0; rv < 4; rv += 4 / RPointsResolution)
         {
