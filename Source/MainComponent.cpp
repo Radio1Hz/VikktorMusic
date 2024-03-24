@@ -64,7 +64,8 @@ audioSetupComp(
 	addAndMakeVisible(audioSettingsToggleButton);
 	audioSetupComp.setVisible(false);
 	setSize(800, 600);
-	startTimer(100);
+	startTimer(TimerType::CPUTimer, 250);
+	startTimer(TimerType::TimePositionTimer, 100);
 }
 
 void MainComponent::chooseFile()
@@ -145,9 +146,7 @@ void MainComponent::ReadSamplesToImage()
 
 MainComponent::~MainComponent()
 {
-	stopTimer();
 	shutdownAudio();
-	transportSource.setSource(nullptr);
 	removeAllChildren();
 	deleteAllChildren();
 }
@@ -224,22 +223,31 @@ void MainComponent::changeState(TransportState newState)
 		}
 	}
 }
-void MainComponent::timerCallback()
+void MainComponent::timerCallback(int timerID)
 {
-	timeLabel.setText(displayProgress(internalBufferCurrentPositionInSeconds, internalBufferTotalLengthInSeconds), NotificationType::dontSendNotification);
-	if (transportSource.isPlaying() && internalBufferTotalLengthInSeconds > 0.0)
+	if (timerID == (int)TimerType::CPUTimer)
 	{
-		double percent = internalBufferCurrentPositionInSeconds / internalBufferTotalLengthInSeconds;
-		int newRasterX = (int)((double)internalBufferSamplesImage0.getWidth() * percent);
-		if (newRasterX != internalBufferPointerRasterX)
+		double cpuUsage = deviceManager.getCpuUsage();
+		debugComponent.setInformation("CPU: " + juce::String((int)(cpuUsage * 100.00)) + "%");
+	}
+
+	if (timerID == (int)TimerType::TimePositionTimer)
+	{
+		timeLabel.setText(displayProgress(internalBufferCurrentPositionInSeconds, internalBufferTotalLengthInSeconds), NotificationType::dontSendNotification);
+		if (transportSource.isPlaying() && internalBufferTotalLengthInSeconds > 0.0)
 		{
-			internalBufferPointerRasterX = newRasterX;
-			repaint();
+			double percent = internalBufferCurrentPositionInSeconds / internalBufferTotalLengthInSeconds;
+			int newRasterX = (int)((double)internalBufferSamplesImage0.getWidth() * percent);
+			if (newRasterX != internalBufferPointerRasterX)
+			{
+				internalBufferPointerRasterX = newRasterX;
+				repaint();
+			}
 		}
 	}
-	double cpuUsage = deviceManager.getCpuUsage();
-	debugComponent.setInformation("CPU: " + juce::String(cpuUsage*100.00) + "%");
+	
 }
+
 
 void MainComponent::updateToggleStateAudio(juce::Button* button)
 {
@@ -332,6 +340,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 void MainComponent::releaseResources()
 {
 	juce::Logger::getCurrentLogger()->writeToLog("Releasing audio resources");
+	transportSource.setSource(nullptr);
 	transportSource.releaseResources();
 }
 

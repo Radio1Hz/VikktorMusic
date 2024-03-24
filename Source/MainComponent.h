@@ -12,7 +12,7 @@
 */
 
 
-class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public juce::ChangeListener, public juce::Timer
+class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public juce::ChangeListener, public juce::MultiTimer
 {
 public:
 	//====================================================================================================================
@@ -48,6 +48,12 @@ public:
 	void setAudioOn();
 	void setAudioOff();
 
+	enum TimerType
+	{
+		CPUTimer,
+		TimePositionTimer
+	};
+
 	enum TransportState
 	{
 		Stopped,
@@ -71,8 +77,9 @@ private:
 
 	AudioDeviceSelectorComponent audioSetupComp;
 
-	// Inherited via Timer
-	void timerCallback() override;
+	// Inherited via MultiTimer
+	void timerCallback(int timerID) override;
+	
 	void changeState(TransportState newState);
 
 	juce::AudioFormatManager formatManager;
