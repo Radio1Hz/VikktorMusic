@@ -50,7 +50,7 @@ audioSetupComp(
 	loadButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blueviolet);
 	loadButton.setEnabled(true);
 
-	timeLabel.setText(juce::String(juce::RelativeTime::seconds(0.0).getDescription()), NotificationType::dontSendNotification);
+	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
 
 	addAndMakeVisible(logSpaceComponent);
@@ -226,7 +226,7 @@ void MainComponent::changeState(TransportState newState)
 }
 void MainComponent::timerCallback()
 {
-	timeLabel.setText(juce::String(juce::RelativeTime::seconds(transportSource.getCurrentPosition()).getDescription()), NotificationType::dontSendNotification);
+	timeLabel.setText(displayProgress(internalBufferCurrentPositionInSeconds, internalBufferTotalLengthInSeconds), NotificationType::dontSendNotification);
 	if (transportSource.isPlaying() && internalBufferTotalLengthInSeconds > 0.0)
 	{
 		double percent = internalBufferCurrentPositionInSeconds / internalBufferTotalLengthInSeconds;
@@ -257,6 +257,23 @@ void MainComponent::updateToggleStateAudio(juce::Button* button)
 void MainComponent::updateToggleStateSettings(juce::Button* button)
 {
 	audioSetupComp.setVisible(button->getToggleState());
+}
+
+juce::String MainComponent::displayProgress(double currentPositionInSeconds, double totalLengthInSeconds)
+{
+	RelativeTime currentTime = RelativeTime(currentPositionInSeconds);
+	RelativeTime totalTime = RelativeTime(totalLengthInSeconds);
+	
+	int currentSec = 100 + (int)currentPositionInSeconds % 60;
+	int currentMin = 100 + (int)currentTime.inMinutes() % 60;
+	int currentHr = 100 + (int)currentTime.inHours();
+
+	int totalSec = 100 + (int)totalLengthInSeconds % 60;
+	int totalMin = 100 + (int)totalTime.inMinutes() % 60;
+	int totalHr = 100 + (int)totalTime.inHours();
+
+	return juce::String(currentHr).substring(1) + ":" + juce::String(currentMin).substring(1) + ":" + juce::String(currentSec).substring(1) + " / " + juce::String(totalHr).substring(1) + ":" + juce::String(totalMin).substring(1) + ":" + juce::String(totalSec).substring(1);
+
 }
 
 void MainComponent::setAudioOn()
@@ -363,11 +380,12 @@ void MainComponent::resized()
 	debugComponent.setBounds(0, 0, getWidth(), 30);
 	logSpaceComponent.setBounds(0, 30, getWidth(), getHeight() - controlsAreaOffsetFromBottom-30);
 	audioSettingsToggleButton.setBounds(getWidth()-80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
+	timeLabel.setBounds(getWidth()-240, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
 	audioOnToggleButton.setBounds(0, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	stopButton.setBounds(180, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	loadButton.setBounds(60, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	playButton.setBounds(120, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-	timeLabel.setBounds(240, getHeight() - controlsAreaOffsetFromBottom, 120, 30);
+	
 
 	internalBufferSamplesImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);

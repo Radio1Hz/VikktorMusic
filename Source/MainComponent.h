@@ -28,6 +28,8 @@ public:
 	void updateToggleStateAudio(juce::Button* button);
 	void updateToggleStateSettings(juce::Button* button);
 
+	static juce::String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
+
 	/*
 	AudioAppComponent::setAudioChannels(): We must call this to register the number of input and output channels we need. Typically, we do this in our constructor. In turn, this function triggers the start of audio processing in our application.
 	AudioAppComponent::shutdownAudio(): We must call this to shutdown the audio system. Typically, we do this in our destructor.
