@@ -91,6 +91,10 @@
             file="Source/MainComponent.cpp"/>
       <FILE id="Vdd3kV" name="DebugComponent.cpp" compile="1" resource="0"
             file="Source/DebugComponent.cpp"/>
+      <FILE id="b6FfiP" name="NewProjectComponent.cpp" compile="1" resource="0"
+            file="Source/NewProjectComponent.cpp"/>
+      <FILE id="w7nfKD" name="NewProjectComponent.h" compile="0" resource="0"
+            file="Source/NewProjectComponent.h"/>
       <FILE id="r9Mrlf" name="DebugComponent.h" compile="0" resource="0"
             file="Source/DebugComponent.h"/>
     </GROUP>

@@ -41,7 +41,7 @@ private:
     int smaller_size = 1;
     void rearrangeMatrix(ProbabilitySlider* d, int algorythmId);
     //************************   JUCE complex objects   ************************
-    juce::dsp::Matrix<float> *matrix;
+    std::unique_ptr<juce::dsp::Matrix<float>> matrix;
     juce::OwnedArray<ProbabilitySlider> sliders;
 
     //************************   functions, methods   ************************

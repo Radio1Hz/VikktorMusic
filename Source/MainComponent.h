@@ -4,6 +4,7 @@
 #include "DebugComponent.h"
 #include "TimerComponent.h"
 #include "LogSpaceComponent.h"
+#include "NewProjectComponent.h"
 
 //========================================================================================================================
 /*
@@ -20,6 +21,7 @@ public:
 	~MainComponent() override;
 
 	void chooseFile();
+	void newButtonClicked();
 	void ReadSamplesToImage();
 	
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
@@ -57,24 +59,23 @@ public:
 	enum TransportState
 	{
 		Stopped,
-		Starting,
 		Playing,
-		Pausing,
-		Paused,
-		Stopping
+		Paused
 	};
 
 private:
 
 	LogSpaceComponent logSpaceComponent;
 	DebugComponent debugComponent;
+	NewProjectComponent newProjectComponent;
 	juce::TextButton playButton;
 	juce::TextButton stopButton;
 	juce::TextButton loadButton;
+	juce::TextButton newButton;
 	juce::Label timeLabel;
 	juce::ToggleButton audioOnToggleButton;
 	juce::ToggleButton audioSettingsToggleButton;
-
+	juce::DialogWindow newDialogWindow;
 	AudioDeviceSelectorComponent audioSetupComp;
 
 	// Inherited via MultiTimer
@@ -83,9 +84,6 @@ private:
 	void changeState(TransportState newState);
 
 	juce::AudioFormatManager formatManager;
-	juce::AudioTransportSource transportSource;
-
-	std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 	std::unique_ptr<FileChooser> fileChooser;
 	
 	// Internal Buffer related 

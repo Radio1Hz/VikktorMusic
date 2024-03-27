@@ -21,7 +21,7 @@ MarkovMatrixComponent::MarkovMatrixComponent(int size)
 {
 	this->size = size;
 	this->name = "Markov Matrix " + String(size);
-	matrix = new juce::dsp::Matrix<float>(size, size);
+	matrix = std::make_unique<juce::dsp::Matrix<float>>(size, size);
 	resetMatrix();
 	createChildren();
 	addMouseListener(this, true);
@@ -167,7 +167,6 @@ juce::Array<float> MarkovMatrixComponent::getProbabilitiesArray(bool test = fals
 MarkovMatrixComponent::~MarkovMatrixComponent()
 {
 	removeMouseListener(this);
-	delete matrix;
 	removeAllChildren();
 	deleteAllChildren();
 }
@@ -184,7 +183,7 @@ void MarkovMatrixComponent::paint(juce::Graphics& g)
 	Rectangle<int> sumRect(headerHeight, headerHeight, localRect.getHeight() / size, (int)fontSize);
 	g.setColour(Colours::white);
 	g.setFont(headerHeight * 0.7f);
-	g.addTransform(AffineTransform::rotation(MathConstants<float>::halfPi, localRect.getCentreX() * 1.0f, localRect.getCentreY() * 1.0f));
+	/*g.addTransform(AffineTransform::rotation(MathConstants<float>::halfPi, localRect.getCentreX() * 1.0f, localRect.getCentreY() * 1.0f));
 
 	for (int i = 0; i < size; i++)
 	{
@@ -198,7 +197,7 @@ void MarkovMatrixComponent::paint(juce::Graphics& g)
 		sumRect.translate(localRect.getHeight() / size, 0);
 	}
 
-	g.addTransform(AffineTransform::rotation(-MathConstants<float>::halfPi, localRect.getCentreX() * 1.0f, localRect.getCentreY() * 1.0f));
+	g.addTransform(AffineTransform::rotation(-MathConstants<float>::halfPi, localRect.getCentreX() * 1.0f, localRect.getCentreY() * 1.0f));*/
 }
 
 void MarkovMatrixComponent::markCurrentState()
@@ -215,13 +214,12 @@ void MarkovMatrixComponent::resized()
 	int sliders_width = getReducedLocalBounds().getWidth();
 	int sliders_height = getReducedLocalBounds().getHeight();
 
-	int smaller_dim = juce::jmin(sliders_width, sliders_height);
-	smaller_size = smaller_dim * 9 / 10;
-	int padding = smaller_dim * 1 / 10;
+	int padding = 0;
+
 
 	for (auto* sO : sliders)
 	{
-		sO->setBounds(juce::Rectangle<int>(padding + getReducedLocalBounds().getX() + sO->col * smaller_size / size, padding + getReducedLocalBounds().getY() + sO->row * smaller_size / size, smaller_size / size, smaller_size / size));
+		sO->setBounds(juce::Rectangle<int>(getReducedLocalBounds().getX() + sO->col * sliders_width / size, getReducedLocalBounds().getY() + sO->row * sliders_height/ size, sliders_width / size, sliders_height/ size));
 	}
 }
 

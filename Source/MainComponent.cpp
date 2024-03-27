@@ -14,14 +14,14 @@ audioSetupComp(
 	false, // ability to select midi inputs
 	false, // ability to select midi output device
 	false, // treat channels as stereo pairs
-	false) // hide advanced options)
+	false), // hide advanced options)
+newDialogWindow(juce::String("New Project"), juce::Colours::black, true, false)
 {
 	// Make sure you set the size of the component after
 	// you add any child components.
 	setOpaque(true);
 	
 	formatManager.registerBasicFormats();
-	transportSource.addChangeListener(this);
 	setAudioChannels(0, 2); // no inputs, two outputs
 
 	audioOnToggleButton.setButtonText("Audio On");
@@ -50,6 +50,11 @@ audioSetupComp(
 	loadButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blueviolet);
 	loadButton.setEnabled(true);
 
+	newButton.setButtonText("New");
+	newButton.onClick = [this] { newButtonClicked(); };
+	newButton.setColour(juce::TextButton::buttonColourId, juce::Colours::orangered);
+	newButton.setEnabled(true);
+
 	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
 
@@ -58,11 +63,14 @@ audioSetupComp(
 	addAndMakeVisible(&playButton);
 	addAndMakeVisible(&stopButton);
 	addAndMakeVisible(&loadButton);
+	addAndMakeVisible(&newButton);
 	addAndMakeVisible(timeLabel);
 	addAndMakeVisible(audioSetupComp);
 	addAndMakeVisible(debugComponent);
 	addAndMakeVisible(audioSettingsToggleButton);
+
 	audioSetupComp.setVisible(false);
+	
 	setSize(800, 600);
 	startTimer(TimerType::CPUTimer, 250);
 	startTimer(TimerType::TimePositionTimer, 100);
@@ -70,6 +78,8 @@ audioSetupComp(
 
 void MainComponent::chooseFile()
 {
+	shutdownAudio();
+	playButton.setEnabled(false);
 	fileChooser = std::make_unique<FileChooser>("Please select the .wav file you want to load...", File("C:\\Data\\Samples"), "*.wav");
 
 	auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
@@ -80,32 +90,41 @@ void MainComponent::chooseFile()
 
 		if (file != juce::File{})
 		{
-			AudioFormatReader* reader = formatManager.createReaderFor(file);
-			WavAudioFormat wavFormat;
+			std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
 			if (reader != nullptr)
 			{
+				this->internalBufferTotalLengthInSeconds  = (float)reader->lengthInSamples / reader->sampleRate;
 				internalAudioBuffer.setSize(reader->numChannels, (int)reader->lengthInSamples);
-
-				auto memoryMappedReader = wavFormat.createMemoryMappedReader(file);
-				memoryMappedReader->mapEntireFile();
-
-				memoryMappedReader->read(internalAudioBuffer.getArrayOfWritePointers(), reader->numChannels, 0, (int)reader->lengthInSamples);
-				auto newSource = std::make_unique<juce::AudioFormatReaderSource>(memoryMappedReader, true);
-				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-				
+				reader->read(&internalAudioBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+				setAudioChannels(0, (int)reader->numChannels);
 				playButton.setEnabled(true);
-				readerSource.reset(newSource.release());
-				delete reader;
 			}
-			this->internalBufferTotalLengthInSeconds = transportSource.getLengthInSeconds();
+			this->internalBufferCurrentPositionInSeconds = 0.0;
+			this->internalBufferCurrentSamplePlaying = 0;
+			
 			ReadSamplesToImage();
 		}
 	});
 }
 
+void MainComponent::newButtonClicked()
+{
+	shutdownAudio();
+	playButton.setEnabled(false);
+	double newLengthInSeconds = 120.0;
+	//newDialogWindow.showDialog(juce::String("test"), &newProjectComponent, 0, juce::Colours::black,true, false, false);
+	internalAudioBuffer.setSize(2, (int)(internalBufferSampleRate * newLengthInSeconds), false, true, false);
+
+	this->internalBufferTotalLengthInSeconds = newLengthInSeconds;
+	this->internalBufferCurrentPositionInSeconds = 0.0;
+	this->internalBufferCurrentSamplePlaying = 0;
+	setAudioChannels(0, 2);
+	playButton.setEnabled(true);
+	ReadSamplesToImage();
+}
+
 void MainComponent::ReadSamplesToImage()
 {
-
 	int numberOfSamples = internalAudioBuffer.getNumSamples();
 	Graphics g0(internalBufferSamplesImage0);
 	Graphics g1(internalBufferSamplesImage1);
@@ -117,7 +136,6 @@ void MainComponent::ReadSamplesToImage()
 	// Draw signal in images Channel 0
 	for (int i = 1; i < internalBufferSamplesImage0.getWidth(); i++)
 	{
-		
 		sampleIndex = (int)((i*1.0f / internalBufferSamplesImage0.getWidth()*1.0f) * numberOfSamples);
 		int sampleRange = sampleIndex - prevSampleIndex;
 		auto valueRange = internalAudioBuffer.findMinMax(0, prevSampleIndex, sampleRange);
@@ -151,33 +169,22 @@ MainComponent::~MainComponent()
 	deleteAllChildren();
 }
 
-void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* /*source*/)
 {
-	if (source == &transportSource)
-	{
-		if (transportSource.isPlaying())
-			changeState(Playing);
-		else if ((state == Stopping) || (state == Playing))
-			changeState(Stopped);
-		else if (Pausing == state)
-			changeState(Paused);
-	}
+	
 }
 
 void MainComponent::playButtonClicked()
 {
 	if ((state == Stopped) || (state == Paused))
-		changeState(Starting);
+		changeState(Playing);
 	else if (state == Playing)
-		changeState(Pausing);
+		changeState(Paused);
 }
 
 void MainComponent::stopButtonClicked()
 {
-	if (state == Paused)
-		changeState(Stopped);
-	else
-		changeState(Stopping);
+	changeState(Stopped);
 }
 
 void MainComponent::changeState(TransportState newState)
@@ -188,41 +195,30 @@ void MainComponent::changeState(TransportState newState)
 
 		switch (state)
 		{
-		case Stopped:
-			playButton.setButtonText("Play");
-			stopButton.setButtonText("Stop");
-			stopButton.setEnabled(false);
-			transportSource.setPosition(0.0);
-			internalBufferCurrentPositionInSeconds = 0.0;
-			internalBufferPointerRasterX = 0;
-			repaint();
-			break;
+			case Stopped:
+				playButton.setButtonText("Play");
+				stopButton.setButtonText("Stop");
+				stopButton.setEnabled(false);
+				internalBufferCurrentPositionInSeconds = 0.0;
+				internalBufferCurrentSamplePlaying = 0;
+				internalBufferPointerRasterX = 0;
+				repaint();
+				break;
 
-		case Starting:
-			transportSource.start();
-			break;
+			case Playing:
+				playButton.setButtonText("Pause");
+				stopButton.setButtonText("Stop");
+				stopButton.setEnabled(true);
+				break;
 
-		case Playing:
-			playButton.setButtonText("Pause");
-			stopButton.setButtonText("Stop");
-			stopButton.setEnabled(true);
-			break;
-
-		case Pausing:
-			transportSource.stop();
-			break;
-
-		case Paused:
-			playButton.setButtonText("Resume");
-			stopButton.setButtonText("Reset");
-			break;
-
-		case Stopping:
-			transportSource.stop();
-			break;
+			case Paused:
+				playButton.setButtonText("Resume");
+				stopButton.setButtonText("Reset");
+				break;
 		}
 	}
 }
+
 void MainComponent::timerCallback(int timerID)
 {
 	if (timerID == (int)TimerType::CPUTimer)
@@ -234,7 +230,7 @@ void MainComponent::timerCallback(int timerID)
 	if (timerID == (int)TimerType::TimePositionTimer)
 	{
 		timeLabel.setText(displayProgress(internalBufferCurrentPositionInSeconds, internalBufferTotalLengthInSeconds), NotificationType::dontSendNotification);
-		if (transportSource.isPlaying() && internalBufferTotalLengthInSeconds > 0.0)
+		if (internalBufferTotalLengthInSeconds > 0.0)
 		{
 			double percent = internalBufferCurrentPositionInSeconds / internalBufferTotalLengthInSeconds;
 			int newRasterX = (int)((double)internalBufferSamplesImage0.getWidth() * percent);
@@ -281,7 +277,6 @@ juce::String MainComponent::displayProgress(double currentPositionInSeconds, dou
 	int totalHr = 100 + (int)totalTime.inHours();
 
 	return juce::String(currentHr).substring(1) + ":" + juce::String(currentMin).substring(1) + ":" + juce::String(currentSec).substring(1) + " / " + juce::String(totalHr).substring(1) + ":" + juce::String(totalMin).substring(1) + ":" + juce::String(totalSec).substring(1);
-
 }
 
 void MainComponent::setAudioOn()
@@ -304,44 +299,57 @@ void MainComponent::setAudioOff()
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
 	juce::String message;
-
 	internalBufferSampleRate = sampleRate;
 	internalBufferSamplesPerBlock = samplesPerBlockExpected;
-	
-	transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
-	transportSource.setLooping(true);
-
-	//-----------------------------------------------------------------------------
-
 	juce::Logger::getCurrentLogger()->writeToLog(message);
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-	if (readerSource.get() == nullptr)
+	if (state != Stopped && state != Paused)
 	{
-		bufferToFill.clearActiveBufferRegion();
-		return;
-	}
+		if (internalAudioBuffer.getNumSamples() > 0 && internalAudioBuffer.getNumChannels() > 0)
+		{
+			auto numOutputChannels = bufferToFill.buffer->getNumChannels();
 
-	if (internalBufferAudioOn)
-	{
-		transportSource.getNextAudioBlock(bufferToFill);
-	}
-	else
-	{
-		transportSource.getNextAudioBlock(bufferToFill);
-		bufferToFill.clearActiveBufferRegion();
-	}
+			auto outputSamplesRemaining = bufferToFill.numSamples;
+			auto outputSamplesOffset = bufferToFill.startSample;
 
-	internalBufferCurrentPositionInSeconds = transportSource.getCurrentPosition();
+			while (outputSamplesRemaining > 0)
+			{
+				auto bufferSamplesRemaining = internalAudioBuffer.getNumSamples() - internalBufferCurrentSamplePlaying;                // [10]
+				auto samplesThisTime = juce::jmin(outputSamplesRemaining, bufferSamplesRemaining);
+
+				for (auto channel = 0; channel < numOutputChannels; channel++)
+				{
+					if (!internalBufferAudioOn)
+					{
+						bufferToFill.clearActiveBufferRegion();
+					}
+					else
+					{
+						bufferToFill.buffer->copyFrom(channel, outputSamplesOffset, internalAudioBuffer, channel, internalBufferCurrentSamplePlaying, samplesThisTime);                                //  [12.5]
+					}
+				}
+
+				outputSamplesRemaining -= samplesThisTime;
+				outputSamplesOffset += samplesThisTime;
+				internalBufferCurrentSamplePlaying += samplesThisTime;
+				internalBufferCurrentPositionInSeconds = (double)internalBufferCurrentSamplePlaying / internalBufferSampleRate;
+
+				if (internalBufferCurrentSamplePlaying >= internalAudioBuffer.getNumSamples())
+				{
+					internalBufferCurrentSamplePlaying = 0;
+					state = Stopped;
+				}
+			}
+		}
+	}
 }
 
 void MainComponent::releaseResources()
 {
 	juce::Logger::getCurrentLogger()->writeToLog("Releasing audio resources");
-	transportSource.setSource(nullptr);
-	transportSource.releaseResources();
 }
 
 bool MainComponent::keyPressed(const KeyPress& /*key*/, Component* /*originatingComponent*/)
@@ -353,7 +361,6 @@ bool MainComponent::keyPressed(const KeyPress& /*key*/, Component* /*originating
 void MainComponent::paint(juce::Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
-
 	g.fillAll(juce::Colours::black);
 	Rectangle<float> rectMain = Rectangle<float>((float)getWidth(), 30.0f);
 	g.setColour(Colour::fromRGB(255, 255, 255));
@@ -368,15 +375,12 @@ void MainComponent::paint(juce::Graphics& g)
 	sampleBufferImageRect.translate(0, -30);
 	g.drawImage(internalBufferSamplesImage1, sampleBufferImageRect);
 	g.drawRect(sampleBufferImageRect);
-
 	g.setColour(juce::Colours::lightyellow);
-
 
 	juce::Point<int> topLeft0 = sampleBufferImageRect.getTopLeft().toInt();
 	juce::Point<int> bottomRight1 = sampleBufferImageRect.getBottomRight().toInt();
 
 	g.fillRect(internalBufferPointerRasterX, topLeft0.getY(), 1, 2 * (int)sampleBufferImageRect.getHeight());
-
 }
 
 void MainComponent::resized()
@@ -391,10 +395,10 @@ void MainComponent::resized()
 	audioSettingsToggleButton.setBounds(getWidth()-80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	timeLabel.setBounds(getWidth()-240, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
 	audioOnToggleButton.setBounds(0, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-	stopButton.setBounds(180, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	loadButton.setBounds(60, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	playButton.setBounds(120, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-	
+	stopButton.setBounds(180, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	newButton.setBounds(240, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 
 	internalBufferSamplesImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
