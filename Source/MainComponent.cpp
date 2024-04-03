@@ -30,6 +30,9 @@ newDialogWindow(juce::String("New Project"), juce::Colours::black, true, false)
 	audioSettingsToggleButton.setButtonText("Settings");
 	audioSettingsToggleButton.onClick = [this] { updateToggleStateSettings(&audioSettingsToggleButton); };
 	
+	audioVisualizeToggleButton.setButtonText("Visualize");
+	audioVisualizeToggleButton.onClick = [this] { updateToggleStateVisualize(&audioVisualizeToggleButton); };
+	
 	if (!internalBufferAudioOn)
 	{
 		audioOnToggleButton.triggerClick();
@@ -68,12 +71,17 @@ newDialogWindow(juce::String("New Project"), juce::Colours::black, true, false)
 	addAndMakeVisible(audioSetupComp);
 	addAndMakeVisible(debugComponent);
 	addAndMakeVisible(audioSettingsToggleButton);
+	addAndMakeVisible(audioVisualizeToggleButton);
 
 	audioSetupComp.setVisible(false);
-	
+	audioSampleBlockImage = juce::Image(juce::Image::RGB, 240, 30, true);
+	audioSampleBufferCopy.clear();
+
 	setSize(800, 600);
 	startTimer(TimerType::CPUTimer, 250);
+	startTimer(TimerType::SampleVisualization, 100);
 	startTimer(TimerType::TimePositionTimer, 100);
+	
 }
 
 void MainComponent::chooseFile()
@@ -111,7 +119,7 @@ void MainComponent::newButtonClicked()
 {
 	shutdownAudio();
 	playButton.setEnabled(false);
-	double newLengthInSeconds = 120.0;
+	double newLengthInSeconds = 4200.0;
 	//newDialogWindow.showDialog(juce::String("test"), &newProjectComponent, 0, juce::Colours::black,true, false, false);
 	internalAudioBuffer.setSize(2, (int)(internalBufferSampleRate * newLengthInSeconds), false, true, false);
 
@@ -160,6 +168,28 @@ void MainComponent::ReadSamplesToImage()
 		}
 	}
 	repaint();
+}
+
+
+void MainComponent::ReadSamplesToAudioSampleBufferImage()
+{
+	Graphics g(audioSampleBlockImage);
+	g.fillAll(Colours::darkred);
+	g.setColour(Colours::lightgrey);
+	int prevSampleIndex = 0;
+	Point<float> prevPoint(0.0f, (float)audioSampleBlockImage.getHeight() / 2);
+
+	for (int i = 1; i < audioSampleBlockImage.getWidth(); i++)
+	{
+		int sampleIndex = (int)(((float)i / (float)audioSampleBlockImage.getWidth()) * audioSampleBufferCopy.size());
+		float sample = audioSampleBufferCopy[sampleIndex];
+
+		Point<float> nextPoint((float)i, (0.5f - sample / 2) * audioSampleBlockImage.getHeight());
+		g.drawLine(Line<float>(prevPoint, nextPoint));
+		prevPoint.setX(nextPoint.getX());
+		prevPoint.setY(nextPoint.getY());
+		prevSampleIndex = sampleIndex;
+	}
 }
 
 MainComponent::~MainComponent()
@@ -224,7 +254,9 @@ void MainComponent::timerCallback(int timerID)
 	if (timerID == (int)TimerType::CPUTimer)
 	{
 		double cpuUsage = deviceManager.getCpuUsage();
-		debugComponent.setInformation("CPU: " + juce::String((int)(cpuUsage * 100.00)) + "%");
+		float bufferLengthms = 1000.0f * (internalBufferSamplesPerBlock / (float)internalBufferSampleRate);
+		bufferLengthms = std::round(bufferLengthms * 10) / 10;
+		debugComponent.setInformation("CPU: " + juce::String((int)(cpuUsage * 100.00)) + "% Audio Block processed in " + juce::String(audioBlockProcessedTimeInMilliseconds) + " / "+ juce::String(bufferLengthms) + " ms");
 	}
 
 	if (timerID == (int)TimerType::TimePositionTimer)
@@ -237,13 +269,26 @@ void MainComponent::timerCallback(int timerID)
 			if (newRasterX != internalBufferPointerRasterX)
 			{
 				internalBufferPointerRasterX = newRasterX;
-				repaint();
+				if (internalBufferCurrentSamplePlaying == 0)
+				{
+					changeState(Stopped);
+				}
 			}
+			
 		}
 	}
+
+	if (timerID == (int)TimerType::SampleVisualization)
+	{
+		if (audioSampleBufferCopyNumSamples >= audioSampleBufferCopy.size())
+		{
+			ReadSamplesToAudioSampleBufferImage();
+			audioSampleBufferCopyNumSamples = 0;
+		}
+	}
+	repaint();
 	
 }
-
 
 void MainComponent::updateToggleStateAudio(juce::Button* button)
 {
@@ -261,6 +306,12 @@ void MainComponent::updateToggleStateAudio(juce::Button* button)
 void MainComponent::updateToggleStateSettings(juce::Button* button)
 {
 	audioSetupComp.setVisible(button->getToggleState());
+}
+
+void MainComponent::updateToggleStateVisualize(juce::Button* button)
+{
+	this->shouldVisualize = button->getToggleState();
+	repaint();
 }
 
 juce::String MainComponent::displayProgress(double currentPositionInSeconds, double totalLengthInSeconds)
@@ -298,14 +349,15 @@ void MainComponent::setAudioOff()
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-	juce::String message;
 	internalBufferSampleRate = sampleRate;
 	internalBufferSamplesPerBlock = samplesPerBlockExpected;
-	juce::Logger::getCurrentLogger()->writeToLog(message);
+	audioSampleBufferCopy.resize(internalBufferSamplesPerBlock*5);
+	repaint();
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+	int64 counterHiRes = (int64)Time::getMillisecondCounterHiRes();
 	if (state != Stopped && state != Paused)
 	{
 		if (internalAudioBuffer.getNumSamples() > 0 && internalAudioBuffer.getNumChannels() > 0)
@@ -330,6 +382,18 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 					{
 						bufferToFill.buffer->copyFrom(channel, outputSamplesOffset, internalAudioBuffer, channel, internalBufferCurrentSamplePlaying, samplesThisTime);                                //  [12.5]
 					}
+
+					if (shouldVisualize && channel == 0 && audioSampleBufferCopyNumSamples < audioSampleBufferCopy.size())
+					{
+						for (int i = 0; i < samplesThisTime; i++)
+						{
+							audioSampleBufferCopy.set(audioSampleBufferCopyNumSamples++, bufferToFill.buffer->getSample(channel, bufferToFill.startSample + i));
+							if (audioSampleBufferCopyNumSamples == audioSampleBufferCopy.size())
+							{
+								break;
+							}
+						}						
+					}
 				}
 
 				outputSamplesRemaining -= samplesThisTime;
@@ -341,10 +405,14 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 				{
 					internalBufferCurrentSamplePlaying = 0;
 					state = Stopped;
+					audioSampleBufferCopy.clear();
 				}
 			}
 		}
 	}
+	
+	audioBlockProcessedTimeInMilliseconds = (int64)Time::getMillisecondCounterHiRes() - counterHiRes;
+
 }
 
 void MainComponent::releaseResources()
@@ -365,7 +433,9 @@ void MainComponent::paint(juce::Graphics& g)
 	Rectangle<float> rectMain = Rectangle<float>((float)getWidth(), 30.0f);
 	g.setColour(Colour::fromRGB(255, 255, 255));
 	rectMain.translate(0.0f, (float)getHeight() - 30.0f);
-	g.drawText("Sample Rate: " + String(internalBufferSampleRate) + ", Samples per block: " + String(internalBufferSamplesPerBlock), rectMain, Justification::left);
+	float bufferLengthms = 1000.0f * (internalBufferSamplesPerBlock / (float)internalBufferSampleRate);
+	bufferLengthms = std::round(bufferLengthms * 10) / 10;
+	g.drawText("Sample Rate: " + String(internalBufferSampleRate) + ", Buffer Size: " + String(internalBufferSamplesPerBlock) + " ("+ String(bufferLengthms) + " ms)", rectMain, Justification::left);
 	int signalImagesOffsetFromBottom = 60;
 	Rectangle<float> sampleBufferImageRect = Rectangle<float>((float)getWidth(), 30.0f);
 	sampleBufferImageRect.translate(0, (float)getHeight() - signalImagesOffsetFromBottom);
@@ -381,6 +451,12 @@ void MainComponent::paint(juce::Graphics& g)
 	juce::Point<int> bottomRight1 = sampleBufferImageRect.getBottomRight().toInt();
 
 	g.fillRect(internalBufferPointerRasterX, topLeft0.getY(), 1, 2 * (int)sampleBufferImageRect.getHeight());
+	if (this->shouldVisualize)
+	{
+		Rectangle<float> audioSampleBlockImageRect = Rectangle<float>((float)audioSampleBlockImage.getWidth(), (float)audioSampleBlockImage.getHeight());
+		audioSampleBlockImageRect.translate((float)getWidth()- audioSampleBlockImage.getWidth(), (float)getHeight() - audioSampleBlockImage.getHeight());
+		g.drawImage(audioSampleBlockImage, audioSampleBlockImageRect);
+	}
 }
 
 void MainComponent::resized()
@@ -393,7 +469,8 @@ void MainComponent::resized()
 	debugComponent.setBounds(0, 0, getWidth(), 30);
 	logSpaceComponent.setBounds(0, 30, getWidth(), getHeight() - controlsAreaOffsetFromBottom-30);
 	audioSettingsToggleButton.setBounds(getWidth()-80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
-	timeLabel.setBounds(getWidth()-240, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
+	audioVisualizeToggleButton.setBounds(getWidth()-160, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
+	timeLabel.setBounds(getWidth()-360, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
 	audioOnToggleButton.setBounds(0, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	loadButton.setBounds(60, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	playButton.setBounds(120, getHeight() - controlsAreaOffsetFromBottom, 60, 30);

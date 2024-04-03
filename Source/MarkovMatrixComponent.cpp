@@ -183,21 +183,6 @@ void MarkovMatrixComponent::paint(juce::Graphics& g)
 	Rectangle<int> sumRect(headerHeight, headerHeight, localRect.getHeight() / size, (int)fontSize);
 	g.setColour(Colours::white);
 	g.setFont(headerHeight * 0.7f);
-	/*g.addTransform(AffineTransform::rotation(MathConstants<float>::halfPi, localRect.getCentreX() * 1.0f, localRect.getCentreY() * 1.0f));
-
-	for (int i = 0; i < size; i++)
-	{
-		double sum = 0;
-		for (int j = 0; j < size; j++)
-		{
-			sum += matrix->operator()(i, j);
-		}
-		g.setColour(Colours::white);
-		g.drawText(String(sum), sumRect, Justification::centredLeft);
-		sumRect.translate(localRect.getHeight() / size, 0);
-	}
-
-	g.addTransform(AffineTransform::rotation(-MathConstants<float>::halfPi, localRect.getCentreX() * 1.0f, localRect.getCentreY() * 1.0f));*/
 }
 
 void MarkovMatrixComponent::markCurrentState()
@@ -213,9 +198,6 @@ void MarkovMatrixComponent::resized()
 {
 	int sliders_width = getReducedLocalBounds().getWidth();
 	int sliders_height = getReducedLocalBounds().getHeight();
-
-	int padding = 0;
-
 
 	for (auto* sO : sliders)
 	{

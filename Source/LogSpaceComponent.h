@@ -95,11 +95,11 @@ public:
 			tO->start();
 		}*/
 
-		stateControllerObjects.add(new ComponentStateController());
-		for (auto* cO : stateControllerObjects)
-		{
-			addAndMakeVisible(cO);
-		}
+		//stateControllerObjects.add(new ComponentStateController());
+		//for (auto* cO : stateControllerObjects)
+		//{
+		//	addAndMakeVisible(cO);
+		//}
 
 		//addNewPlot();
 

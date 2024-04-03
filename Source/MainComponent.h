@@ -23,12 +23,16 @@ public:
 	void chooseFile();
 	void newButtonClicked();
 	void ReadSamplesToImage();
+
+	void ReadSamplesToAudioSampleBufferImage();
 	
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
 	void playButtonClicked();
 	void stopButtonClicked();
 	void updateToggleStateAudio(juce::Button* button);
 	void updateToggleStateSettings(juce::Button* button);
+
+	void updateToggleStateVisualize(juce::Button* button);
 
 	static juce::String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
 
@@ -53,7 +57,8 @@ public:
 	enum TimerType
 	{
 		CPUTimer,
-		TimePositionTimer
+		TimePositionTimer,
+		SampleVisualization
 	};
 
 	enum TransportState
@@ -75,12 +80,12 @@ private:
 	juce::Label timeLabel;
 	juce::ToggleButton audioOnToggleButton;
 	juce::ToggleButton audioSettingsToggleButton;
+	juce::ToggleButton audioVisualizeToggleButton;
 	juce::DialogWindow newDialogWindow;
 	AudioDeviceSelectorComponent audioSetupComp;
 
 	// Inherited via MultiTimer
 	void timerCallback(int timerID) override;
-	
 	void changeState(TransportState newState);
 
 	juce::AudioFormatManager formatManager;
@@ -91,6 +96,10 @@ private:
 	juce::AudioBuffer<float> internalAudioBuffer;
 	juce::Image internalBufferSamplesImage0;
 	juce::Image internalBufferSamplesImage1;
+	juce::Image audioSampleBlockImage;
+	juce::Array<float> audioSampleBufferCopy;
+	int audioSampleBufferCopyNumSamples = 0;
+	int64 audioBlockProcessedTimeInMilliseconds = 0;
 	double internalBufferTotalLengthInSeconds = 0.0;
 	double internalBufferCurrentPositionInSeconds = 0.0;
 	int internalBufferSamplesPerBlock = 0;
@@ -98,6 +107,7 @@ private:
 	bool internalBufferAudioOn = false;
 	int internalBufferCurrentSamplePlaying = 0;
 	int internalBufferPointerRasterX = 0;
+	bool shouldVisualize = false;
 
 	TransportState state;
 	juce::Random random;

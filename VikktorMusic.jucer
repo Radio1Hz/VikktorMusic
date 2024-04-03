@@ -30,6 +30,8 @@
               file="Source/MathRendererComplex.cpp"/>
         <FILE id="X31mN2" name="MathRendererComplex.h" compile="0" resource="0"
               file="Source/MathRendererComplex.h"/>
+        <FILE id="EXNi4p" name="MusicMath.cpp" compile="1" resource="0" file="Source/MusicMath.cpp"/>
+        <FILE id="pQeVq6" name="MusicMath.h" compile="0" resource="0" file="Source/MusicMath.h"/>
       </GROUP>
       <FILE id="SIC0Mc" name="ComponentStateController.cpp" compile="1" resource="0"
             file="Source/ComponentStateController.cpp"/>
