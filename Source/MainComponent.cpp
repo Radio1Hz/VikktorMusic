@@ -101,9 +101,30 @@ void MainComponent::chooseFile()
 			std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
 			if (reader != nullptr)
 			{
-				this->internalBufferTotalLengthInSeconds  = (float)reader->lengthInSamples / reader->sampleRate;
-				internalAudioBuffer.setSize(reader->numChannels, (int)reader->lengthInSamples);
-				reader->read(&internalAudioBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+				if (reader->sampleRate != internalBufferSampleRate)
+				{
+					AudioSampleBuffer tempInBuffer, tempOutBuffer;
+					tempInBuffer.setSize(reader->numChannels, (int)reader->lengthInSamples);
+					reader->read(tempInBuffer.getArrayOfWritePointers(), reader->numChannels, 0, (int)reader->lengthInSamples);
+					
+					tempOutBuffer.setSize(reader->numChannels, (int)((internalBufferSampleRate / reader->sampleRate) * reader->lengthInSamples));
+					this->internalBufferTotalLengthInSeconds = (float)reader->lengthInSamples / reader->sampleRate;
+					internalAudioBuffer.setSize(reader->numChannels, tempOutBuffer.getNumSamples());
+
+					LagrangeInterpolator resampler = LagrangeInterpolator();
+					for (unsigned int i = 0; i < reader->numChannels; i++)
+					{
+						resampler.process(reader->sampleRate / internalBufferSampleRate , tempInBuffer.getReadPointer(i),tempOutBuffer.getWritePointer(i), tempOutBuffer.getNumSamples());
+						internalAudioBuffer.copyFrom(i, 0, tempOutBuffer.getReadPointer(i), tempOutBuffer.getNumSamples());
+					}
+				}
+				else
+				{
+					this->internalBufferTotalLengthInSeconds = (float)reader->lengthInSamples / reader->sampleRate;
+					internalAudioBuffer.setSize(reader->numChannels, (int)reader->lengthInSamples);
+					reader->read(&internalAudioBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+				}
+
 				setAudioChannels(0, (int)reader->numChannels);
 				playButton.setEnabled(true);
 			}
