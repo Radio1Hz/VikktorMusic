@@ -36,8 +36,8 @@ private:
 
     FunctionProvider fp;
     //float **rhythm; // [10][10001000][10001000100010001000100010001000]
-    int max_steps;
-    dsp::Matrix<double> *timeTableMatrix;
+    int max_steps = 4;
+    //dsp::Matrix<double> *timeTableMatrix;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TimeObjectComponent)
 };
 

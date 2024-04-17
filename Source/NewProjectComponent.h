@@ -59,8 +59,8 @@ private:
     std::unique_ptr<juce::TextButton> okButton;
     std::unique_ptr<juce::Label> bpmLabel;
     std::unique_ptr<juce::TextEditor> bpmEditor;
-    std::unique_ptr<juce::Label> lengthLabel;
-    std::unique_ptr<juce::TextEditor> lengthEditor;
+    std::unique_ptr<juce::Label> measuresLabel;
+    std::unique_ptr<juce::TextEditor> measuresEditor;
 
 
     //==============================================================================

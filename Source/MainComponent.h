@@ -13,7 +13,7 @@
 */
 
 
-class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public juce::ChangeListener, public juce::MultiTimer
+class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public juce::ChangeListener, public juce::MultiTimer, public juce::ValueTree::Listener
 {
 public:
 	//====================================================================================================================
@@ -22,6 +22,7 @@ public:
 
 	void chooseFile();
 	void newButtonClicked();
+	void setNewProject(int bpm, int measures);
 	void ReadSamplesToImage();
 
 	void ReadSamplesToAudioSampleBufferImage();
@@ -29,9 +30,9 @@ public:
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
 	void playButtonClicked();
 	void stopButtonClicked();
+	void setupProjectTree();
 	void updateToggleStateAudio(juce::Button* button);
 	void updateToggleStateSettings(juce::Button* button);
-
 	void updateToggleStateVisualize(juce::Button* button);
 
 	static juce::String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
@@ -67,6 +68,8 @@ public:
 		Playing,
 		Paused
 	};
+	Identifier projectMainNode = Identifier("projectHead");
+	ValueTree projectTree = ValueTree(projectMainNode);
 
 private:
 
@@ -111,6 +114,13 @@ private:
 
 	TransportState state;
 	juce::Random random;
-	
+
+	void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+	void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
+	void valueTreeChildRemoved(ValueTree & parentTree, ValueTree & childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
+	void valueTreeChildOrderChanged(ValueTree & parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex) override;
+	void valueTreeParentChanged(ValueTree & treeWhoseParentHasChanged) override;
+	void valueTreeRedirected(ValueTree & treeWhichHasBeenChanged) override;
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
