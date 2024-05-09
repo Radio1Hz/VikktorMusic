@@ -49,6 +49,10 @@
             file="Source/PlotComponentLogistic.h"/>
       <FILE id="BBecl3" name="MIDISynthComponent.h" compile="0" resource="0"
             file="Source/MIDISynthComponent.h"/>
+      <FILE id="h0gLeL" name="MIDITimelineComponent.cpp" compile="1" resource="0"
+            file="Source/MIDITimelineComponent.cpp"/>
+      <FILE id="vPaUoh" name="MIDITimelineComponent.h" compile="0" resource="0"
+            file="Source/MIDITimelineComponent.h"/>
       <FILE id="Wr9rjk" name="TreeNode.cpp" compile="1" resource="0" file="Source/TreeNode.cpp"/>
       <FILE id="VIowKh" name="TreeNode.h" compile="0" resource="0" file="Source/TreeNode.h"/>
       <FILE id="PlUmrP" name="BaseAudioAppComponent.cpp" compile="1" resource="0"

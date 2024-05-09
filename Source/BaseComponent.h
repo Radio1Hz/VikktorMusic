@@ -15,7 +15,7 @@ using namespace juce;
 //==============================================================================
 /*
 */
-class BaseComponent : public juce::Component
+class BaseComponent : public juce::AudioAppComponent
 {
 public:
     BaseComponent();
@@ -31,7 +31,6 @@ public:
     virtual void controlMouseDownEvent(const juce::MouseEvent& event);
     virtual void controlMouseUpEvent(const juce::MouseEvent& event);
     virtual void shiftMouseDownEvent(const juce::MouseEvent& event);
-
     
     void drawOutline (Graphics&);
     void mouseDrag(const MouseEvent& event) override;
@@ -44,11 +43,16 @@ public:
     int minSize = 50;
     String name = "Unknown";
     int headerHeight = 20;
+
 protected: 
     float getFontSize();
-private:
     ComponentDragger myDragger;
-    
     int defaultSize = 200;
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+    void releaseResources() override;
+    void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
+    juce::PopupMenu menu;
+private:
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BaseComponent)
 };

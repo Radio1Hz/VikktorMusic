@@ -10,6 +10,7 @@
 
 #include "MIDISynthComponent.h"
 
+
 //==============================================================================
 MIDISynthComponent::MIDISynthComponent()
 {

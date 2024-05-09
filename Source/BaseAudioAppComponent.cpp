@@ -24,82 +24,10 @@ BaseAudioAppComponent::~BaseAudioAppComponent()
 {
 
 }
-void BaseAudioAppComponent::zoomEvent(const MouseEvent&, const MouseWheelDetails&)
-{}
-void BaseAudioAppComponent::mouseWheelMove(const MouseEvent& event, const MouseWheelDetails& wheel)
-{
-    if (event.mods.isCtrlDown())
-    {
-        zoomEvent(event, wheel);
-    }
-    else
-    {
-        juce::Rectangle<int> rect = getBounds();
-        //int originalSize = rect.getWidth();
-        int newSize = rect.getWidth() * (1 + (int)wheel.deltaY);
-        if (newSize <= minSize)
-        {
-            newSize = minSize;
-        }
-        rect.setSize(newSize, newSize);
-        setBounds(rect);
-    }
-}
-void BaseAudioAppComponent::paint(Graphics&)
-{
-    
-}
 
-void BaseAudioAppComponent::drawOutline(Graphics& g)
+void BaseAudioAppComponent::paint(Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));   // clear the background
-    Rectangle<int> rect = getLocalBounds();
-    
-    g.setFont(15.0f);
-    rect.setHeight(headerHeight);
-    g.setColour(Colours::darkblue);
-    g.fillRect(rect);
-    g.drawRect(getLocalBounds(), 1);
-    g.setColour(Colours::white);
-    g.drawText(name, rect, Justification::centredLeft, true);   // draw an outline around the component
-}
-
-Rectangle<int> BaseAudioAppComponent::getReducedLocalBounds()
-{
-    Rectangle<int> rect = getLocalBounds();
-    rect.translate(1, headerHeight);
-    rect.setHeight(rect.getHeight() - headerHeight - 1);
-    rect.setWidth(rect.getWidth() - 2);
-    return rect;
-}
-void BaseAudioAppComponent::resized()
-{
-
+    drawOutline(g);
 }
 
 
-Rectangle<int> BaseAudioAppComponent::getReducedBounds()
-{
-    Rectangle<int> rect = getBounds();
-    rect.translate(1, headerHeight);
-    rect.setHeight(rect.getHeight() - headerHeight - 1);
-    rect.setWidth(rect.getWidth() - 2);
-    return rect;
-}
-
-
-void BaseAudioAppComponent::mouseDrag(const juce::MouseEvent& event)
-{
-    myDragger.dragComponent(this, event, nullptr);
-    getParentComponent()->repaint();
-}
-
-void BaseAudioAppComponent::mouseUp(const juce::MouseEvent&)
-{
-
-}
-
-void BaseAudioAppComponent::mouseDown(const juce::MouseEvent& event)
-{
-    myDragger.startDraggingComponent(this, event);
-}

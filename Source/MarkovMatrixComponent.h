@@ -16,23 +16,16 @@
 #include "CommunicationAgent.h"
 using namespace juce;
 //==============================================================================
-/*
-*/
-class MarkovMatrixComponent  : public BaseComponent, public CommunicationAgent
+
+class MarkovMatrixComponent : public BaseComponent, public CommunicationAgent
 {
 public:
     MarkovMatrixComponent(int size);
     ~MarkovMatrixComponent() override;
 
     void paint (juce::Graphics&) override;
-    void markCurrentState();
     void resized() override;
-    juce::Array<float> getProbabilitiesArray(bool);
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
-    
-    void nextStep();
-    void resetMatrix();
-    void createChildren();
 
 private:
     //************************   simple variables   ************************
@@ -43,6 +36,12 @@ private:
     //************************   JUCE complex objects   ************************
     std::unique_ptr<juce::dsp::Matrix<float>> matrix;
     juce::OwnedArray<ProbabilitySlider> sliders;
+
+    void markCurrentState();
+    juce::Array<float> getProbabilitiesArray(bool);
+    void nextStep();
+    void resetMatrix();
+    void createChildren();
 
     //************************   functions, methods   ************************
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MarkovMatrixComponent)

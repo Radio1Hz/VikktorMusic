@@ -12,14 +12,13 @@
 
 #include <JuceHeader.h>
 #include "BaseComponent.h"
-#include "BaseAudioAppComponent.h"
 #include "CommunicationAgent.h"
 
 using namespace juce;
 //==============================================================================
 /*
 */
-class AudioComponent  : public BaseAudioAppComponent, public CommunicationAgent
+class AudioComponent  : public BaseComponent, public CommunicationAgent
 {
 public:
     AudioComponent();

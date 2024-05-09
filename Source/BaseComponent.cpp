@@ -35,6 +35,15 @@ float BaseComponent::getFontSize()
 {
     return 10.0f * (float)(getReducedLocalBounds().getWidth())/ (float)(this->getTopLevelComponent()->getWidth());
 }
+void BaseComponent::prepareToPlay(int /*samplesPerBlockExpected*/, double /*sampleRate*/)
+{
+}
+void BaseComponent::releaseResources()
+{
+}
+void BaseComponent::getNextAudioBlock(const AudioSourceChannelInfo& /*bufferToFill*/)
+{
+}
 void BaseComponent::drawOutline (Graphics& g)
 {
     Rectangle<int> rect = getLocalBounds();
@@ -96,20 +105,25 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
     else
     {
         juce::Rectangle<float> rect = getBounds().toFloat();
-        //float originalSize = rect.getWidth();
         Point<float> originalCenter = rect.getCentre();
-        float newSize = rect.getWidth() * (1.0f + wheel.deltaY);
-        if (newSize <= (float)minSize)
+        float newWidth = rect.getWidth() * (1.0f + wheel.deltaY);
+        float newHeight = rect.getHeight() * (1.0f + wheel.deltaY);
+
+        if (newWidth <= (float)minSize)
         {
-            newSize = (float)minSize;
+            newWidth = (float)minSize;
         }
-        rect.setSize(newSize, newSize);
+        if (newHeight <= (float)minSize)
+        {
+            newHeight = (float)minSize;
+        }
+
+        rect.setSize(newWidth, newHeight);
         rect.setCentre(originalCenter);
         setBounds((int)rect.getX(), (int)rect.getY(), (int)rect.getWidth(), (int)rect.getHeight());
         getParentComponent()->repaint();
     }
 }
-
 
 void BaseComponent::mouseDrag(const juce::MouseEvent& event)
 {
@@ -159,5 +173,29 @@ void BaseComponent::mouseDown(const juce::MouseEvent& event)
     else
     {
         myDragger.startDraggingComponent(this, event);
+    }
+
+    if (menu.getNumItems() > 0)
+    {
+        if (event.mods.isRightButtonDown())
+        {
+            menu.showMenuAsync(PopupMenu::Options(),
+                [](int result)
+                {
+                    if (result == 0)
+                    {
+                        // user dismissed the menu without picking anything
+                    }
+                    else if (result == 1)
+                    {
+                        // user picked item 1
+                    }
+                    else if (result == 2)
+                    {
+                        // user picked item 2
+
+                    }
+                });
+        }
     }
 }

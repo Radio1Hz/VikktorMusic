@@ -9,7 +9,6 @@
 */
 
 #include <JuceHeader.h>
-#include "LogSpaceComponent.h"
 #include "MarkovMatrixComponent.h"
 #include "ProbabilitySlider.h"
 #include "TimerComponent.h"
@@ -24,7 +23,6 @@ MarkovMatrixComponent::MarkovMatrixComponent(int size)
 	matrix = std::make_unique<juce::dsp::Matrix<float>>(size, size);
 	resetMatrix();
 	createChildren();
-	addMouseListener(this, true);
 }
 
 void MarkovMatrixComponent::resetMatrix()
@@ -214,6 +212,7 @@ void MarkovMatrixComponent::createChildren()
 			ProbabilitySlider* sO = new ProbabilitySlider(matrix->operator()(i, j), i, j);
 			sliders.add(sO);
 			sO->addChangeListener(this);
+			sO->addMouseListener(this, true);
 			addAndMakeVisible(sO);
 		}
 	}

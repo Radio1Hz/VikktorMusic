@@ -19,6 +19,7 @@
 #include "PlotComponentLogistic.h"
 #include "AudioComponent.h"
 #include "MIDISynthComponent.h"
+#include "MIDITimelineComponent.h"
 #include "EuclidianRythmTimerComponent.h"
 #include "ComponentStateController.h"
 
@@ -49,6 +50,7 @@ private:
 	juce::OwnedArray<MIDISynthComponent> midiObjects;
 	juce::OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;
 	juce::OwnedArray<ComponentStateController> stateControllerObjects;
+	juce::OwnedArray<MIDITimelineComponent> MIDITimelineObjects;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LogSpaceComponent)
 
@@ -70,8 +72,17 @@ public:
 		menu.addItem("Add new MIDI Synth Component", std::bind(&LogSpaceComponent::addNewMIDISynthComponent, this));
 		menu.addItem("Add new Euclidian Rhythm Component", std::bind(&LogSpaceComponent::addNewEuclidianTimer, this));
 		menu.addItem("Add new Time Object Componet", std::bind(&LogSpaceComponent::addNewTimeObjectComponent, this));
+		menu.addItem("Add new MIDI Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineComponent, this));
 	}
 
+	void LogSpaceComponent::addNewMIDITimelineComponent()
+	{
+		//MIDITimelineComponent* tO = new MIDITimelineComponent();
+		MIDITimelineComponent* t0 = new MIDITimelineComponent();
+		MIDITimelineObjects.add(t0);
+		addAndMakeVisible(t0);
+		resized();
+	}
 	void LogSpaceComponent::addNewTimeObjectComponent()
 	{
 		//int size = rnd.nextInt(20) + 4;
@@ -176,7 +187,7 @@ public:
 	{
 		if (event.getNumberOfClicks() == 2)
 		{
-			addMarkovMatrix();
+
 		}
 
 		if (event.getNumberOfClicks() == 1)
@@ -307,7 +318,7 @@ public:
 		{
 			if (cO->getWidth() <= 0)
 			{
-				if (getLocalBounds().getWidth() > 200)
+				if (getLocalBounds().getWidth() >= 200)
 				{
 					cO->setBounds(juce::Random::getSystemRandom().nextInt(getLocalBounds().getWidth() - 200), juce::Random::getSystemRandom().nextInt(getLocalBounds().getHeight() - 200), 200, 200);
 				}
