@@ -27,6 +27,7 @@ ProbabilitySlider::ProbabilitySlider(float value, int row, int col)
     slider.setColour(Slider::ColourIds::trackColourId, Colours::white);
     slider.setBoundsRelative(1.0f, 1.0f, 1.0f, 0.5f);
     this->value = value;
+    
     addAndMakeVisible(slider);
     slider.setScrollWheelEnabled(true);
     addMouseListener(this, true);

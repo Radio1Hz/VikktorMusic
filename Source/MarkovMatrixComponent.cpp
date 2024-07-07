@@ -16,8 +16,9 @@
 
 using namespace juce;
 
-MarkovMatrixComponent::MarkovMatrixComponent(int size)
+MarkovMatrixComponent::MarkovMatrixComponent(int size, bool readOnly)
 {
+	this->readOnlyMode = readOnly;
 	this->size = size;
 	this->name = "Markov Matrix " + String(size);
 	matrix = std::make_unique<juce::dsp::Matrix<float>>(size, size);
@@ -29,10 +30,10 @@ void MarkovMatrixComponent::resetMatrix()
 {
 	for (int i = 0; i < size; i++)
 	{
-		Array<float> arr = getProbabilitiesArray(false);
+		//Array<float> arr = getProbabilitiesArray(false);
 		for (int j = 0; j < size; j++)
 		{
-			matrix->operator()(i, j) = arr[j];
+			matrix->operator()(i, j) = 0.0f;
 		}
 	}
 }
@@ -134,7 +135,8 @@ juce::Array<float> MarkovMatrixComponent::getProbabilitiesArray(bool test = fals
 
 	for (int i = 0; i < size - 1; i++)
 	{
-		arr.add(juce::Random::getSystemRandom().nextFloat());
+		arr.add(0.0f);
+		//arr.add(juce::Random::getSystemRandom().nextFloat());
 	}
 
 	arr.sort();

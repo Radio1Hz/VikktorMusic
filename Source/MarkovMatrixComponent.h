@@ -20,7 +20,7 @@ using namespace juce;
 class MarkovMatrixComponent : public BaseComponent, public CommunicationAgent
 {
 public:
-    MarkovMatrixComponent(int size);
+    MarkovMatrixComponent(int size, bool readOnly=false);
     ~MarkovMatrixComponent() override;
 
     void paint (juce::Graphics&) override;

@@ -83,6 +83,7 @@ public:
 		addAndMakeVisible(t0);
 		resized();
 	}
+
 	void LogSpaceComponent::addNewTimeObjectComponent()
 	{
 		//int size = rnd.nextInt(20) + 4;

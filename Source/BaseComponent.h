@@ -43,10 +43,13 @@ public:
     int minSize = 50;
     String name = "Unknown";
     int headerHeight = 20;
+    bool embeddedMode = false;
+    bool readOnlyMode = false;
 
 protected: 
     float getFontSize();
     ComponentDragger myDragger;
+    
     int defaultSize = 200;
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;

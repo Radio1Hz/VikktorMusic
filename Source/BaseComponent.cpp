@@ -46,23 +46,26 @@ void BaseComponent::getNextAudioBlock(const AudioSourceChannelInfo& /*bufferToFi
 }
 void BaseComponent::drawOutline (Graphics& g)
 {
-    Rectangle<int> rect = getLocalBounds();
-    g.setColour(Colours::black);
-    g.fillRect(rect);
+    if (!this->embeddedMode)
+    {
+        Rectangle<int> rect = getLocalBounds();
+        g.setColour(Colours::black);
+        g.fillRect(rect);
 
-    g.setFont(15.0f);
-    rect.setHeight(headerHeight);
-    g.setColour(Colours::darkorange);
-    g.fillRect(rect);
-    g.drawRect(getLocalBounds(), 1);
-    g.setColour(Colours::white);
-    rect.translate(5, 0);
-    
-    juce::String state = juce::String(name);
-    state.append(juce::String(" S:"), 7);
-    state.append(juce::String(component_state), 6);
-    
-    g.drawText(state, rect, Justification::centredLeft, true);
+        g.setFont(15.0f);
+        rect.setHeight(headerHeight);
+        g.setColour(Colours::darkorange);
+        g.fillRect(rect);
+        g.drawRect(getLocalBounds(), 1);
+        g.setColour(Colours::white);
+        rect.translate(5, 0);
+
+        juce::String state = juce::String(name);
+        state.append(juce::String(" S:"), 7);
+        state.append(juce::String(component_state), 6);
+
+        g.drawText(state, rect, Justification::centredLeft, true);
+    }
 }
 
 void BaseComponent::resized()
@@ -81,18 +84,24 @@ void BaseComponent::shiftMouseDownEvent(const juce::MouseEvent& /*event*/) {}
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
     Rectangle<int> rect = getLocalBounds();
-    rect.translate(1, headerHeight);
-    rect.setHeight(rect.getHeight() - headerHeight - 1);
-    rect.setWidth(rect.getWidth() - 2);
+    if (!this->embeddedMode)
+    {
+        rect.translate(1, headerHeight);
+        rect.setHeight(rect.getHeight() - headerHeight - 1);
+        rect.setWidth(rect.getWidth() - 2);
+    }
     return rect;
 }
 
 Rectangle<int> BaseComponent::getReducedBounds()
 {
     Rectangle<int> rect = getBounds();
-    rect.translate(1, headerHeight);
-    rect.setHeight(rect.getHeight() - headerHeight - 1);
-    rect.setWidth(rect.getWidth() - 2);
+    if (!this->embeddedMode)
+    {
+        rect.translate(1, headerHeight);
+        rect.setHeight(rect.getHeight() - headerHeight - 1);
+        rect.setWidth(rect.getWidth() - 2);
+    }
     return rect;
 }
 
@@ -104,24 +113,36 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
     }
     else
     {
-        juce::Rectangle<float> rect = getBounds().toFloat();
-        Point<float> originalCenter = rect.getCentre();
-        float newWidth = rect.getWidth() * (1.0f + wheel.deltaY);
-        float newHeight = rect.getHeight() * (1.0f + wheel.deltaY);
-
-        if (newWidth <= (float)minSize)
+        if (!this->embeddedMode)
         {
-            newWidth = (float)minSize;
-        }
-        if (newHeight <= (float)minSize)
-        {
-            newHeight = (float)minSize;
-        }
+            juce::Rectangle<int> rect = getReducedBounds();
+            Point<float> originPointRelative = Point<float>((event.x - 1) / (float)rect.getWidth(), (event.y - headerHeight) / (float)rect.getHeight());
+            int deltaWidth = roundToInt(rect.getWidth() * wheel.deltaY);
+            int deltaHeight = roundToInt(rect.getHeight() * wheel.deltaY);
 
-        rect.setSize(newWidth, newHeight);
-        rect.setCentre(originalCenter);
-        setBounds((int)rect.getX(), (int)rect.getY(), (int)rect.getWidth(), (int)rect.getHeight());
-        getParentComponent()->repaint();
+            int newWidth = rect.getWidth() + deltaWidth;
+            int newHeight = rect.getHeight() + deltaHeight;
+
+            if (newWidth <= minSize)
+            {
+                newWidth = minSize;
+            }
+            if (newHeight <= minSize)
+            {
+                newHeight = minSize;
+            }
+
+            rect.setSize(newWidth, newHeight);
+            rect.translate(roundToInt(-(float)deltaWidth * originPointRelative.x), roundToInt(-(float)deltaHeight * originPointRelative.y));
+
+            setBounds((int)rect.getX() - 1, (int)rect.getY() - headerHeight, (int)rect.getWidth() + 2, (int)rect.getHeight() + headerHeight + 1);
+            getParentComponent()->repaint();
+        }
+        else
+        {
+            getParentComponent()->mouseWheelMove(event, wheel);
+        }
+        
     }
 }
 
@@ -135,8 +156,11 @@ void BaseComponent::mouseDrag(const juce::MouseEvent& event)
         }
         else
         {
-            myDragger.dragComponent(this, event, nullptr);
-            getParentComponent()->repaint();
+            if(!embeddedMode)
+            { 
+                myDragger.dragComponent(this, event, nullptr);
+                getParentComponent()->repaint();
+            }
         }
     }
     
