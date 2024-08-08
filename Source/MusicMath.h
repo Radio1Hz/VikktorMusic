@@ -1,20 +1,31 @@
 /*
   ==============================================================================
 
-    MusicMath.h
-    Created: 10 May 2023 8:17:33am
-    Author:  viktor
+	MusicMath.h
+	Created: 10 May 2023 8:17:33am
+	Author:  viktor
 
   ==============================================================================
 */
 #pragma once
 #include <JuceHeader.h>
 
+class NoteEventDesc
+{
+public:
+
+	juce::String	NoteName = "";
+	int				NoteNumber = -1;
+	NoteEventDesc::NoteEventDesc();
+	NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber);
+	NoteEventDesc::~NoteEventDesc();
+};
+
 class MusicMath
 {
 public:
-    MusicMath();
-    ~MusicMath();
+	MusicMath();
+	~MusicMath();
 
 	juce::String				displayKeys();
 	juce::String				displayModes();
@@ -49,87 +60,88 @@ public:
 	//MIDIAudio*					midiAudioObj;
 
 private:
-    std::vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
-												{ 
-													0,			// C
-													7,			// G
-													2,			// D
-													9,			// A
-													4,			// E
-													11,			// B
-													6,			// F#
-													1,			// C#
-													8,			// G#
-													3,			// D#
-													10,			// Bb
-													5			// F
-												};
+	std::vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
+	{
+		0,			// C
+		7,			// G
+		2,			// D
+		9,			// A
+		4,			// E
+		11,			// B
+		6,			// F#
+		1,			// C#
+		8,			// G#
+		3,			// D#
+		10,			// Bb
+		5			// F
+	};
 
-	std::vector<juce::String>	_keys_display = 
-												{ 
-													"C", 
-													"G", 
-													"D", 
-													"A", 
-													"E", 
-													"B", 
-													"F#", 
-													"C#", 
-													"G#", 
-													"D#", 
-													"Bb", 
-													"F" 
-												};
+	std::vector<juce::String>	_keys_display =
+	{
+		"C",
+		"G",
+		"D",
+		"A",
+		"E",
+		"B",
+		"F#",
+		"C#",
+		"G#",
+		"D#",
+		"Bb",
+		"F"
+	};
 
-	std::vector<juce::Colour>	_keys_colour_codes = 
-												{ 
-													juce::Colour::fromRGBA(255, 165, 0, 255),	//C Major
-													juce::Colour::fromRGBA(0, 200, 0, 255),		//G Major
-													juce::Colour::fromRGBA(128, 128, 128, 255),	//D Major 
-													juce::Colour::fromRGBA(128, 0, 128, 255),	//A Major
-													juce::Colour::fromRGBA(200, 0, 0, 255),		//E Major
-													juce::Colour::fromRGBA(0, 0, 200, 255),		//B Major
-													juce::Colour::fromRGBA(199, 21, 133, 255),	//F# Major
-													juce::Colour::fromRGBA(200, 90, 0, 255),	//C# Major
-													juce::Colour::fromRGBA(0, 150, 0, 255),		//G# Major
-													juce::Colour::fromRGBA(90, 90, 90, 255),	//D# Major
-													juce::Colour::fromRGBA(90, 0, 90, 255),		//Bb Major
-													juce::Colour::fromRGBA(255, 105, 180, 255)	//F Major
-												};
+	std::vector<juce::Colour>	_keys_colour_codes =
+	{
+		juce::Colour::fromRGBA(255, 165, 0, 255),	//C Major
+		juce::Colour::fromRGBA(0, 200, 0, 255),		//G Major
+		juce::Colour::fromRGBA(128, 128, 128, 255),	//D Major 
+		juce::Colour::fromRGBA(128, 0, 128, 255),	//A Major
+		juce::Colour::fromRGBA(200, 0, 0, 255),		//E Major
+		juce::Colour::fromRGBA(0, 0, 200, 255),		//B Major
+		juce::Colour::fromRGBA(199, 21, 133, 255),	//F# Major
+		juce::Colour::fromRGBA(200, 90, 0, 255),	//C# Major
+		juce::Colour::fromRGBA(0, 150, 0, 255),		//G# Major
+		juce::Colour::fromRGBA(90, 90, 90, 255),	//D# Major
+		juce::Colour::fromRGBA(90, 0, 90, 255),		//Bb Major
+		juce::Colour::fromRGBA(255, 105, 180, 255)	//F Major
+	};
 
-	std::vector<std::vector<int>> _modes_offset 
-												{
-													{0, 2, 4, 5, 7, 9, 11},
-													{0, 2, 3, 5, 7, 9, 10},
-													{0, 1, 3, 5, 7, 8, 10},
-													{0, 2, 4, 6, 7, 9, 11},
-													{0, 2, 4, 5, 7, 9, 10},
-													{0, 2, 3, 5, 7, 8, 10},
-													{0, 1, 3, 5, 6, 8, 10}
-												};
+	std::vector<std::vector<int>> _modes_offset
+	{
+		{0, 2, 4, 5, 7, 9, 11},
+		{0, 2, 3, 5, 7, 9, 10},
+		{0, 1, 3, 5, 7, 8, 10},
+		{0, 2, 4, 6, 7, 9, 11},
+		{0, 2, 4, 5, 7, 9, 10},
+		{0, 2, 3, 5, 7, 8, 10},
+		{0, 1, 3, 5, 6, 8, 10}
+	};
 
-	std::vector<juce::String>	_modes_display = 
-												{ 
-													"Ionian", 
-													"Dorian", 
-													"Phrygian", 
-													"Lydian", 
-													"Mixolydian", 
-													"Aeolian", 
-													"Locrian" 
-												};
+	std::vector<juce::String>	_modes_display =
+	{
+		"Ionian",
+		"Dorian",
+		"Phrygian",
+		"Lydian",
+		"Mixolydian",
+		"Aeolian",
+		"Locrian"
+	};
 
-	std::vector<juce::String>	_modes_display_degrees = 
-												{ 
-													"I", 
-													"II", 
-													"III", 
-													"IV", 
-													"V", 
-													"VI", 
-													"VII" 
-												};
+	std::vector<juce::String>	_modes_display_degrees =
+	{
+		"I",
+		"II",
+		"III",
+		"IV",
+		"V",
+		"VI",
+		"VII"
+	};
 };
+
 
 
 /*

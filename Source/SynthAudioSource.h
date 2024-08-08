@@ -23,15 +23,16 @@ class SynthAudioSource : public juce::AudioSource
 
 public:
 
-    SynthAudioSource()
+    SynthAudioSource(int numVoices)
     {
-        for (auto i = 0; i < 2; ++i)
+        for (auto i = 0; i < numVoices; ++i)
         {
             synth.addVoice(new SineWaveVoice());
         }
 
         synth.addSound(new SineWaveSound());
     }
+
     ~SynthAudioSource()
     {
         synth.clearVoices();
