@@ -47,6 +47,10 @@ private:
 	std::vector<float> noteProbabilities;
 	String projectName = "";
 	MusicMath musicMath;
+	int viewMode = 1; // 0 - MIDI, 1 - Matrix
+	int noteRangeStart = 36;
+	int noteRangeEnd = 96;
+	int noteRangeSize = 0;
 	int numerator = 0, denominator = 0;
 	float timelineHeightRatio = 0.075f;
 	int samplesPerBlockExpectedInt = 0;

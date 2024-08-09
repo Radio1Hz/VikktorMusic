@@ -23,6 +23,7 @@ MIDITimelineComponent::MIDITimelineComponent()
 	this->name = "MIDI Timeline";
 	this->setMenu();
 	setAudioChannels(0, 2);
+	noteRangeSize = noteRangeEnd - noteRangeStart;
 	//addMouseListener(this, true);
 }
 
@@ -67,11 +68,11 @@ void MIDITimelineComponent::releaseResources()
 void MIDITimelineComponent::paint(juce::Graphics& g)
 {
 	drawOutline(g);
+	Rectangle<float> parentBounds = getReducedLocalBounds().toFloat();
+	g.setColour(Colour::fromRGB(35, 35, 35));
 
-	if (midiFile != nullptr)
+	if (midiFile != nullptr && viewMode == 0)
 	{
-		g.setColour(Colour::fromRGB(35, 35, 35));
-		Rectangle<float> parentBounds = getReducedLocalBounds().toFloat();
 		double totalDuration = midiFile->getLastTimestamp();
 		int numMeasures = 0;
 		if (this->denominator && this->numerator)
@@ -110,6 +111,47 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			trackRect.translate(0, (float)trackHeight);
 		}
 	}
+	else
+	{
+		if (noteEventMatrix.size() > 0)
+		{
+			int numberOfTimeUnits = (int)noteEventMatrix[0].size();
+			for (int i = 0; i < noteRangeSize; i++)
+			{
+				float currentY = (float)(parentBounds.getTopLeft().y + parentBounds.getHeight() * (((float)noteRangeSize - (float)i) / (float)noteRangeSize));
+				float currentX = 0.0f;
+				Rectangle<float> textBox(0.0f, currentY, (float)(parentBounds.getWidth() / (float)numberOfTimeUnits), (float)(parentBounds.getHeight() / (float)noteRangeSize));
+				g.setFont((float)(0.9f * parentBounds.getHeight() / (float)noteRangeSize));
+
+				//g.drawText(String(noteRangeStart + i), textBox, Justification::left);
+				if (textBox.getHeight() > 10)
+				{
+					g.drawLine(parentBounds.getTopLeft().x, currentY, parentBounds.getTopRight().x, currentY, 0.2f);
+				}
+
+				for (int j = 0; j < numberOfTimeUnits; j++)
+				{
+					g.setColour(Colours::lightgrey);
+					currentX = parentBounds.getWidth() * ((float)j / (float)numberOfTimeUnits);
+					textBox.setPosition(Point<float>(currentX, currentY));
+
+					if (textBox.getWidth() > 10)
+					{
+						g.drawLine(textBox.getBottomRight().x, textBox.getBottomRight().y, textBox.getTopRight().x, textBox.getTopRight().y, 0.2f);
+					}
+
+					if (noteEventMatrix[i][j].NoteName != "")
+					{
+						g.fillRect(textBox);
+						g.setColour(Colours::darkgrey);
+						g.drawText(String(noteEventMatrix[i][j].NoteName), textBox, Justification::left);
+					}
+				}
+			}
+		}
+	}
+
+	
 }
 
 void MIDITimelineComponent::drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g)
@@ -147,24 +189,13 @@ void MIDITimelineComponent::drawMIDIEvents(Rectangle<float> trackRect, int track
 			g.drawLine(trackRect.getTopLeft().getX() + pixelStart, trackRect.getTopLeft().getY() + yVel, trackRect.getTopLeft().getX() + pixelEnd, trackRect.getTopLeft().getY() + yVel, 1.0f);
 		}
 	}
+
+	
 }
 
 void MIDITimelineComponent::resized()
 {
-	if (midiFile)
-	{
-		/*int width = getReducedBounds().getWidth();
-		int height = getReducedBounds().getHeight();*/
-		/*int minimumSize = jmin<int>((int)(height * this->timelineHeightRatio), width / this->measureMatrices.size());
-		Rectangle<int> rect(minimumSize, minimumSize);
-		rect.translate(1, headerHeight);
-		for (auto matrix : this->measureMatrices)
-		{
-			matrix->setBounds(rect);
-			rect.translate((int)((float)width / (float)this->measureMatrices.size()), 0);
-		}*/
-	}
-
+	//setComponentSize();
 }
 
 void MIDITimelineComponent::loadMIDI()
@@ -257,9 +288,10 @@ void MIDITimelineComponent::processMidi()
 		int ticksPerMeasure = (int)(midiFile->getTimeFormat() * (4.0f / (float)this->denominator) * (float)this->numerator);
 		numMeasures = roundToInt(totalDuration / (double)ticksPerMeasure);
 	}
-	noteEventMatrix.resize(128);
+	
+	noteEventMatrix.resize(noteRangeSize);
 	//noteEventMatrix.clear();
-	for (int i = 0; i < noteEventMatrix.size(); i++)
+	for (int i = 0; i < noteRangeSize; i++)
 	{
 		std::vector<NoteEventDesc> vec;
 		vec.resize(numMeasures * 4 * 4);
@@ -278,18 +310,19 @@ void MIDITimelineComponent::processMidi()
 
 			if (midiMessage.isNoteOn())
 			{
-				juce::MidiMessageSequence::MidiEventHolder* noteOffHolder = midiEvent->noteOffObject;
+				//juce::MidiMessageSequence::MidiEventHolder* noteOffHolder = midiEvent->noteOffObject;
 				int noteNumber = midiMessage.getNoteNumber();
 				double noteStart = midiMessage.getTimeStamp();
-				double noteEnd = noteStart;
-				double duration = 0;
+				//double noteEnd = noteStart;
+				//double duration = 0;
 
 				int column = roundToInt((noteStart / totalDuration) * (double)matrixWidth);
-				if (noteNumber < 128)
+				if (noteNumber >= noteRangeStart && noteNumber <= noteRangeEnd)
 				{
 					NoteEventDesc nEvent(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber);
-					noteEventMatrix[127-noteNumber][column] = nEvent;
+					noteEventMatrix[noteNumber - noteRangeStart][column] = nEvent;
 				}
+				//noteRangeEnd - noteRangeSize - noteNumber
 				
 			}
 		}
@@ -298,7 +331,7 @@ void MIDITimelineComponent::processMidi()
 	measureMatrices.clear();
 	FileOutputStream stream = FileOutputStream(File(projectName + "." + String(Time::currentTimeMillis()) + ".proj"));
 	
-	for (int i = 0; i < noteEventMatrix.size(); i++)
+	for (int i = 0; i < noteRangeSize; i++)
 	{
 		String str = "";
 		for (int j = 0; j < noteEventMatrix[i].size(); j++)
@@ -356,9 +389,18 @@ void MIDITimelineComponent::processMidi()
 
 void MIDITimelineComponent::setComponentSize()
 {
+	int minCellWidth = 5;
 	Rectangle<float> parentBounds = getParentComponent()->getBounds().toFloat();
 	float trackHeight = (parentBounds.getHeight() * (1 - this->timelineHeightRatio)) / (midiTracks.size());
-	setBounds((int)parentBounds.getX(), (int)parentBounds.getY(), (int)parentBounds.getWidth(), (int)trackHeight * midiTracks.size() + (int)(parentBounds.getHeight() * (this->timelineHeightRatio)));
+	if (noteEventMatrix.size() > 0)
+	{
+		int numberOfTimeUnits = (int)noteEventMatrix[0].size();
+		setBounds((int)parentBounds.getX(), (int)parentBounds.getY(), minCellWidth * numberOfTimeUnits, (int)(parentBounds.getHeight()));
+	}
+	else
+	{
+		setBounds((int)parentBounds.getX(), (int)parentBounds.getY(), (int)parentBounds.getWidth(), (int)trackHeight * midiTracks.size() + (int)(parentBounds.getHeight() * (this->timelineHeightRatio)));
+	}
 	repaint();
 }
 
