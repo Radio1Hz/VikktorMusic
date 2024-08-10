@@ -20,7 +20,7 @@
 using namespace juce;
 //==============================================================================
 
-class MIDITimelineComponent : public BaseComponent, public CommunicationAgent
+class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, private AsyncUpdater
 {
 public:
 	MIDITimelineComponent();
@@ -29,6 +29,8 @@ public:
 	void paint(juce::Graphics&) override;
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
+	void handleAsyncUpdate() override;
+	void triggerRepaint();
 
 private:
 	void loadMIDI();
@@ -37,6 +39,8 @@ private:
 	void setMenu();
 	void playMIDI();
 	void stopMIDI();
+	void repaintMatrixImage();
+	Image matrixImage;
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
 	std::unique_ptr<FileChooser> fileChooser;
 	std::unique_ptr<MidiFile> midiFile;
@@ -51,12 +55,15 @@ private:
 	int noteRangeStart = 36;
 	int noteRangeEnd = 96;
 	int noteRangeSize = 0;
+	int counter = 0;
 	int numerator = 0, denominator = 0;
+	int currentTimeUnit = -1;
 	float timelineHeightRatio = 0.075f;
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
-	float tempo = 120.0f;
+	float tempo = 80.0f;
 	bool isPlaying = false;
+	int samplesElapsedSincePlay = 0;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
 	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
 	void releaseResources() override;

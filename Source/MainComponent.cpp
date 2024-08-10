@@ -322,6 +322,7 @@ void MainComponent::timerCallback(int timerID)
 		float bufferLengthms = 1000.0f * (internalBufferSamplesPerBlock / (float)internalBufferSampleRate);
 		bufferLengthms = std::round(bufferLengthms * 10) / 10;
 		debugComponent.setInformation("CPU: " + juce::String((int)(cpuUsage * 100.00)) + "% Audio Block processed in " + juce::String(audioBlockProcessedTimeInMilliseconds) + " / " + juce::String(bufferLengthms) + " ms");
+		debugComponent.repaint();
 	}
 
 	if (timerID == (int)TimerType::TimePositionTimer)
@@ -339,7 +340,7 @@ void MainComponent::timerCallback(int timerID)
 					changeState(Stopped);
 				}
 			}
-
+			timeLabel.repaint();
 		}
 	}
 
@@ -351,7 +352,6 @@ void MainComponent::timerCallback(int timerID)
 			audioSampleBufferCopyNumSamples = 0;
 		}
 	}
-	repaint();
 
 }
 
