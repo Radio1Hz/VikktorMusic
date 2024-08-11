@@ -24,7 +24,7 @@ class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, p
 {
 public:
 	MIDITimelineComponent();
-	MIDITimelineComponent(int numMeasures);
+	MIDITimelineComponent(int numMeasures, int synthID);
 	void clearMatrix();
 	~MIDITimelineComponent() override;
 
@@ -69,6 +69,7 @@ private:
 	bool isPlaying = false;
 	int samplesElapsedSincePlay = 0;
 	int numMeasures = 0;
+	int synthID = 0;
 	int numTimeUnitsInMeasure = 0;
 	float numQuartersPerMeasure = 0;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;

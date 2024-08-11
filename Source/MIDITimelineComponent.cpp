@@ -22,9 +22,10 @@ MIDITimelineComponent::MIDITimelineComponent()
 	init();
 }
 
-MIDITimelineComponent::MIDITimelineComponent(int numMeasures)
+MIDITimelineComponent::MIDITimelineComponent(int numMeasures, int synthID)
 {
 	this->numMeasures = numMeasures;
+	this->synthID = synthID;
 	init();
 }
 
@@ -70,7 +71,7 @@ void MIDITimelineComponent::prepareToPlay(int samplesPerBlockExpected, double sa
 	this->samplesPerBlockExpectedInt = samplesPerBlockExpected;
 	this->sampleRateInt = sampleRate;
 	synths.clear();
-	SynthAudioSource* src = new SynthAudioSource(8, 1);
+	SynthAudioSource* src = new SynthAudioSource(8, synthID);
 	src->prepareToPlay(samplesPerBlockExpectedInt, sampleRateInt);
 	synths.add(src);
 }
@@ -105,7 +106,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			// If change happened
 			if (currentTimeUnit != currentTimeUnitSnapshot)
 			{
-				//synths[0]->synth.allNotesOff(0,true);
+				synths[0]->synth.allNotesOff(0,true);
 				for (int i = 0; i < noteEventMatrix.size(); i++)
 				{
 					if (noteEventMatrix[i][currentTimeUnit].NoteName != "")
