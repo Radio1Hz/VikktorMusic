@@ -24,6 +24,8 @@ class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, p
 {
 public:
 	MIDITimelineComponent();
+	MIDITimelineComponent(int numMeasures);
+	void clearMatrix();
 	~MIDITimelineComponent() override;
 
 	void paint(juce::Graphics&) override;
@@ -31,15 +33,17 @@ public:
 	void changeListenerCallback(ChangeBroadcaster* source) override;
 	void handleAsyncUpdate() override;
 	void triggerRepaint();
+	void playMIDI();
+	void stopMIDI();
+	void processMidi();
 
 private:
 	void loadMIDI();
-	void processMidi();
 	void setComponentSize();
-	void setMenu();
-	void playMIDI();
-	void stopMIDI();
+	void initMenu();
+	void clearTimeline();
 	void repaintMatrixImage();
+	void init();
 
 	Image matrixImage;
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
@@ -50,6 +54,7 @@ private:
 	OwnedArray<MarkovMatrixComponent> measureMatrices;
 	std::vector<std::vector<NoteEventDesc>> noteEventMatrix;
 	std::vector<float> noteProbabilities;
+	String projectPath = "";
 	String projectName = "";
 	MusicMath musicMath;
 	int viewMode = 1; // 0 - MIDI, 1 - Matrix
@@ -57,13 +62,15 @@ private:
 	int noteRangeEnd = 96;
 	int noteRangeSize = 0;
 	int counter = 0;
-	int numerator = 0, denominator = 0;
 	int currentTimeUnit = -1;
 	float timelineHeightRatio = 0.075f;
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
 	bool isPlaying = false;
 	int samplesElapsedSincePlay = 0;
+	int numMeasures = 0;
+	int numTimeUnitsInMeasure = 0;
+	float numQuartersPerMeasure = 0;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
 	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
 	void releaseResources() override;

@@ -28,6 +28,9 @@ public:
     {
         // This method is where you should put your application's initialisation code..
         AppProperties::setTempo(120.0f);
+        AppProperties::setNumerator(4);
+        AppProperties::setDenominator(4);
+        AppProperties::setProjectPath("C:\\Temp\\VikktorMusicDump\\");
         mainWindow.reset (new MainWindow (getApplicationName()));
     }
 

@@ -41,12 +41,10 @@ audioSetupComp(
 	playButton.setButtonText("Play");
 	playButton.onClick = [this] { playButtonClicked(); };
 	playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-	playButton.setEnabled(false);
 
 	stopButton.setButtonText("Stop");
 	stopButton.onClick = [this] { stopButtonClicked(); };
 	stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-	stopButton.setEnabled(false);
 
 	loadButton.setButtonText("Load");
 	loadButton.onClick = [this] { chooseFile(); };
@@ -109,7 +107,7 @@ void MainComponent::tempoChanged()
 void MainComponent::chooseFile()
 {
 	shutdownAudio();
-	playButton.setEnabled(false);
+
 	fileChooser = std::make_unique<FileChooser>("Please select the .wav file you want to load...", File("C:\\Data\\Samples"), "*.wav");
 
 	auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
@@ -161,7 +159,6 @@ void MainComponent::chooseFile()
 void MainComponent::newButtonClicked()
 {
 	shutdownAudio();
-	playButton.setEnabled(false);
 	setNewProject(120, 10);
 }
 
@@ -175,7 +172,6 @@ void MainComponent::setNewProject(int bpm, int measures)
 	internalBufferCurrentPositionInSeconds = 0.0;
 	internalBufferCurrentSamplePlaying = 0;
 	setAudioChannels(0, 2);
-	playButton.setEnabled(true);
 	ReadSamplesToImage();
 }
 
@@ -258,11 +254,27 @@ void MainComponent::playButtonClicked()
 		changeState(Playing);
 	else if (state == Playing)
 		changeState(Paused);
+
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->playMIDI();
+		}
+	}
 }
 
 void MainComponent::stopButtonClicked()
 {
 	changeState(Stopped);
+
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->stopMIDI();
+		}
+	}
 }
 
 void MainComponent::setupProjectTree()
