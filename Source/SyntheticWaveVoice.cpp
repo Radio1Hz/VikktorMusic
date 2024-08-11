@@ -8,23 +8,28 @@
   ==============================================================================
 */
 
-#include "SineWaveVoice.h"
-#include "SineWaveSound.h"
+#include "SyntheticWaveVoice.h"
+#include "BaseWaveSound.h"
 
-SineWaveVoice::SineWaveVoice()
+SyntheticWaveVoice::SyntheticWaveVoice()
 {
 }
 
-SineWaveVoice::~SineWaveVoice()
+SyntheticWaveVoice::SyntheticWaveVoice(int sID)
+{
+    this->synthID = sID;
+}
+
+SyntheticWaveVoice::~SyntheticWaveVoice()
 {
 }
 
-bool SineWaveVoice::canPlaySound(SynthesiserSound* sound)
+bool SyntheticWaveVoice::canPlaySound(SynthesiserSound* sound)
 {
-	return dynamic_cast<SineWaveSound*> (sound) != nullptr;
+	return dynamic_cast<BaseWaveSound*> (sound) != nullptr;
 }
 
-void SineWaveVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound* /*sound*/, int /*currentPitchWheelPosition*/)
+void SyntheticWaveVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound* /*sound*/, int /*currentPitchWheelPosition*/)
 {
     currentAngle = 0.0;
     level = velocity * 0.15;
@@ -36,7 +41,7 @@ void SineWaveVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSou
     angleDelta = cyclesPerSample * 2.0 * juce::MathConstants<double>::pi;
 }
 
-void SineWaveVoice::stopNote(float /*velocity*/, bool allowTailOff)
+void SyntheticWaveVoice::stopNote(float /*velocity*/, bool allowTailOff)
 {
     if (allowTailOff)
     {
@@ -50,23 +55,24 @@ void SineWaveVoice::stopNote(float /*velocity*/, bool allowTailOff)
     }
 }
 
-void SineWaveVoice::pitchWheelMoved(int /*newPitchWheelValue*/)
+void SyntheticWaveVoice::pitchWheelMoved(int /*newPitchWheelValue*/)
 {
 }
 
-void SineWaveVoice::controllerMoved(int /*controllerNumber*/, int /*newControllerValue*/)
+void SyntheticWaveVoice::controllerMoved(int /*controllerNumber*/, int /*newControllerValue*/)
 {
 }
 
-void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
+void SyntheticWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
 {
+    float currentSample = 0.0f;
     if (angleDelta != 0.0)
     {
         if (tailOff > 0.0) // [7]
         {
             while (--numSamples >= 0)
             {
-                auto currentSample = (float)(std::sin(currentAngle) * level * tailOff);
+                currentSample = synthFunction(synthID, currentAngle, level, tailOff);
 
                 for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
                     outputBuffer.addSample(i, startSample, currentSample);
@@ -89,7 +95,7 @@ void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int s
         {
             while (--numSamples >= 0) // [6]
             {
-                auto currentSample = (float)(std::sin(currentAngle) * level);
+                currentSample = synthFunction(synthID, currentAngle, level, tailOff);
 
                 for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
                     outputBuffer.addSample(i, startSample, currentSample);
@@ -99,4 +105,30 @@ void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int s
             }
         }
     }
+}
+
+float SyntheticWaveVoice::synthFunction(int synthID, double currentAngle, double level, float tOff)
+{
+    float currentSample = 0.0;
+    
+    switch (synthID)
+    {
+    case 0:
+    {
+        currentSample = (float)(std::sin(currentAngle) * level);
+        break;
+    }
+    case 1:
+    {
+        currentSample = (float)(round(std::sin(currentAngle)) * level);
+        break;
+    }
+    default:
+        break;
+    }
+    if (tOff != 0)
+    {
+        currentSample = currentSample * tOff;
+    }
+    return currentSample;
 }

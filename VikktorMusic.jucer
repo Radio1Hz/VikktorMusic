@@ -5,12 +5,13 @@
   <MAINGROUP id="OhT960" name="VikktorMusic">
     <GROUP id="{5C6FDB9F-F673-9806-6C25-EFB0EA0B91CB}" name="Source">
       <GROUP id="{4F89E95F-0B92-AB4D-F3A0-139AB434990F}" name="SynthParts">
-        <FILE id="yOa7dp" name="SineWaveSound.cpp" compile="1" resource="0"
-              file="Source/SineWaveSound.cpp"/>
-        <FILE id="ei4bak" name="SineWaveSound.h" compile="0" resource="0" file="Source/SineWaveSound.h"/>
-        <FILE id="t4t9kb" name="SineWaveVoice.cpp" compile="1" resource="0"
-              file="Source/SineWaveVoice.cpp"/>
-        <FILE id="WgG0YX" name="SineWaveVoice.h" compile="0" resource="0" file="Source/SineWaveVoice.h"/>
+        <FILE id="yOa7dp" name="BaseWaveSound.cpp" compile="1" resource="0"
+              file="Source/BaseWaveSound.cpp"/>
+        <FILE id="ei4bak" name="BaseWaveSound.h" compile="0" resource="0" file="Source/BaseWaveSound.h"/>
+        <FILE id="t4t9kb" name="SyntheticWaveVoice.cpp" compile="1" resource="0"
+              file="Source/SyntheticWaveVoice.cpp"/>
+        <FILE id="WgG0YX" name="SyntheticWaveVoice.h" compile="0" resource="0"
+              file="Source/SyntheticWaveVoice.h"/>
         <FILE id="IksiWM" name="SynthAudioSource.cpp" compile="1" resource="0"
               file="Source/SynthAudioSource.cpp"/>
         <FILE id="KvSz8q" name="SynthAudioSource.h" compile="0" resource="0"

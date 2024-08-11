@@ -25,6 +25,7 @@ public:
 	void ReadSamplesToImage();
 	void tempoTextChanged();
 	void tempoChanged();
+	void keySignatureChanged();
 	void ReadSamplesToAudioSampleBufferImage();
 	
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
@@ -36,6 +37,7 @@ public:
 	void updateToggleStateVisualize(juce::Button* button);
 
 	static juce::String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
+	static juce::String displayLocalTime(double currentPositionInSeconds, double totalLengthInSeconds);
 
 	/*
 	AudioAppComponent::setAudioChannels(): We must call this to register the number of input and output channels we need. Typically, we do this in our constructor. In turn, this function triggers the start of audio processing in our application.
@@ -79,9 +81,14 @@ private:
 	juce::TextButton stopButton;
 	juce::TextButton loadButton;
 	juce::TextButton newButton;
-	juce::TextEditor tempoText;
-	juce::Label timeLabel;
 	juce::Label tempoLabel;
+	juce::TextEditor tempoText;
+	juce::Label keySignatureLabel;
+	juce::TextEditor keySignatureNumeratorText;
+	juce::Label keySignatureSeparatorLabel;
+	juce::TextEditor keySignatureDenominatorText;
+
+	juce::Label timeLabel;
 	juce::ToggleButton audioOnToggleButton;
 	juce::ToggleButton audioSettingsToggleButton;
 	juce::ToggleButton audioVisualizeToggleButton;

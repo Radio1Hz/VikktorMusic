@@ -12,8 +12,8 @@
 #include <JuceHeader.h>
 #include "BaseComponent.h"
 #include "CommunicationAgent.h"
-#include "SineWaveVoice.h"
-#include "SineWaveSound.h"
+#include "SyntheticWaveVoice.h"
+#include "BaseWaveSound.h"
 
 using namespace juce;
 
@@ -23,14 +23,14 @@ class SynthAudioSource : public juce::AudioSource
 
 public:
 
-    SynthAudioSource(int numVoices)
+    SynthAudioSource(int numVoices, int synthID)
     {
         for (auto i = 0; i < numVoices; ++i)
         {
-            synth.addVoice(new SineWaveVoice());
+            synth.addVoice(new SyntheticWaveVoice(synthID));
         }
 
-        synth.addSound(new SineWaveSound());
+        synth.addSound(new BaseWaveSound());
     }
 
     ~SynthAudioSource()
@@ -38,6 +38,7 @@ public:
         synth.clearVoices();
         synth.clearSounds();
     }
+
     void setUsingSineWaveSound()
     {
         synth.clearSounds();

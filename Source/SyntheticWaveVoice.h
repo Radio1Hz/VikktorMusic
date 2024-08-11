@@ -12,11 +12,12 @@
 #include <JuceHeader.h>
 using namespace juce;
 
-class SineWaveVoice : public SynthesiserVoice
+class SyntheticWaveVoice : public SynthesiserVoice
 {
 public:
-    SineWaveVoice();
-    ~SineWaveVoice() override;
+    SyntheticWaveVoice();
+    SyntheticWaveVoice(int sID);
+    ~SyntheticWaveVoice() override;
 
     // Inherited via SynthesiserVoice
     bool canPlaySound(SynthesiserSound*) override;
@@ -25,9 +26,10 @@ public:
     void pitchWheelMoved(int newPitchWheelValue) override;
     void controllerMoved(int controllerNumber, int newControllerValue) override;
     void renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples) override;
-
+    float synthFunction(int synthID, double currentAngle, double level, float tailOff);
 private:
     double currentAngle = 0.0, angleDelta = 0.0, level = 0.0, tailOff = 0.0;
+    int synthID = 0;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SineWaveVoice)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SyntheticWaveVoice)
 };

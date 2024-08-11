@@ -55,12 +55,26 @@ audioSetupComp(
 	newButton.onClick = [this] { newButtonClicked(); };
 	newButton.setColour(juce::TextButton::buttonColourId, juce::Colours::orangered);
 	newButton.setEnabled(true);
+	
 	tempoText.setText(String(AppProperties::getTempo()));
 	tempoText.setJustification(Justification::centred);
 	tempoText.onTextChange = [this] { tempoTextChanged(); };
 	tempoText.onFocusLost = [this] { tempoChanged(); };
 	tempoLabel.setJustificationType(Justification::centredRight);
 	tempoLabel.setText("T:", NotificationType::dontSendNotification);
+
+	keySignatureLabel.setText("k/n", NotificationType::dontSendNotification);
+	keySignatureLabel.setJustificationType(Justification::right);
+	keySignatureNumeratorText.setText(String(AppProperties::getNumerator()));
+	keySignatureNumeratorText.setJustification(Justification::centred);
+	keySignatureSeparatorLabel.setText(" / ", NotificationType::dontSendNotification);
+	keySignatureSeparatorLabel.setJustificationType(Justification::centred);
+	keySignatureDenominatorText.setText(String(AppProperties::getDenominator()));
+	keySignatureDenominatorText.setJustification(Justification::centred);
+
+	keySignatureNumeratorText.onFocusLost = [this] { keySignatureChanged(); };
+	keySignatureDenominatorText.onFocusLost = [this] { keySignatureChanged(); };
+
 
 	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
@@ -78,6 +92,11 @@ audioSetupComp(
 	addAndMakeVisible(debugComponent);
 	addAndMakeVisible(audioSettingsToggleButton);
 	addAndMakeVisible(audioVisualizeToggleButton);
+
+	addAndMakeVisible(keySignatureLabel);
+	addAndMakeVisible(keySignatureNumeratorText);
+	addAndMakeVisible(keySignatureSeparatorLabel);
+	addAndMakeVisible(keySignatureDenominatorText);
 
 	audioSetupComp.setVisible(false);
 	audioSampleBlockImage = juce::Image(juce::Image::RGB, 240, 30, true);
@@ -101,6 +120,13 @@ void MainComponent::tempoTextChanged()
 void MainComponent::tempoChanged()
 {
 	AppProperties::setTempo((float)tempoText.getText().getDoubleValue());
+	logSpaceComponent.repaint();
+}
+
+void MainComponent::keySignatureChanged()
+{
+	AppProperties::setNumerator((int)keySignatureNumeratorText.getText().getDoubleValue());
+	AppProperties::setDenominator((int)keySignatureDenominatorText.getText().getDoubleValue());
 	logSpaceComponent.repaint();
 }
 
@@ -426,6 +452,18 @@ juce::String MainComponent::displayProgress(double currentPositionInSeconds, dou
 	return juce::String(currentHr).substring(1) + ":" + juce::String(currentMin).substring(1) + ":" + juce::String(currentSec).substring(1) + " / " + juce::String(totalHr).substring(1) + ":" + juce::String(totalMin).substring(1) + ":" + juce::String(totalSec).substring(1);
 }
 
+juce::String MainComponent::displayLocalTime(double currentPositionInSeconds, double totalLengthInSeconds)
+{
+	RelativeTime currentTime = RelativeTime(currentPositionInSeconds);
+	RelativeTime totalTime = RelativeTime(totalLengthInSeconds);
+
+	int currentSec = 100 + (int)currentPositionInSeconds % 60;
+	int currentMin = 100 + (int)currentTime.inMinutes() % 60;
+	int currentHr = 100 + (int)currentTime.inHours();
+
+	return juce::String(currentHr).substring(1) + ":" + juce::String(currentMin).substring(1) + ":" + juce::String(currentSec).substring(1);
+}
+
 void MainComponent::setAudioOn()
 {
 	if (!internalBufferAudioOn)
@@ -574,6 +612,10 @@ void MainComponent::resized()
 	newButton.setBounds(240, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	tempoLabel.setBounds(300, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	tempoText.setBounds(360, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	keySignatureLabel.setBounds(420, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	keySignatureNumeratorText.setBounds(480, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	keySignatureSeparatorLabel.setBounds(540, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	keySignatureDenominatorText.setBounds(600, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	internalBufferSamplesImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 

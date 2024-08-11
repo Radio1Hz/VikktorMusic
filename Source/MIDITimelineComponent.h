@@ -62,7 +62,7 @@ private:
 	int noteRangeEnd = 96;
 	int noteRangeSize = 0;
 	int counter = 0;
-	int currentTimeUnit = -1;
+	int currentTimeUnit = 0;
 	float timelineHeightRatio = 0.075f;
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;

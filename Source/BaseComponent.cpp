@@ -55,7 +55,7 @@ void BaseComponent::drawOutline (Graphics& g)
 
         g.setFont(15.0f);
         rect.setHeight(headerHeight);
-        g.setColour(Colours::darkorange);
+        g.setColour(Colours::darkred);
         g.fillRect(rect);
         g.drawRect(getLocalBounds(), 1);
         g.setColour(Colours::white);

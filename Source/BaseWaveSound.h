@@ -12,9 +12,9 @@
 #include <JuceHeader.h>
 using namespace juce;
 
-struct SineWaveSound : public juce::SynthesiserSound
+struct BaseWaveSound : public juce::SynthesiserSound
 {
-    SineWaveSound() {}
+    BaseWaveSound() {}
 
     bool appliesToNote(int) override { return true; }
     bool appliesToChannel(int) override { return true; }

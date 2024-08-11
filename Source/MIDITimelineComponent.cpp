@@ -12,6 +12,7 @@
 #include "MIDITimelineComponent.h"
 #include "MusicMath.h"
 #include "ApplicationProperties.h"
+#include "MainComponent.h"
 
 using namespace juce;
 
@@ -35,12 +36,13 @@ void MIDITimelineComponent::init()
 	this->name = "MIDI Timeline (" +String(this->numMeasures) + " measures)";
 	this->initMenu();
 	setAudioChannels(0, 2);
+	//currentTimeUnit = 2000;
 }
 
 void MIDITimelineComponent::clearMatrix()
 {
 	numQuartersPerMeasure = (4.0f / (float)AppProperties::getDenominator()) * (float)AppProperties::getNumerator();
-	numTimeUnitsInMeasure = numQuartersPerMeasure * 4.0f;
+	numTimeUnitsInMeasure = (int)(numQuartersPerMeasure * 4.0f);
 
 	for (int i = 0; i < this->noteRangeSize; i++)
 	{
@@ -68,7 +70,7 @@ void MIDITimelineComponent::prepareToPlay(int samplesPerBlockExpected, double sa
 	this->samplesPerBlockExpectedInt = samplesPerBlockExpected;
 	this->sampleRateInt = sampleRate;
 	synths.clear();
-	SynthAudioSource* src = new SynthAudioSource(8);
+	SynthAudioSource* src = new SynthAudioSource(8, 1);
 	src->prepareToPlay(samplesPerBlockExpectedInt, sampleRateInt);
 	synths.add(src);
 }
@@ -103,7 +105,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			// If change happened
 			if (currentTimeUnit != currentTimeUnitSnapshot)
 			{
-				synths[0]->synth.allNotesOff(0,true);
+				//synths[0]->synth.allNotesOff(0,true);
 				for (int i = 0; i < noteEventMatrix.size(); i++)
 				{
 					if (noteEventMatrix[i][currentTimeUnit].NoteName != "")
@@ -138,7 +140,13 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 		String midiInfo = "Midi timeformat: " + String(midiFile->getTimeFormat()) + " Last timestamp: " + String(midiFile->getLastTimestamp()) + " Tracks: " + String(midiFile->getNumTracks());
 		this->name += midiInfo;
 	}
-	this->name += tempoInfo + measuresInfo;
+	
+	double beatDuration = 60.0 / (double)AppProperties::getTempo();
+	double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
+	double totalDurationSec = (timeUnitDuration * (double)numMeasures * (double)numTimeUnitsInMeasure);
+	double currentTimeSec = currentTimeUnit * timeUnitDuration;
+
+	this->name += tempoInfo + measuresInfo + " Time: " + MainComponent::displayProgress(currentTimeSec, totalDurationSec);
 
 	drawOutline(g);
 
@@ -188,8 +196,18 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			g.drawImage(matrixImage, parentBounds);
 			float cursorWidth = parentBounds.getWidth() / numberOfTimeUnits;
 			float currentX = ((float)currentTimeUnit / (float)numberOfTimeUnits) * parentBounds.getWidth();
+			Rectangle<float> cursorInfoRect(currentX + cursorWidth, parentBounds.getTopRight().y + 15.0f, 40.0f, 15.0f);
 			g.setColour(Colour::fromRGB(128, 128, 128));
 			g.fillRect(currentX, parentBounds.getTopLeft().y, cursorWidth, parentBounds.getHeight());
+			g.setColour(juce::Colours::darkgrey);
+			g.fillRect(cursorInfoRect);
+			int currentMeasureIndex = (int)floor((float)numMeasures * ((float)currentTimeUnit / (float)numberOfTimeUnits));
+			int currentTimeUnitWithinMeasureIndex = (currentMeasureIndex * numTimeUnitsInMeasure + currentTimeUnit) % (numTimeUnitsInMeasure);
+			g.setColour(juce::Colours::white);
+			g.setFont(12.0f);
+			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
+			
+			g.drawText(cursorText, cursorInfoRect, juce::Justification::centred, true);
 		}
 	}
 }
@@ -250,7 +268,7 @@ void MIDITimelineComponent::loadMIDI()
 
 			if (file != juce::File{})
 			{	
-				currentTimeUnit = -1;
+				currentTimeUnit = 0;
 				midiFile = std::make_unique<MidiFile>();
 				std::unique_ptr<FileInputStream> str = file.createInputStream();
 				midiFile->readFrom(*str);
@@ -279,7 +297,7 @@ void MIDITimelineComponent::processMidi()
 		this->noteProbabilities.assign(12, 0.0f);
 
 		String majMin = "";
-		double midiTicksPerMeasure = ((double)numTimeUnitsInMeasure);
+		//double midiTicksPerMeasure = ((double)numTimeUnitsInMeasure);
 		double maxMatrixTicksCapacity = (double)numMeasures * numQuartersPerMeasure * (double)midiFile->getTimeFormat();
 
 		for (int trackIndex = 0; trackIndex < midiTracks.size(); trackIndex++)
@@ -440,8 +458,11 @@ void MIDITimelineComponent::playMIDI()
 void MIDITimelineComponent::stopMIDI()
 {
 	isPlaying = false;
-	currentTimeUnit = -1;
 	samplesElapsedSincePlay = 0;
+	if (synths.size() > 0)
+	{
+		synths[0]->synth.allNotesOff(0, true);
+	}
 }
 
 void MIDITimelineComponent::repaintMatrixImage()
@@ -472,9 +493,10 @@ void MIDITimelineComponent::repaintMatrixImage()
 			float currentX = 0.0f;
 			float timeUnitWidthPixels = (float)(parentBounds.getWidth() / (float)numberOfTimeUnits);
 			Rectangle<float> textBox(0.0f, currentY, timeUnitWidthPixels, (float)(parentBounds.getHeight() / (float)noteRangeSize));
-			g0.setFont((float)(0.9f * parentBounds.getHeight() / (float)noteRangeSize));
+			float fontSize = (float)(0.9f * parentBounds.getHeight() / (float)noteRangeSize);
+			g0.setFont(fontSize);
 			Rectangle<float> textBoxWider(textBox);
-			textBoxWider.setWidth(textBox.getWidth() * 2.0f);
+			textBoxWider.setWidth(fontSize * 3.0f);
 			g0.drawText(String(noteRangeStart + i), textBoxWider, Justification::left);
 			g0.drawLine(0, currentY, (float)parentBounds.getWidth(), currentY, 0.2f);
 
@@ -484,11 +506,11 @@ void MIDITimelineComponent::repaintMatrixImage()
 				currentX = parentBounds.getWidth() * ((float)j / (float)numberOfTimeUnits);
 				textBox.setPosition(Point<float>(currentX, currentY));
 				textBoxWider.setPosition(Point<float>(currentX, currentY));
-				textBox.setWidth(timeUnitWidthPixels*2);
+				textBox.setWidth(fontSize * 2);
 
 				if (j % numTimeUnitsInMeasure == 0)
 				{
-					g0.setColour(Colours::white);
+					g0.setColour(Colours::lightgrey);
 					g0.drawLine(textBoxWider.getBottomLeft().x, textBoxWider.getBottomLeft().y, textBoxWider.getTopLeft().x, textBoxWider.getTopLeft().y, 1.0f);
 					if (i == noteRangeSize-1)
 					{
@@ -497,8 +519,19 @@ void MIDITimelineComponent::repaintMatrixImage()
 				}
 				else
 				{
-					g0.setColour(Colours::lightgrey);
-					g0.drawLine(textBox.getBottomRight().x, textBox.getBottomRight().y, textBox.getTopRight().x, textBox.getTopRight().y, 0.2f);
+					if ((currentMeasureIndex * numTimeUnitsInMeasure + j) % (numTimeUnitsInMeasure/(int)numQuartersPerMeasure)== 0)
+					{
+						if (i < noteRangeSize - 1)
+						{
+							g0.setColour(Colours::white);
+							g0.drawLine(textBoxWider.getBottomLeft().x, textBoxWider.getBottomLeft().y, textBoxWider.getTopLeft().x, textBoxWider.getTopLeft().y, 0.5f);
+						}
+					}
+					else
+					{
+						g0.setColour(Colours::lightgrey);
+						g0.drawLine(textBox.getBottomRight().x, textBox.getBottomRight().y, textBox.getTopRight().x, textBox.getTopRight().y, 0.2f);
+					}
 				}
 				
 
