@@ -11,11 +11,13 @@
 #include <JuceHeader.h>
 #include "MIDITimelineComponent.h"
 #include "MusicMath.h"
+#include "ApplicationProperties.h"
 
 using namespace juce;
 
 //==============================================================================
 MIDITimelineComponent::MIDITimelineComponent()
+
 {
 	// In your constructor, you should add any child components, and
 	// initialise any special settings that your component needs.
@@ -24,7 +26,6 @@ MIDITimelineComponent::MIDITimelineComponent()
 	this->setMenu();
 	setAudioChannels(0, 2);
 	noteRangeSize = noteRangeEnd - noteRangeStart;
-	
 	//addMouseListener(this, true);
 }
 
@@ -62,9 +63,9 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			//Duration of one quarter. 
 			//Time units are sexteenths and there are [numerator] units in one beat
 			
-			double beatDuration = 60.0 / (double)tempo;
+			double beatDuration = 60.0 / (double)AppProperties::getTempo();
 			double timeUnitDuration = beatDuration / (double)denominator;
-			double totalDuration = numberOfTimeUnits * timeUnitDuration;
+			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 			
 			samplesElapsedSincePlay += bufferToFill.numSamples;
@@ -107,6 +108,10 @@ void MIDITimelineComponent::releaseResources()
 
 void MIDITimelineComponent::paint(juce::Graphics& g)
 {
+	if (midiFile)
+	{
+		name = projectName + " - Midi timeformat: " + String(midiFile->getTimeFormat()) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
+	}
 	drawOutline(g);
 	//DBG("paint " + String(counter++));
 	Rectangle<float> parentBounds = getReducedLocalBounds().toFloat();
@@ -228,9 +233,8 @@ void MIDITimelineComponent::loadMIDI()
 				std::unique_ptr<FileInputStream> str = file.createInputStream();
 				midiFile->readFrom(*str);
 				projectName = file.getFullPathName();
-				name = file.getFileName() + " - Midi timeformat: " + String(midiFile->getTimeFormat()) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks());
+				name = file.getFileName() + " - Midi timeformat: " + String(midiFile->getTimeFormat()) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
 				processMidi();
-				
 			}
 		});
 }
@@ -327,15 +331,15 @@ void MIDITimelineComponent::processMidi()
 					noteEnd = noteOffHolder->message.getTimeStamp();
 				}
 
-				double beatDuration = 60.0 / (double)tempo;
-				double timeUnitDuration = (double)numerator * beatDuration / (double)denominator;
+				//double beatDuration = 60.0 / (double)AppProperties::getTempo();
+				//double timeUnitDuration = (double)numerator * beatDuration / (double)denominator;
 				
 				double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)this->numerator)/(double)this->denominator;
 				double totalDurationTicks = matrixWidth * ticksPerTimeUnit;
 
 				int duration = roundToInt((noteEnd - noteStart) / ticksPerTimeUnit);
 
-				int column = floor(((noteStart / totalDurationTicks) * (double)matrixWidth));
+				int column = (int)floor(((noteStart / totalDurationTicks) * (double)matrixWidth));
 				if (noteNumber >= noteRangeStart && noteNumber <= noteRangeEnd && column < matrixWidth)
 				{
 					NoteEventDesc nEvent(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration);
@@ -476,9 +480,9 @@ void MIDITimelineComponent::repaintMatrixImage()
 			Rectangle<float> textBox(0.0f, currentY, timeUnitWidthPixels, (float)(parentBounds.getHeight() / (float)noteRangeSize));
 			g0.setFont((float)(0.9f * parentBounds.getHeight() / (float)noteRangeSize));
 			Rectangle<float> textBoxWider(textBox);
-			textBoxWider.setWidth(textBox.getWidth() * 2);
+			textBoxWider.setWidth(textBox.getWidth() * 2.0f);
 			g0.drawText(String(noteRangeStart + i), textBoxWider, Justification::left);
-			g0.drawLine(0, currentY, parentBounds.getWidth(), currentY, 0.2f);
+			g0.drawLine(0, currentY, (float)parentBounds.getWidth(), currentY, 0.2f);
 
 			for (int j = 0; j < numberOfTimeUnits; j++)
 			{

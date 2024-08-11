@@ -44,6 +44,7 @@ void BaseComponent::releaseResources()
 void BaseComponent::getNextAudioBlock(const AudioSourceChannelInfo& /*bufferToFill*/)
 {
 }
+
 void BaseComponent::drawOutline (Graphics& g)
 {
     if (!this->embeddedMode)

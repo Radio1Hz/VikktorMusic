@@ -8,30 +8,32 @@
 
 #include <JuceHeader.h>
 #include "MainComponent.h"
+#include "ApplicationProperties.h"
+
 using namespace juce;
 //==============================================================================
-class VikktorMusicApplication  : public juce::JUCEApplication
+class VikktorMusicApplication  : public juce::JUCEApplication 
 {
 public:
     //==============================================================================
+    
     VikktorMusicApplication() {}
 
     const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed() override             { return true; }
-   
+
     //==============================================================================
     void initialise (const juce::String& /*commandLine*/) override
     {
         // This method is where you should put your application's initialisation code..
-
+        AppProperties::setTempo(120.0f);
         mainWindow.reset (new MainWindow (getApplicationName()));
     }
 
     void shutdown() override
     {
         // Add your application's shutdown code here..
-
         mainWindow = nullptr; // (deletes our window)
     }
 
@@ -55,8 +57,6 @@ public:
         This class implements the desktop window that contains an instance of
         our MainComponent class.
     */
-
- 
 
     class MainWindow    : public juce::DocumentWindow
     {

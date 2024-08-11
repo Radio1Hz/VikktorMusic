@@ -40,6 +40,7 @@ private:
 	void playMIDI();
 	void stopMIDI();
 	void repaintMatrixImage();
+
 	Image matrixImage;
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
 	std::unique_ptr<FileChooser> fileChooser;
@@ -61,7 +62,6 @@ private:
 	float timelineHeightRatio = 0.075f;
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
-	float tempo = 120.0f;
 	bool isPlaying = false;
 	int samplesElapsedSincePlay = 0;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;

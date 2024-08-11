@@ -45,6 +45,10 @@
         <FILE id="EXNi4p" name="MusicMath.cpp" compile="1" resource="0" file="Source/MusicMath.cpp"/>
         <FILE id="pQeVq6" name="MusicMath.h" compile="0" resource="0" file="Source/MusicMath.h"/>
       </GROUP>
+      <FILE id="mSxMlR" name="ApplicationProperties.cpp" compile="1" resource="0"
+            file="Source/ApplicationProperties.cpp"/>
+      <FILE id="bfPJij" name="ApplicationProperties.h" compile="0" resource="0"
+            file="Source/ApplicationProperties.h"/>
       <FILE id="SIC0Mc" name="ComponentStateController.cpp" compile="1" resource="0"
             file="Source/ComponentStateController.cpp"/>
       <FILE id="AKuEAC" name="ComponentStateController.h" compile="0" resource="0"

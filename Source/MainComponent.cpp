@@ -1,8 +1,8 @@
 #include "MainComponent.h"
 #include "DebugComponent.h"
+#include "ApplicationProperties.h"
 
 //==============================================================================
-
 
 MainComponent::MainComponent() : state(TransportState::Stopped),
 audioSetupComp(
@@ -57,6 +57,12 @@ audioSetupComp(
 	newButton.onClick = [this] { newButtonClicked(); };
 	newButton.setColour(juce::TextButton::buttonColourId, juce::Colours::orangered);
 	newButton.setEnabled(true);
+	tempoText.setText(String(AppProperties::getTempo()));
+	tempoText.setJustification(Justification::centred);
+	tempoText.onTextChange = [this] { tempoTextChanged(); };
+	tempoText.onFocusLost = [this] { tempoChanged(); };
+	tempoLabel.setJustificationType(Justification::centredRight);
+	tempoLabel.setText("T:", NotificationType::dontSendNotification);
 
 	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
@@ -67,7 +73,9 @@ audioSetupComp(
 	addAndMakeVisible(&stopButton);
 	addAndMakeVisible(&loadButton);
 	addAndMakeVisible(&newButton);
+	addAndMakeVisible(&tempoText);
 	addAndMakeVisible(timeLabel);
+	addAndMakeVisible(tempoLabel);
 	addAndMakeVisible(audioSetupComp);
 	addAndMakeVisible(debugComponent);
 	addAndMakeVisible(audioSettingsToggleButton);
@@ -85,6 +93,17 @@ audioSetupComp(
 	startTimer(TimerType::CPUTimer, 250);
 	startTimer(TimerType::SampleVisualization, 100);
 	startTimer(TimerType::TimePositionTimer, 100);
+}
+
+void MainComponent::tempoTextChanged()
+{
+
+}
+
+void MainComponent::tempoChanged()
+{
+	AppProperties::setTempo((float)tempoText.getText().getDoubleValue());
+	logSpaceComponent.repaint();
 }
 
 void MainComponent::chooseFile()
@@ -532,7 +551,7 @@ void MainComponent::resized()
 	int controlsAreaOffsetFromBottom = 120;
 
 	debugComponent.setBounds(0, 0, getWidth(), 15);
-	logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom-30);
+	logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom-15);
 	audioSettingsToggleButton.setBounds(getWidth() - 80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	audioVisualizeToggleButton.setBounds(getWidth() - 160, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	timeLabel.setBounds(getWidth() - 360, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
@@ -541,7 +560,8 @@ void MainComponent::resized()
 	playButton.setBounds(120, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	stopButton.setBounds(180, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	newButton.setBounds(240, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-
+	tempoLabel.setBounds(300, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	tempoText.setBounds(360, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	internalBufferSamplesImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 

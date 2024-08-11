@@ -42,7 +42,7 @@ public:
 	std::vector<juce::String>	GetKeys();
 	std::vector<juce::String>	GetModes();
 
-	int							BPM;							// Beats per minute = Quarter notes per minute
+	int							BPM;							// Beats per minute = Quarter notes per minute (tempo)
 
 	int							TPQN;							// Ticks per quarter note
 	double						Tb;								// Time duration of a beat in seconds

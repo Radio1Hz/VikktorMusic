@@ -12,7 +12,6 @@
 	your controls and content.
 */
 
-
 class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public juce::ChangeListener, public juce::MultiTimer, public juce::ValueTree::Listener
 {
 public:
@@ -24,7 +23,8 @@ public:
 	void newButtonClicked();
 	void setNewProject(int bpm, int measures);
 	void ReadSamplesToImage();
-
+	void tempoTextChanged();
+	void tempoChanged();
 	void ReadSamplesToAudioSampleBufferImage();
 	
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
@@ -72,7 +72,6 @@ public:
 	ValueTree projectTree = ValueTree(projectMainNode);
 
 private:
-
 	LogSpaceComponent logSpaceComponent;
 	DebugComponent debugComponent;
 	NewProjectComponent newProjectComponent;
@@ -80,7 +79,9 @@ private:
 	juce::TextButton stopButton;
 	juce::TextButton loadButton;
 	juce::TextButton newButton;
+	juce::TextEditor tempoText;
 	juce::Label timeLabel;
+	juce::Label tempoLabel;
 	juce::ToggleButton audioOnToggleButton;
 	juce::ToggleButton audioSettingsToggleButton;
 	juce::ToggleButton audioVisualizeToggleButton;
@@ -111,7 +112,6 @@ private:
 	int internalBufferCurrentSamplePlaying = 0;
 	int internalBufferPointerRasterX = 0;
 	bool shouldVisualize = false;
-
 	TransportState state;
 	juce::Random random;
 

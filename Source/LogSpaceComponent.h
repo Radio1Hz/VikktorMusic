@@ -22,6 +22,7 @@
 #include "MIDITimelineComponent.h"
 #include "EuclidianRythmTimerComponent.h"
 #include "ComponentStateController.h"
+#include "ApplicationProperties.h"
 
 using namespace juce;
 //==============================================================================
@@ -33,7 +34,8 @@ public:
 
 	double zoom = 1;
 	juce::Point<double> currentPosition;
-	CommunicationAgent* listeningSourceComponent = NULL;
+	CommunicationAgent* listeningSourceComponent;
+	//MainComponent* mainComponent;
 
 private:
 	bool isResized = false;
@@ -56,6 +58,13 @@ private:
 
 public:
 
+	//LogSpaceComponent(MainComponent* mainComponentPtr)
+	//{
+	//	//mainComponent = mainComponentPtr;
+	//	rnd = Random::getSystemRandom();
+	//	initMenu();
+	//}
+
 	LogSpaceComponent()
 	{
 		rnd = Random::getSystemRandom();
@@ -77,7 +86,6 @@ public:
 
 	void LogSpaceComponent::addNewMIDITimelineComponent()
 	{
-		//MIDITimelineComponent* tO = new MIDITimelineComponent();
 		MIDITimelineComponent* t0 = new MIDITimelineComponent();
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
