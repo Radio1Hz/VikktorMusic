@@ -16,8 +16,10 @@ public:
 
 	juce::String	NoteName = "";
 	int				NoteNumber = -1;
+	int				NoteDuration = 0;
 	NoteEventDesc::NoteEventDesc();
 	NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber);
+	NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration);
 	NoteEventDesc::~NoteEventDesc();
 };
 

@@ -531,8 +531,8 @@ void MainComponent::resized()
 	// update their positions.
 	int controlsAreaOffsetFromBottom = 120;
 
-	debugComponent.setBounds(0, 0, getWidth(), 30);
-	logSpaceComponent.setBounds(0, 30, getWidth(), getHeight() - controlsAreaOffsetFromBottom-30);
+	debugComponent.setBounds(0, 0, getWidth(), 15);
+	logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom-30);
 	audioSettingsToggleButton.setBounds(getWidth() - 80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	audioVisualizeToggleButton.setBounds(getWidth() - 160, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	timeLabel.setBounds(getWidth() - 360, getHeight() - controlsAreaOffsetFromBottom, 160, 30);

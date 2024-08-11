@@ -61,7 +61,7 @@ private:
 	float timelineHeightRatio = 0.075f;
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
-	float tempo = 80.0f;
+	float tempo = 120.0f;
 	bool isPlaying = false;
 	int samplesElapsedSincePlay = 0;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
