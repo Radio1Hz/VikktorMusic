@@ -91,12 +91,6 @@ public:
 		addAndMakeVisible(t0);
 		t0->processMidi();
 		resized();
-
-		MIDITimelineComponent* t1 = new MIDITimelineComponent(32, 1);
-		MIDITimelineObjects.add(t1);
-		addAndMakeVisible(t1);
-		t1->processMidi();
-		resized();
 	}
 
 	void LogSpaceComponent::addNewTimeObjectComponent()

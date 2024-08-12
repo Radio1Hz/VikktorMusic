@@ -72,7 +72,7 @@ void SyntheticWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, 
         {
             while (--numSamples >= 0)
             {
-                currentSample = synthFunction(synthID, currentAngle, level, tailOff);
+                currentSample = synthFunction(synthID, currentAngle, level, (float)tailOff);
 
                 for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
                     outputBuffer.addSample(i, startSample, currentSample);
@@ -80,11 +80,11 @@ void SyntheticWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, 
                 currentAngle += angleDelta;
                 ++startSample;
 
-                tailOff *= 0.99; // [8]
+                tailOff *= 0.99f;
 
                 if (tailOff <= 0.005)
                 {
-                    clearCurrentNote(); // [9]
+                    clearCurrentNote();
 
                     angleDelta = 0.0;
                     break;
@@ -93,9 +93,9 @@ void SyntheticWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, 
         }
         else
         {
-            while (--numSamples >= 0) // [6]
+            while (--numSamples >= 0)
             {
-                currentSample = synthFunction(synthID, currentAngle, level, tailOff);
+                currentSample = synthFunction(synthID, currentAngle, level, (float)tailOff);
 
                 for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
                     outputBuffer.addSample(i, startSample, currentSample);
@@ -107,20 +107,20 @@ void SyntheticWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, 
     }
 }
 
-float SyntheticWaveVoice::synthFunction(int synthID, double currentAngle, double level, float tOff)
+float SyntheticWaveVoice::synthFunction(int sID, double angle, double lvl, float tOff)
 {
     float currentSample = 0.0;
     
-    switch (synthID)
+    switch (sID)
     {
     case 0:
     {
-        currentSample = (float)(std::sin(currentAngle) * level);
+        currentSample = (float)(std::sin(angle) * lvl);
         break;
     }
     case 1:
     {
-        currentSample = (float)(round(std::sin(currentAngle)) * level);
+        currentSample = (float)(round(std::sin(angle)) * lvl);
         break;
     }
     default:

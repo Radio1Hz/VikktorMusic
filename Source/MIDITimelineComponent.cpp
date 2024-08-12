@@ -74,6 +74,45 @@ void MIDITimelineComponent::prepareToPlay(int samplesPerBlockExpected, double sa
 	SynthAudioSource* src = new SynthAudioSource(8, synthID);
 	src->prepareToPlay(samplesPerBlockExpectedInt, sampleRateInt);
 	synths.add(src);
+	scanPlugins();
+}
+
+void MIDITimelineComponent::scanPlugins()
+{
+	//String path = "C:\\Program Files\\Common Files\\VST3";
+	//juce::AudioPluginFormatManager& fm = *new juce::AudioPluginFormatManager();
+	//fm.addDefaultFormats();
+
+	//juce::OwnedArray<juce::PluginDescription>& typesFound = *new juce::OwnedArray<juce::PluginDescription>();
+
+	//Array<juce::AudioPluginFormat*> formats = fm.getFormats();
+	//AudioPluginFormat* format = NULL;
+
+	//for (int i = 0; i < formats.size(); i++) {
+	//	auto f = formats[i];
+	//	juce::String name = f->getName();
+	//	if (name.equalsIgnoreCase("VST3")) 
+	//	{
+	//		format = f;
+	//		break;
+	//	}
+	//}
+	//
+	//KnownPluginList pluginList = &(new KnownPluginList());
+	//PluginDirectoryScanner* scanner = new PluginDirectoryScanner(*pluginList, format, path, true, NULL, false );
+
+	//auto desc = typesFound[0];
+
+	//juce::String& errorMessage = *new juce::String();
+	//std::unique_ptr<juce::AudioPluginInstance> instance = fm.createPluginInstance(
+	//	*desc,
+	//	sampleRateInt,
+	//	samplesPerBlockExpectedInt,
+	//	errorMessage
+	//);
+	//pluginInstance = std::move(instance);
+	////pluginInstance->enableAllBuses();
+	//
 }
 
 void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
@@ -106,12 +145,19 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			// If change happened
 			if (currentTimeUnit != currentTimeUnitSnapshot)
 			{
-				synths[0]->synth.allNotesOff(0,true);
+				//synths[0]->synth.allNotesOff(0,true);
 				for (int i = 0; i < noteEventMatrix.size(); i++)
 				{
-					if (noteEventMatrix[i][currentTimeUnit].NoteName != "")
+					if (noteEventMatrix[i][currentTimeUnit].EventType != -1)
 					{
-						synths[0]->synth.noteOn(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
+						if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
+						{
+							synths[0]->synth.noteOn(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
+						}
+						if (noteEventMatrix[i][currentTimeUnit].EventType == 0)
+						{
+							synths[0]->synth.noteOff(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
+						}
 					}
 				}
 				triggerRepaint();
@@ -368,8 +414,18 @@ void MIDITimelineComponent::processMidi()
 						int column = (int)floor(((noteStart / totalDurationTicks) * (double)matrixWidth));
 						if (noteNumber >= noteRangeStart && noteNumber <= noteRangeEnd && column < matrixWidth)
 						{
-							NoteEventDesc nEvent(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration);
-							noteEventMatrix[noteNumber - noteRangeStart][column] = nEvent;
+							NoteEventDesc nEventOn(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 1);
+							noteEventMatrix[noteNumber - noteRangeStart][column] = nEventOn;
+							NoteEventDesc nEventOff(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 0);
+
+							if (column + duration < noteEventMatrix[0].size())
+							{
+								noteEventMatrix[noteNumber - noteRangeStart][column + duration] = nEventOff;
+							}
+							else
+							{
+								noteEventMatrix[noteNumber - noteRangeStart][noteEventMatrix[0].size() - 1] = nEventOff;
+							}
 						}
 					}
 				}
@@ -536,7 +592,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 				}
 				
 
-				if (noteEventMatrix[i][j].NoteName != "")
+				if (noteEventMatrix[i][j].EventType == 1) //if note on
 				{
 					textBox.setWidth(timeUnitWidthPixels * noteEventMatrix[i][j].NoteDuration);
 					g0.fillRect(textBox);

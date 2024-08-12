@@ -72,8 +72,8 @@ audioSetupComp(
 	keySignatureDenominatorText.setText(String(AppProperties::getDenominator()));
 	keySignatureDenominatorText.setJustification(Justification::centred);
 
-	keySignatureNumeratorText.onFocusLost = [this] { keySignatureChanged(); };
-	keySignatureDenominatorText.onFocusLost = [this] { keySignatureChanged(); };
+	keySignatureNumeratorText.onFocusLost = [this] { timeSignatureChanged(); };
+	keySignatureDenominatorText.onFocusLost = [this] { timeSignatureChanged(); };
 
 
 	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
@@ -123,7 +123,7 @@ void MainComponent::tempoChanged()
 	logSpaceComponent.repaint();
 }
 
-void MainComponent::keySignatureChanged()
+void MainComponent::timeSignatureChanged()
 {
 	AppProperties::setNumerator((int)keySignatureNumeratorText.getText().getDoubleValue());
 	AppProperties::setDenominator((int)keySignatureDenominatorText.getText().getDoubleValue());

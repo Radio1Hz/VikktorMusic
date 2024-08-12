@@ -247,12 +247,22 @@ NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber)
     this->NoteName = noteName;
     this->NoteNumber = noteNumber;
 }
+
 NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration)
 {
     this->NoteName = noteName;
     this->NoteNumber = noteNumber;
     this->NoteDuration = noteDuration;
 }
+
+NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration, int eventType)
+{
+    this->NoteName = noteName;
+    this->NoteNumber = noteNumber;
+    this->NoteDuration = noteDuration;
+    this->EventType = eventType;
+}
+
 NoteEventDesc::~NoteEventDesc()
 {
 }

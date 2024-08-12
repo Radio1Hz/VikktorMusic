@@ -44,6 +44,7 @@ private:
 	void clearTimeline();
 	void repaintMatrixImage();
 	void init();
+	void MIDITimelineComponent::scanPlugins();
 
 	Image matrixImage;
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
@@ -76,5 +77,10 @@ private:
 	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
 	void releaseResources() override;
 
+	juce::AudioDeviceManager audioDeviceManager;
+	juce::AudioPluginFormatManager formatManager;
+	std::unique_ptr<juce::AudioPluginInstance> pluginInstance;
+	juce::AudioBuffer<float> audioBuffer;
+	 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MIDITimelineComponent)
 };

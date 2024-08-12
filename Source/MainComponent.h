@@ -25,7 +25,7 @@ public:
 	void ReadSamplesToImage();
 	void tempoTextChanged();
 	void tempoChanged();
-	void keySignatureChanged();
+	void timeSignatureChanged();
 	void ReadSamplesToAudioSampleBufferImage();
 	
 	void changeListenerCallback(juce::ChangeBroadcaster* source);
