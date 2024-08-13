@@ -32,7 +32,12 @@ public:
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
 	void handleAsyncUpdate() override;
+	void shiftDragEvent(const juce::MouseEvent& event) override;
+	void shiftMouseDownEvent(const juce::MouseEvent& event) override;
+	void shiftMouseUpEvent(const juce::MouseEvent& event) override;
+	void mouseDoubleClickEvent(const juce::MouseEvent& event) override;
 	void triggerRepaint();
+	
 	void playMIDI();
 	void stopMIDI();
 	void processMidi();
@@ -46,7 +51,9 @@ private:
 	void clearTimeline();
 	void repaintMatrixImage();
 	float minCellWidth = 10.0f;
-
+	int selectedCellStart = -1;
+	int selectedCellEnd = 0;
+	bool selectionInProgress = false;
 	void MIDITimelineComponent::scanPlugins();
 
 	Image matrixImage;

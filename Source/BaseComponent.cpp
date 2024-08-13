@@ -77,10 +77,13 @@ void BaseComponent::resized()
 void BaseComponent::zoomEvent(const juce::MouseEvent & /*event*/, const juce::MouseWheelDetails & /*wheel*/){}
 void BaseComponent::controlClickEvent(const juce::MouseEvent& /*event*/) {}
 void BaseComponent::controlDragEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::shiftDragEvent(const juce::MouseEvent& /*event*/){}
+void BaseComponent::shiftMouseUpEvent(const juce::MouseEvent& /*event*/){}
 void BaseComponent::controlDoubleClickEvent(const juce::MouseEvent& /*event*/) {}
 void BaseComponent::controlMouseDownEvent(const juce::MouseEvent& /*event*/) {}
 void BaseComponent::controlMouseUpEvent(const juce::MouseEvent& /*event*/) {}
 void BaseComponent::shiftMouseDownEvent(const juce::MouseEvent& /*event*/) {}
+void BaseComponent::mouseDoubleClickEvent(const juce::MouseEvent& /*event*/){}
 
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
@@ -144,10 +147,6 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
                 setBounds((int)rect.getX() - 1, (int)rect.getY() - headerHeight, (int)rect.getWidth() + 2, (int)rect.getHeight() + headerHeight + 1);
                 getParentComponent()->repaint();
             }
-            else
-            {
-               
-            }
         }
         else
         {
@@ -155,25 +154,33 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
         }
         
     }
+     
 }
 
 void BaseComponent::mouseDrag(const juce::MouseEvent& event)
 {
-    if (!event.mods.isShiftDown())
+    if (event.mods.isCtrlDown())
     {
-        if (event.mods.isCtrlDown())
+        controlDragEvent(event);
+    }
+    else
+    {
+        if (event.mods.isShiftDown())
         {
-            controlDragEvent(event);
+            shiftDragEvent(event);
         }
         else
         {
-            if(!embeddedMode)
-            { 
+            if (!embeddedMode)
+            {
                 myDragger.dragComponent(this, event, nullptr);
                 getParentComponent()->repaint();
             }
         }
+        
     }
+
+    
     
 }
 
@@ -182,6 +189,10 @@ void BaseComponent::mouseUp(const juce::MouseEvent& event)
     if (event.mods.isCtrlDown())
     {
         controlMouseUpEvent(event);
+    }
+    if (event.mods.isShiftDown())
+    {
+        shiftMouseUpEvent(event);
     }
 }
 
@@ -207,6 +218,10 @@ void BaseComponent::mouseDown(const juce::MouseEvent& event)
     }
     else
     {
+        if (event.getNumberOfClicks() == 2)
+        {
+            mouseDoubleClickEvent(event);
+        }
         myDragger.startDraggingComponent(this, event);
     }
 

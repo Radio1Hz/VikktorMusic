@@ -263,6 +263,16 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
 			
 			g.drawText(cursorText, cursorInfoRect, juce::Justification::centred, true);
+
+			//Draw Selection
+			if (selectedCellStart > -1)
+			{
+				Rectangle<float> selectionRect(selectedCellStart * cursorWidth, 0.0f, cursorWidth * (selectedCellEnd - selectedCellStart), parentBounds.getHeight());
+				selectionRect.translate(1.0f, (float)headerHeight + cursorWidth);
+				g.setColour(Colour::fromRGBA(192, 192, 192, 128));
+				g.fillRect(selectionRect);
+			}
+
 		}
 	}
 }
@@ -475,8 +485,7 @@ void MIDITimelineComponent::setComponentSize()
 
 	if (noteEventMatrix.size() > 0)
 	{
-		int numberOfTimeUnits = (int)noteEventMatrix[0].size();
-		setBounds((int)localBounds.getX(), (int)localBounds.getY(), aspectRatio * localBounds.getHeight(), (int)(localBounds.getHeight()));
+		setBounds((int)localBounds.getX(), (int)localBounds.getY(), (int)((float)aspectRatio * localBounds.getHeight()), (int)(localBounds.getHeight()));
 	}
 	//if (midiFile)
 	//{
@@ -531,7 +540,6 @@ void MIDITimelineComponent::repaintMatrixImage()
 		float noteRowHeightPixels = minCellWidth;
 		float timeUnitWidthPixels = noteRowHeightPixels;
 		int numberOfTimeUnits = (int)noteEventMatrix[0].size();
-		double aspectRatio = (double)numberOfTimeUnits/(double)noteRangeSize;
 
 		newImageSize.setWidth((int)((float)numberOfTimeUnits * timeUnitWidthPixels));
 		newImageSize.setHeight((int)((float)noteRangeSize * noteRowHeightPixels));
@@ -656,6 +664,42 @@ void MIDITimelineComponent::changeListenerCallback(ChangeBroadcaster* /*source*/
 
 void MIDITimelineComponent::handleAsyncUpdate()
 {
+	repaint();
+}
+
+void MIDITimelineComponent::shiftDragEvent(const juce::MouseEvent& event)
+{
+	int currentCell = roundToInt((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
+	if (selectedCellStart == -1)
+	{
+		selectedCellStart = currentCell;
+	}
+
+	selectedCellEnd = currentCell;
+	repaint();
+}
+
+void MIDITimelineComponent::shiftMouseDownEvent(const juce::MouseEvent& event)
+{
+	if (!selectionInProgress)
+	{
+		selectionInProgress = true;
+		int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
+		selectedCellStart = currentCell;
+		selectedCellEnd = currentCell;
+	}
+}
+
+void MIDITimelineComponent::shiftMouseUpEvent(const juce::MouseEvent& event)
+{
+	selectionInProgress = false;
+}
+
+void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
+{
+	selectionInProgress = false;
+	selectedCellStart = -1;
+	selectedCellEnd = -1;
 	repaint();
 }
 

@@ -27,10 +27,13 @@ public:
     virtual void zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel);
     virtual void controlClickEvent(const juce::MouseEvent& event);
     virtual void controlDragEvent(const juce::MouseEvent& event);
+    virtual void shiftDragEvent(const juce::MouseEvent& event);
+    virtual void shiftMouseUpEvent(const juce::MouseEvent& event);
     virtual void controlDoubleClickEvent(const juce::MouseEvent& event);
     virtual void controlMouseDownEvent(const juce::MouseEvent& event);
     virtual void controlMouseUpEvent(const juce::MouseEvent& event);
     virtual void shiftMouseDownEvent(const juce::MouseEvent& event);
+    virtual void mouseDoubleClickEvent(const juce::MouseEvent& event);
     
     void drawOutline (Graphics&);
     void mouseDrag(const MouseEvent& event) override;
