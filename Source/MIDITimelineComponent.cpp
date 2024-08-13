@@ -136,13 +136,12 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
 			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
-			double samplesElapsedSincePlaySnapshot = samplesElapsedSincePlay;
 			
 			samplesElapsedSincePlay += bufferToFill.numSamples;
-			currentTimeUnit = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
+			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
 			
 			// If end happened - replay			
-			if (currentTimeUnit >= numberOfTimeUnits)
+			if (currentTimeUnitPredicted >= numberOfTimeUnits)
 			{
 				currentTimeUnit = 0;
 				samplesElapsedSincePlay = 0;
@@ -151,7 +150,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			}
 			
 			// If change happened
-			if (currentTimeUnit != currentTimeUnitSnapshot || samplesElapsedSincePlaySnapshot == 0)
+			if (currentTimeUnitPredicted > currentTimeUnitSnapshot)
 			{
 				//synths[0]->synth.allNotesOff(0,true);
 				for (int i = 0; i < noteEventMatrix.size(); i++)
@@ -168,6 +167,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 						}
 					}
 				}
+				currentTimeUnit++;
 				triggerRepaint();
 			}
 			synths[0]->getNextAudioBlock(bufferToFill);
@@ -526,6 +526,8 @@ void MIDITimelineComponent::stopMIDI()
 {
 	isPlaying = false;
 	samplesElapsedSincePlay = 0;
+	currentTimeUnit = 0;
+
 	if (synths.size() > 0)
 	{
 		synths[0]->synth.allNotesOff(0, true);
@@ -712,11 +714,22 @@ void MIDITimelineComponent::shiftMouseUpEvent(const juce::MouseEvent& /*event*/)
 	selectionInProgress = false;
 }
 
-void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& /*event*/)
+void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
 {
 	selectionInProgress = false;
 	selectedCellStart = -1;
 	selectedCellEnd = -1;
+
+	int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
+	currentTimeUnit = currentCell;
+	double beatDuration = 60.0 / (double)AppProperties::getTempo();
+	double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
+	double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
+	samplesElapsedSincePlay = (int)samplesPerTimeUnit * currentCell;
+	if (synths.size() > 0)
+	{
+		synths[0]->synth.allNotesOff(0, true);
+	}
 	repaint();
 }
 
