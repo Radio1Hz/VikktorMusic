@@ -660,7 +660,6 @@ void MIDITimelineComponent::processSelection()
 {
 	if (selectedCellStart > -1)
 	{
-		int note = 0;
 		for (int i = 0; i < noteEventMatrix.size(); i++)
 		{
 			for (int j = selectedCellStart; j < selectedCellEnd; j++)
@@ -708,12 +707,12 @@ void MIDITimelineComponent::shiftMouseDownEvent(const juce::MouseEvent& event)
 	}
 }
 
-void MIDITimelineComponent::shiftMouseUpEvent(const juce::MouseEvent& event)
+void MIDITimelineComponent::shiftMouseUpEvent(const juce::MouseEvent& /*event*/)
 {
 	selectionInProgress = false;
 }
 
-void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
+void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& /*event*/)
 {
 	selectionInProgress = false;
 	selectedCellStart = -1;
