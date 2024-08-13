@@ -50,6 +50,7 @@ private:
 	void initMenu();
 	void clearTimeline();
 	void repaintMatrixImage();
+	void processSelection();
 	float minCellWidth = 10.0f;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;

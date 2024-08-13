@@ -506,6 +506,7 @@ void MIDITimelineComponent::initMenu()
 		this->menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
 		this->menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		this->menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
+		this->menu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
 	}
 }
 
@@ -655,7 +656,24 @@ void MIDITimelineComponent::repaintMatrixImage()
 	}
 }
 
-
+void MIDITimelineComponent::processSelection()
+{
+	if (selectedCellStart > -1)
+	{
+		int note = 0;
+		for (int i = 0; i < noteEventMatrix.size(); i++)
+		{
+			for (int j = selectedCellStart; j < selectedCellEnd; j++)
+			{
+				// If there is note
+				if (noteEventMatrix[i][j].EventType == 1)
+				{
+					DBG(String(noteEventMatrix[i][j].NoteName) + String(noteEventMatrix[i][j].NoteDuration));
+				}
+			}
+		}
+	}
+}
 
 void MIDITimelineComponent::changeListenerCallback(ChangeBroadcaster* /*source*/)
 {
