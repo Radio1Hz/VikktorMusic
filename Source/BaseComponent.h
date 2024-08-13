@@ -41,6 +41,7 @@ public:
     
     int component_state = 0;
     int minSize = 50;
+    int maxSize = 16000;
     String name = "Unknown";
     int headerHeight = 20;
     bool embeddedMode = false;

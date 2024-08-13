@@ -50,8 +50,8 @@ void BaseComponent::drawOutline (Graphics& g)
     if (!this->embeddedMode)
     {
         Rectangle<int> rect = getLocalBounds();
-        g.setColour(Colours::black);
-        g.fillRect(rect);
+        //g.setColour(Colours::black);
+        g.drawRect(rect);
 
         g.setFont(15.0f);
         rect.setHeight(headerHeight);
@@ -117,27 +117,37 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
         if (!this->embeddedMode)
         {
             juce::Rectangle<int> rect = getReducedBounds();
-            Point<float> originPointRelative = Point<float>((event.x - 1) / (float)rect.getWidth(), (event.y - headerHeight) / (float)rect.getHeight());
-            int deltaWidth = roundToInt(rect.getWidth() * wheel.deltaY);
-            int deltaHeight = roundToInt(rect.getHeight() * wheel.deltaY);
+            Point<float> originPointRelative = Point<float>(((float)(event.x - 1) / (float)rect.getWidth()), (int)((float)event.y - (float)headerHeight + 1.0f) / (float)rect.getHeight());
+            int deltaWidth = (int)((float)rect.getWidth() * wheel.deltaY);
+            int deltaHeight = (int)((float)rect.getHeight() * wheel.deltaY);
 
             int newWidth = rect.getWidth() + deltaWidth;
             int newHeight = rect.getHeight() + deltaHeight;
+            double aspectRatio = (double)newWidth / (double)newHeight;
 
-            if (newWidth <= minSize)
+            if (newHeight > minSize && newWidth < maxSize)
             {
-                newWidth = minSize;
+                if (newWidth > maxSize)
+                {
+                    newWidth = maxSize;
+                    newHeight = roundToInt((double)newWidth / aspectRatio);
+                }
+                if (newHeight <= minSize)
+                {
+                    newHeight = minSize;
+                    newWidth = roundToInt((double)newHeight * aspectRatio);
+                }
+
+                rect.setSize(newWidth, newHeight);
+                rect.translate(roundToInt(-(float)deltaWidth * originPointRelative.x), roundToInt(-(float)deltaHeight * originPointRelative.y));
+
+                setBounds((int)rect.getX() - 1, (int)rect.getY() - headerHeight, (int)rect.getWidth() + 2, (int)rect.getHeight() + headerHeight + 1);
+                getParentComponent()->repaint();
             }
-            if (newHeight <= minSize)
+            else
             {
-                newHeight = minSize;
+               
             }
-
-            rect.setSize(newWidth, newHeight);
-            rect.translate(roundToInt(-(float)deltaWidth * originPointRelative.x), roundToInt(-(float)deltaHeight * originPointRelative.y));
-
-            setBounds((int)rect.getX() - 1, (int)rect.getY() - headerHeight, (int)rect.getWidth() + 2, (int)rect.getHeight() + headerHeight + 1);
-            getParentComponent()->repaint();
         }
         else
         {

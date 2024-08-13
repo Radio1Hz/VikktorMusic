@@ -120,6 +120,13 @@ void MainComponent::tempoTextChanged()
 void MainComponent::tempoChanged()
 {
 	AppProperties::setTempo((float)tempoText.getText().getDoubleValue());
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->allNotesOff();
+		}
+	}
 	logSpaceComponent.repaint();
 }
 

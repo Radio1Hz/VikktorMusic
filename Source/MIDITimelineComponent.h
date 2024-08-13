@@ -36,6 +36,8 @@ public:
 	void playMIDI();
 	void stopMIDI();
 	void processMidi();
+	void allNotesOff();
+	void init();
 
 private:
 	void loadMIDI();
@@ -43,7 +45,8 @@ private:
 	void initMenu();
 	void clearTimeline();
 	void repaintMatrixImage();
-	void init();
+	float minCellWidth = 10.0f;
+
 	void MIDITimelineComponent::scanPlugins();
 
 	Image matrixImage;
@@ -76,7 +79,7 @@ private:
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
 	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
 	void releaseResources() override;
-
+	bool initializationIsComplete = false;
 	juce::AudioDeviceManager audioDeviceManager;
 	juce::AudioPluginFormatManager formatManager;
 	std::unique_ptr<juce::AudioPluginInstance> pluginInstance;

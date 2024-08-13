@@ -74,13 +74,13 @@ public:
 	void LogSpaceComponent::initMenu()
 	{
 		menu.clear();
-		menu.addItem("Add new Timer", std::bind(&LogSpaceComponent::addNewTimer, this));
+		//menu.addItem("Add new Timer", std::bind(&LogSpaceComponent::addNewTimer, this));
 		menu.addItem("Add new Markov Matrix", std::bind(&LogSpaceComponent::addMarkovMatrix, this));
-		menu.addItem("Add new Plot", std::bind(&LogSpaceComponent::addNewPlot, this));
-		menu.addItem("Add new Audio Component", std::bind(&LogSpaceComponent::addNewAudioComponent, this));
-		menu.addItem("Add new MIDI Synth Component", std::bind(&LogSpaceComponent::addNewMIDISynthComponent, this));
-		menu.addItem("Add new Euclidian Rhythm Component", std::bind(&LogSpaceComponent::addNewEuclidianTimer, this));
-		menu.addItem("Add new Time Object Componet", std::bind(&LogSpaceComponent::addNewTimeObjectComponent, this));
+		//menu.addItem("Add new Plot", std::bind(&LogSpaceComponent::addNewPlot, this));
+		//menu.addItem("Add new Audio Component", std::bind(&LogSpaceComponent::addNewAudioComponent, this));
+		//menu.addItem("Add new MIDI Synth Component", std::bind(&LogSpaceComponent::addNewMIDISynthComponent, this));
+		//menu.addItem("Add new Euclidian Rhythm Component", std::bind(&LogSpaceComponent::addNewEuclidianTimer, this));
+		//menu.addItem("Add new Time Object Componet", std::bind(&LogSpaceComponent::addNewTimeObjectComponent, this));
 		menu.addItem("Add new MIDI Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineComponent, this));
 	}
 
@@ -89,8 +89,8 @@ public:
 		MIDITimelineComponent* t0 = new MIDITimelineComponent(32, 0);
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
-		t0->processMidi();
-		resized();
+		t0->init();
+		//resized();
 	}
 
 	void LogSpaceComponent::addNewTimeObjectComponent()

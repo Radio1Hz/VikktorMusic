@@ -19,14 +19,13 @@ using namespace juce;
 //==============================================================================
 MIDITimelineComponent::MIDITimelineComponent()
 {
-	init();
+
 }
 
 MIDITimelineComponent::MIDITimelineComponent(int numMeasures, int synthID)
 {
 	this->numMeasures = numMeasures;
 	this->synthID = synthID;
-	init();
 }
 
 void MIDITimelineComponent::init()
@@ -34,9 +33,14 @@ void MIDITimelineComponent::init()
 	noteRangeSize = noteRangeEnd - noteRangeStart;
 	noteEventMatrix.resize(noteRangeSize);
 	clearMatrix();
+
 	this->name = "MIDI Timeline (" +String(this->numMeasures) + " measures)";
 	this->initMenu();
 	setAudioChannels(0, 2);
+	
+	repaintMatrixImage();
+	setComponentSize();
+	repaint();
 	//currentTimeUnit = 2000;
 }
 
@@ -52,6 +56,7 @@ void MIDITimelineComponent::clearMatrix()
 		vec.resize((int)(4.0f * (float)this->numMeasures * numQuartersPerMeasure));
 		noteEventMatrix[i] = vec;
 	}
+	stopMIDI();
 }
 MIDITimelineComponent::~MIDITimelineComponent()
 {
@@ -123,6 +128,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 		{
 			int numberOfTimeUnits = (int)noteEventMatrix[0].size();
 			int currentTimeUnitSnapshot = currentTimeUnit;
+
 			//Duration of one quarter. 
 			//Time units are sexteenths and there are [numerator] units in one beat
 			
@@ -130,6 +136,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
 			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
+			double samplesElapsedSincePlaySnapshot = samplesElapsedSincePlay;
 			
 			samplesElapsedSincePlay += bufferToFill.numSamples;
 			currentTimeUnit = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
@@ -139,11 +146,12 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			{
 				currentTimeUnit = 0;
 				samplesElapsedSincePlay = 0;
+				this->synths[0]->synth.allNotesOff(0, true);
 				triggerRepaint();
 			}
 			
 			// If change happened
-			if (currentTimeUnit != currentTimeUnitSnapshot)
+			if (currentTimeUnit != currentTimeUnitSnapshot || samplesElapsedSincePlaySnapshot == 0)
 			{
 				//synths[0]->synth.allNotesOff(0,true);
 				for (int i = 0; i < noteEventMatrix.size(); i++)
@@ -244,9 +252,9 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			float cursorWidth = parentBounds.getWidth() / numberOfTimeUnits;
 			float currentX = ((float)currentTimeUnit / (float)numberOfTimeUnits) * parentBounds.getWidth();
 			Rectangle<float> cursorInfoRect(currentX + cursorWidth, parentBounds.getTopRight().y + 15.0f, 40.0f, 15.0f);
-			g.setColour(Colour::fromRGB(128, 128, 128));
+			g.setColour(Colour::fromRGBA(128, 128, 128, 128));
 			g.fillRect(currentX, parentBounds.getTopLeft().y, cursorWidth, parentBounds.getHeight());
-			g.setColour(juce::Colours::darkgrey);
+			//g.setColour(Colour::fromRGB(128, 128, 128));
 			g.fillRect(cursorInfoRect);
 			int currentMeasureIndex = (int)floor((float)numMeasures * ((float)currentTimeUnit / (float)numberOfTimeUnits));
 			int currentTimeUnitWithinMeasureIndex = (currentMeasureIndex * numTimeUnitsInMeasure + currentTimeUnit) % (numTimeUnitsInMeasure);
@@ -315,15 +323,27 @@ void MIDITimelineComponent::loadMIDI()
 
 			if (file != juce::File{})
 			{	
+				clearMatrix();
 				currentTimeUnit = 0;
 				midiFile = std::make_unique<MidiFile>();
 				std::unique_ptr<FileInputStream> str = file.createInputStream();
 				midiFile->readFrom(*str);
-				projectName = file.getFullPathName();
+				projectName = file.getFileName();
 				name = file.getFileName() + " - Midi timeformat: " + String(midiFile->getTimeFormat()) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
 				processMidi();
+				repaintMatrixImage();
+				setComponentSize();
+				repaint();
 			}
 		});
+}
+
+void MIDITimelineComponent::allNotesOff()
+{
+	if (this->synths.size() > 0)
+	{
+		this->synths[0]->synth.allNotesOff(0, true);
+	}
 }
 
 void MIDITimelineComponent::processMidi()
@@ -414,77 +434,55 @@ void MIDITimelineComponent::processMidi()
 						int column = (int)floor(((noteStart / totalDurationTicks) * (double)matrixWidth));
 						if (noteNumber >= noteRangeStart && noteNumber <= noteRangeEnd && column < matrixWidth)
 						{
-							NoteEventDesc nEventOn(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 1);
-							noteEventMatrix[noteNumber - noteRangeStart][column] = nEventOn;
-							NoteEventDesc nEventOff(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 0);
-
-							if (column + duration < noteEventMatrix[0].size())
+							if (duration > 0)
 							{
-								noteEventMatrix[noteNumber - noteRangeStart][column + duration] = nEventOff;
+								NoteEventDesc nEventOff(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 0);
+
+								if (column + duration < noteEventMatrix[0].size())
+								{
+									noteEventMatrix[noteNumber - noteRangeStart][column + duration] = nEventOff;
+								}
+								else
+								{
+									noteEventMatrix[noteNumber - noteRangeStart][noteEventMatrix[0].size() - 1] = nEventOff;
+								}
+
+								NoteEventDesc nEventOn(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 1);
+								noteEventMatrix[noteNumber - noteRangeStart][column] = nEventOn;
 							}
 							else
 							{
-								noteEventMatrix[noteNumber - noteRangeStart][noteEventMatrix[0].size() - 1] = nEventOff;
+								duration = 0;
 							}
+							
 						}
 					}
 				}
 			}
 			//---------------------
 		}
-		if (projectName == "")
-		{
-			projectName = "New Project";
-		}
 
-		FileOutputStream stream = FileOutputStream(File(AppProperties::getProjectPath() +  projectName + "." + String(Time::currentTimeMillis()) + ".proj"));
-
-		for (int i = 0; i < noteRangeSize; i++)
-		{
-			String str = "";
-			for (int j = 0; j < noteEventMatrix[i].size(); j++)
-			{
-				if (noteEventMatrix[i][j].NoteName != "")
-				{
-					str += String(noteEventMatrix[i][j].NoteNumber) + "\t";
-				}
-				else
-				{
-					str += "\t";
-				}
-			}
-			stream.writeText(str + "\r\n", false, false, nullptr);
-		}
-		stream.flush();
-
+		
 		this->initMenu();
-		setComponentSize();
-		repaintMatrixImage();
-		FileOutputStream str(File(AppProperties::getProjectPath() + projectName + "." + String(Time::currentTimeMillis()) + ".png"));
-		PNGImageFormat pngWriter;
-		pngWriter.writeImageToStream(matrixImage, str);
 	}
 }
 
 void MIDITimelineComponent::setComponentSize()
 {
-	int minCellWidth = 5;
+	
 	Rectangle<float> localBounds = getParentComponent()->getLocalBounds().toFloat();
-	if (getWidth()>minSize)
-	{
-		localBounds = getBounds().toFloat();
-	}
+	double aspectRatio = (double)matrixImage.getWidth() / (double)matrixImage.getHeight();
 
 	if (noteEventMatrix.size() > 0)
 	{
 		int numberOfTimeUnits = (int)noteEventMatrix[0].size();
-		setBounds((int)localBounds.getX(), (int)localBounds.getY(), minCellWidth * numberOfTimeUnits, (int)(localBounds.getHeight()));
+		setBounds((int)localBounds.getX(), (int)localBounds.getY(), aspectRatio * localBounds.getHeight(), (int)(localBounds.getHeight()));
 	}
-	if(midiFile)
-	{
-		float trackHeight = (localBounds.getHeight() * (1 - this->timelineHeightRatio)) / (midiTracks.size());
-		setBounds((int)localBounds.getX(), (int)localBounds.getY(), (int)localBounds.getWidth(), (int)trackHeight * midiTracks.size() + (int)(localBounds.getHeight() * (this->timelineHeightRatio)));
-	}
+	//if (midiFile)
+	//{
+	//	float trackHeight = (localBounds.getHeight() * (1 - this->timelineHeightRatio)) / (midiTracks.size());
+	//	setBounds((int)localBounds.getX(), (int)localBounds.getY(), (int)localBounds.getWidth(), (int)trackHeight * midiTracks.size() + (int)(localBounds.getHeight() * (this->timelineHeightRatio)));
+	//}
 	repaint();
 }
 
@@ -497,6 +495,7 @@ void MIDITimelineComponent::initMenu()
 	{
 		this->menu.addItem("Play", std::bind(&MIDITimelineComponent::playMIDI, this));
 		this->menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
+		this->menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		this->menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
 	}
 }
@@ -505,6 +504,7 @@ void MIDITimelineComponent::clearTimeline()
 {
 	clearMatrix();
 	repaintMatrixImage();
+	repaint();
 }
 
 void MIDITimelineComponent::playMIDI()
@@ -524,43 +524,46 @@ void MIDITimelineComponent::stopMIDI()
 
 void MIDITimelineComponent::repaintMatrixImage()
 {
-	Rectangle<int> parentBounds = getReducedLocalBounds();
-	parentBounds.setWidth(2 * parentBounds.getWidth());
-	parentBounds.setHeight(2 * parentBounds.getHeight());
-
-	if (parentBounds.getWidth() > 16000)
-	{
-		parentBounds.setWidth(16000);
-	}
-
-	matrixImage = juce::Image(juce::Image::RGB, parentBounds.getWidth(), parentBounds.getHeight(), true);
-
-	Graphics g0(matrixImage);
-	g0.fillAll(Colours::black);
-
 	if (noteEventMatrix.size() > 0)
 	{
+		Rectangle<int> parentBounds = getReducedLocalBounds();
+		Rectangle<int> newImageSize(200, 200);
+		float noteRowHeightPixels = minCellWidth;
+		float timeUnitWidthPixels = noteRowHeightPixels;
 		int numberOfTimeUnits = (int)noteEventMatrix[0].size();
-		g0.setColour(Colours::grey);
+		double aspectRatio = (double)numberOfTimeUnits/(double)noteRangeSize;
 
+		newImageSize.setWidth((int)((float)numberOfTimeUnits * timeUnitWidthPixels));
+		newImageSize.setHeight((int)((float)noteRangeSize * noteRowHeightPixels));
+
+		//aspectRatio = newImageSize.getWidth() / newImageSize.getHeight();
+		matrixImage = juce::Image(juce::Image::RGB, newImageSize.getWidth(), newImageSize.getHeight(), true);
+
+		Graphics g0(matrixImage);
+		//g0.fillAll(Colour::fromRGBA(0, 0, 0, 10));
+		g0.setColour(Colours::grey);
 		
 		for (int i = 0; i < noteRangeSize; i++)
 		{
-			float currentY = (float)(parentBounds.getHeight() * (((float)noteRangeSize - (float)i -1.0f) / (float)noteRangeSize));
+			float currentY = (float)(newImageSize.getHeight() * (((float)noteRangeSize - (float)i -1.0f) / (float)noteRangeSize));
 			float currentX = 0.0f;
-			float timeUnitWidthPixels = (float)(parentBounds.getWidth() / (float)numberOfTimeUnits);
-			Rectangle<float> textBox(0.0f, currentY, timeUnitWidthPixels, (float)(parentBounds.getHeight() / (float)noteRangeSize));
-			float fontSize = (float)(0.9f * parentBounds.getHeight() / (float)noteRangeSize);
-			g0.setFont(fontSize);
+			
+			Rectangle<float> textBox(0.0f, currentY, timeUnitWidthPixels, (float)(newImageSize.getHeight() / (float)noteRangeSize));
 			Rectangle<float> textBoxWider(textBox);
+
+			float fontSize = (float)(timeUnitWidthPixels);
+			g0.setFont(fontSize);
+			
 			textBoxWider.setWidth(fontSize * 3.0f);
+
 			g0.drawText(String(noteRangeStart + i), textBoxWider, Justification::left);
-			g0.drawLine(0, currentY, (float)parentBounds.getWidth(), currentY, 0.2f);
+			g0.drawLine(0.0f, currentY, (float)newImageSize.getWidth(), currentY, 0.2f);
 
 			for (int j = 0; j < numberOfTimeUnits; j++)
 			{
 				int currentMeasureIndex = (int)floor((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
-				currentX = parentBounds.getWidth() * ((float)j / (float)numberOfTimeUnits);
+				currentX = (float)newImageSize.getWidth() * ((float)j / (float)numberOfTimeUnits);
+
 				textBox.setPosition(Point<float>(currentX, currentY));
 				textBoxWider.setPosition(Point<float>(currentX, currentY));
 				textBox.setWidth(fontSize * 2);
@@ -568,7 +571,8 @@ void MIDITimelineComponent::repaintMatrixImage()
 				if (j % numTimeUnitsInMeasure == 0)
 				{
 					g0.setColour(Colours::lightgrey);
-					g0.drawLine(textBoxWider.getBottomLeft().x, textBoxWider.getBottomLeft().y, textBoxWider.getTopLeft().x, textBoxWider.getTopLeft().y, 1.0f);
+					g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 2.0f);
+
 					if (i == noteRangeSize-1)
 					{
 						g0.drawText(String(currentMeasureIndex +1), textBoxWider, Justification::centred);
@@ -581,28 +585,65 @@ void MIDITimelineComponent::repaintMatrixImage()
 						if (i < noteRangeSize - 1)
 						{
 							g0.setColour(Colours::white);
-							g0.drawLine(textBoxWider.getBottomLeft().x, textBoxWider.getBottomLeft().y, textBoxWider.getTopLeft().x, textBoxWider.getTopLeft().y, 0.5f);
+							g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 1.0f);
 						}
 					}
 					else
 					{
 						g0.setColour(Colours::lightgrey);
-						g0.drawLine(textBox.getBottomRight().x, textBox.getBottomRight().y, textBox.getTopRight().x, textBox.getTopRight().y, 0.2f);
+						g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 0.2f);
 					}
 				}
 				
 
 				if (noteEventMatrix[i][j].EventType == 1) //if note on
 				{
-					textBox.setWidth(timeUnitWidthPixels * noteEventMatrix[i][j].NoteDuration);
+					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
+					textBox.translate(-1.0f, 0.0f);
+					g0.setColour(Colours::darkred);
 					g0.fillRect(textBox);
-					g0.setColour(Colours::darkgrey);
+					g0.setColour(Colours::white);
 					g0.drawText(String(noteEventMatrix[i][j].NoteName), textBox, Justification::left);
 				}
 			}
 		}
-		
-		repaint();
+
+		// Save in text format
+		if (projectName == "")
+		{
+			projectName = "New Project";
+		}
+
+		FileOutputStream stream = FileOutputStream(File(AppProperties::getProjectPath() + projectName + "." + String(Time::currentTimeMillis()) + ".proj"));
+
+		for (int i = 0; i < noteRangeSize; i++)
+		{
+			String str = "";
+			for (int j = 0; j < noteEventMatrix[i].size(); j++)
+			{
+				if (noteEventMatrix[i][j].NoteName != "")
+				{
+					str += String(noteEventMatrix[i][j].NoteNumber) + "\t";
+				}
+				else
+				{
+					str += "\t";
+				}
+			}
+			stream.writeText(str + "\r\n", false, false, nullptr);
+		}
+		stream.flush();
+		//Thread thread("PNGFileSaveThread");
+		/*Image matrixImageCopy(matrixImage);
+		FileOutputStream str(File(AppProperties::getProjectPath() + projectName + "." + String(Time::currentTimeMillis()) + ".png"));
+		if (str.openedOk())
+		{
+			str.setPosition(0);
+			str.truncate();
+		}
+		PNGImageFormat pngWriter;
+		pngWriter.writeImageToStream(matrixImageCopy, str);
+		str.flush();*/
 	}
 }
 
