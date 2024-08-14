@@ -258,9 +258,22 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 }
 
 
-void MusicMath::debugMatrix(const Matrix<int>& mat)
+int MusicMath::sumOfCellsInMatrix(const Matrix<int>& mat)
 {
-	DBG("Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "]");
+	int res = 0;
+	for (int i = 0; i < mat.getNumRows(); i++)
+	{	
+		for (int j = 0; j < mat.getNumColumns(); j++)
+		{
+			res += mat(i, j);
+		}
+	}
+	return res;
+}
+
+void MusicMath::debugMatrix(const Matrix<int>& mat, String friendlyName)
+{
+	DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "] ------------------------------------------------------------");
 	for (int i = 0; i < mat.getNumRows(); i++)
 	{
 		String row = "";
@@ -272,9 +285,9 @@ void MusicMath::debugMatrix(const Matrix<int>& mat)
 	}
 }
 
-void MusicMath::debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd)
+void MusicMath::debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd, String friendlyName)
 {
-	DBG("Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "]" + " Note Range: " + String(noteRangeStart) + "-" + String(noteRangeEnd));
+	DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "]" + " Note Range: " + String(noteRangeStart) + "-" + String(noteRangeEnd) + " ------------------------------------------------------------");
 	String row = "";
 	String row2 = "";
 	
@@ -297,7 +310,7 @@ void MusicMath::debugMatrix(const Matrix<int>& mat, int noteRangeStart, int note
 		DBG(row);
 	}
 }
-
+// Input Matrix selectionMatrix[60, 5] x defMajorMatrix[5, 60]
 Matrix<int> MusicMath::multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2)
 {
 	// Check if the matrices can be multiplied

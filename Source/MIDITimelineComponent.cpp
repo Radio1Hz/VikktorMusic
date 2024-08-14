@@ -35,10 +35,10 @@ void MIDITimelineComponent::init()
 	noteEventMatrix.resize(noteRangeSize);
 	clearMatrix();
 
-	this->name = "MIDI Timeline (" +String(this->numMeasures) + " measures)";
+	this->name = "MIDI Timeline (" + String(this->numMeasures) + " measures)";
 	this->initMenu();
 	setAudioChannels(0, 2);
-	
+
 	repaintMatrixImage();
 	setComponentSize();
 	repaint();
@@ -131,15 +131,15 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 
 			//Duration of one quarter. 
 			//Time units are sexteenths and there are [numerator] units in one beat
-			
+
 			double beatDuration = 60.0 / (double)AppProperties::getTempo();
 			double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
 			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
-			
+
 			samplesElapsedSincePlay += bufferToFill.numSamples;
 			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
-			
+
 			// If end happened - replay			
 			if (currentTimeUnitPredicted >= numberOfTimeUnits)
 			{
@@ -148,7 +148,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 				this->synths[0]->synth.allNotesOff(0, true);
 				triggerRepaint();
 			}
-			
+
 			// If change happened
 			if (currentTimeUnitPredicted > currentTimeUnitSnapshot)
 			{
@@ -195,7 +195,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 		String midiInfo = "Midi timeformat: " + String(midiFile->getTimeFormat()) + " Last timestamp: " + String(midiFile->getLastTimestamp()) + " Tracks: " + String(midiFile->getNumTracks());
 		this->name += midiInfo;
 	}
-	
+
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
 	double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
 	double totalDurationSec = (timeUnitDuration * (double)numMeasures * (double)numTimeUnitsInMeasure);
@@ -261,7 +261,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			g.setColour(juce::Colours::white);
 			g.setFont(12.0f);
 			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
-			
+
 			g.drawText(cursorText, cursorInfoRect, juce::Justification::centred, true);
 
 			//Draw Selection
@@ -313,7 +313,7 @@ void MIDITimelineComponent::drawMIDIEvents(Rectangle<float> trackRect, int track
 		}
 	}
 
-	
+
 }
 
 void MIDITimelineComponent::resized()
@@ -332,7 +332,7 @@ void MIDITimelineComponent::loadMIDI()
 			File file(chooser.getResult());
 
 			if (file != juce::File{})
-			{	
+			{
 				clearMatrix();
 				currentTimeUnit = 0;
 				midiFile = std::make_unique<MidiFile>();
@@ -433,7 +433,7 @@ void MIDITimelineComponent::processMidi()
 							noteEnd = noteOffHolder->message.getTimeStamp();
 						}
 
-						
+
 						int ticksPerMeasure = (int)(midiFile->getTimeFormat() * (4.0f / (float)AppProperties::getDenominator()) * (float)AppProperties::getNumerator());
 
 						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)AppProperties::getNumerator()) / (double)AppProperties::getDenominator();
@@ -464,7 +464,7 @@ void MIDITimelineComponent::processMidi()
 							{
 								duration = 0;
 							}
-							
+
 						}
 					}
 				}
@@ -472,14 +472,14 @@ void MIDITimelineComponent::processMidi()
 			//---------------------
 		}
 
-		
+
 		this->initMenu();
 	}
 }
 
 void MIDITimelineComponent::setComponentSize()
 {
-	
+
 	Rectangle<float> localBounds = getParentComponent()->getLocalBounds().toFloat();
 	double aspectRatio = (double)matrixImage.getWidth() / (double)matrixImage.getHeight();
 
@@ -500,7 +500,7 @@ void MIDITimelineComponent::initMenu()
 	this->menu.clear();
 	this->menu.addItem("Load MIDI", std::bind(&MIDITimelineComponent::loadMIDI, this));
 
-	if (noteEventMatrix.size()>0)
+	if (noteEventMatrix.size() > 0)
 	{
 		this->menu.addItem("Play", std::bind(&MIDITimelineComponent::playMIDI, this));
 		this->menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
@@ -571,18 +571,18 @@ void MIDITimelineComponent::repaintMatrixImage()
 		Graphics g0(matrixImage);
 		//g0.fillAll(Colour::fromRGBA(0, 0, 0, 10));
 		g0.setColour(Colours::grey);
-		
+
 		for (int i = 0; i < noteRangeSize; i++)
 		{
-			float currentY = (float)(newImageSize.getHeight() * (((float)noteRangeSize - (float)i -1.0f) / (float)noteRangeSize));
+			float currentY = (float)(newImageSize.getHeight() * (((float)noteRangeSize - (float)i - 1.0f) / (float)noteRangeSize));
 			float currentX = 0.0f;
-			
+
 			Rectangle<float> textBox(0.0f, currentY, timeUnitWidthPixels, (float)(newImageSize.getHeight() / (float)noteRangeSize));
 			Rectangle<float> textBoxWider(textBox);
 
 			float fontSize = (float)(timeUnitWidthPixels);
 			g0.setFont(fontSize);
-			
+
 			textBoxWider.setWidth(fontSize * 3.0f);
 
 			g0.drawText(String(noteRangeStart + i), textBoxWider, Justification::left);
@@ -602,14 +602,14 @@ void MIDITimelineComponent::repaintMatrixImage()
 					g0.setColour(Colours::lightgrey);
 					g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 2.0f);
 
-					if (i == noteRangeSize-1)
+					if (i == noteRangeSize - 1)
 					{
-						g0.drawText(String(currentMeasureIndex +1), textBoxWider, Justification::centred);
+						g0.drawText(String(currentMeasureIndex + 1), textBoxWider, Justification::centred);
 					}
 				}
 				else
 				{
-					if ((currentMeasureIndex * numTimeUnitsInMeasure + j) % (numTimeUnitsInMeasure/(int)numQuartersPerMeasure)== 0)
+					if ((currentMeasureIndex * numTimeUnitsInMeasure + j) % (numTimeUnitsInMeasure / (int)numQuartersPerMeasure) == 0)
 					{
 						if (i < noteRangeSize - 1)
 						{
@@ -623,7 +623,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 						g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 0.2f);
 					}
 				}
-				
+
 
 				if (noteEventMatrix[i][j].EventType == 1) //if note on
 				{
@@ -682,27 +682,82 @@ void MIDITimelineComponent::processSelection()
 	{
 		populateSelectionMatrix();
 
-		Matrix<int> selMatrixObj(*selectionMatrix);
-		musicMath.debugMatrix(selMatrixObj, noteRangeStart, noteRangeEnd);
-		Matrix<int> defMajorScaleMatrix(*musicMath._defaultMajorScaleDefinitionMatrix.get());// = ((Matrix<int>*)musicMath._defaultMajorScaleDefinitionMatrix->getRawDataPointer())->(12, 1, );
-		Matrix<int> defMinorScaleMatrix(*musicMath._defaultMinorScaleDefinitionMatrix.get());// (Matrix<int>*)musicMath._defaultMinorScaleDefinitionMatrix->getRawDataPointer());
-		////defMajorScaleMatrix.isOneColumnVector()
+		//musicMath.debugMatrix(*selectionMatrix);
+
+		Matrix<int>& defMajorScaleMatrix(*musicMath._defaultMajorScaleDefinitionMatrix.get());
+		Matrix<int>& defMinorScaleMatrix(*musicMath._defaultMinorScaleDefinitionMatrix.get());
 
 		Matrix<int> defMajorScaleMatrixFull(1, noteRangeEnd - noteRangeStart);
 		Matrix<int> defMinorScaleMatrixFull(1, noteRangeEnd - noteRangeStart);
 
-		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
+		//Go through all 12 tonalities
+		for (int t = 0; t < 12; t++)
 		{
+			int tonalityMajSum = 0;
+			int tonalityMinSum = 0;
+			String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+			
+			defMajorScaleMatrixFull.clear();
+			defMinorScaleMatrixFull.clear();
+
+			//Define template vectors for Major and Minor for the Tonality[t]
 			for (int n = noteRangeStart; n < noteRangeEnd; n++)
 			{
-				defMajorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMajorScaleMatrix.operator()(0, n % 12);
-				defMinorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMinorScaleMatrix.operator()(0, n % 12);
+				defMajorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMajorScaleMatrix.operator()(0, (n - t) % 12);
+				defMinorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMinorScaleMatrix.operator()(0, (n - t) % 12);
 			}
-			musicMath.debugMatrix(defMajorScaleMatrixFull, noteRangeStart, noteRangeEnd);
-			Matrix<int> res = musicMath.multiplyMatrixAndVector(*selectionMatrix, defMajorScaleMatrixFull);
-			musicMath.debugMatrix(res, noteRangeStart, noteRangeEnd);
-			
+
+			for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
+			{
+				//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName));
+				// Matrix that only have data in column c, otherwise zero
+				Matrix<int> tempMatrix(*selectionMatrix);
+
+				for (int n = noteRangeStart; n < noteRangeEnd; n++)
+				{
+					for (int c1 = 0; c1 < selectionMatrix->getNumColumns(); c1++)
+					{
+						if (c1 != c)
+						{
+							tempMatrix.operator()(n - noteRangeStart, c1) = 0;
+						}
+						else
+						{
+							if (tempMatrix.operator()(n - noteRangeStart, c1) != 0)
+							{
+								tempMatrix.operator()(n - noteRangeStart, c1) = 1;
+							}
+						}
+					}
+				}
+
+				//musicMath.debugMatrix(defMajorScaleMatrixFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MAJOR defMajorScaleMatrixFull template for major");
+				//musicMath.debugMatrix(defMinorScaleMatrixFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MINOR defMinorScaleMatrixFull template for minor");
+
+				Matrix<int> resMaj = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleMatrixFull);
+				Matrix<int> resMin = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleMatrixFull);
+				//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MAJOR ");
+				//musicMath.debugMatrix(resMaj, noteRangeStart, noteRangeEnd, "resMaj result of multiplication");
+				//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MINOR ");
+				//musicMath.debugMatrix(resMin, noteRangeStart, noteRangeEnd, "resMin result of multiplication");
+				int sumMaj = musicMath.sumOfCellsInMatrix(resMaj);
+				int sumMin = musicMath.sumOfCellsInMatrix(resMin);
+
+				tonalityMajSum += sumMaj;
+				tonalityMinSum += sumMin;
+			}
+
+			if (tonalityMajSum > 0)
+			{
+				DBG(String(tonalityRootName) + " maj, sum: " + String(tonalityMajSum));
+			}
+
+			if (tonalityMinSum > 0)
+			{
+				DBG(String(tonalityRootName) + " min, sum: " + String(tonalityMinSum));
+			}
 		}
+
 	}
 }
 

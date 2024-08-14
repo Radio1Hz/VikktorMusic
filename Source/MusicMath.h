@@ -58,8 +58,9 @@ public:
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
 
-	void debugMatrix(const Matrix<int>& mat);
-	void debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd);
+	int sumOfCellsInMatrix(const Matrix<int>& mat);
+	void debugMatrix(const Matrix<int>& mat, String friendlyName);
+	void debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd, String friendlyName);
 	Matrix<int> multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2);
 	Matrix<int> multiplyMatrixAndVector(const Matrix<int>& mat1, const Matrix<int>& mat2);
 	unique_ptr<Matrix<int>> _defaultMajorScaleDefinitionMatrix;

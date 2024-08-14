@@ -86,7 +86,7 @@ public:
 
 	void LogSpaceComponent::addNewMIDITimelineComponent()
 	{
-		MIDITimelineComponent* t0 = new MIDITimelineComponent(32, 0);
+		MIDITimelineComponent* t0 = new MIDITimelineComponent(96, 0);
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
 		t0->init();
