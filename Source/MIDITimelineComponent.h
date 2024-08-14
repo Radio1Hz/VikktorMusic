@@ -18,6 +18,7 @@
 #include "SynthAudioSource.h"
 
 using namespace juce;
+using namespace dsp;
 //==============================================================================
 
 class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, private AsyncUpdater
@@ -48,6 +49,8 @@ private:
 	void loadMIDI();
 	void setComponentSize();
 	void initMenu();
+	void populateSelectionMatrix();
+	std::unique_ptr<juce::dsp::Matrix<int>> selectionMatrix;
 	void clearTimeline();
 	void repaintMatrixImage();
 	void processSelection();
@@ -56,7 +59,7 @@ private:
 	int selectedCellEnd = 0;
 	bool selectionInProgress = false;
 	void MIDITimelineComponent::scanPlugins();
-
+	MusicMath musicMath;
 	Image matrixImage;
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
 	std::unique_ptr<FileChooser> fileChooser;
@@ -68,7 +71,6 @@ private:
 	std::vector<float> noteProbabilities;
 	String projectPath = "";
 	String projectName = "";
-	MusicMath musicMath;
 	int viewMode = 1; // 0 - MIDI, 1 - Matrix
 	int noteRangeStart = 36;
 	int noteRangeEnd = 96;

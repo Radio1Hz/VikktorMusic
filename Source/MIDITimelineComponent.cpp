@@ -15,6 +15,7 @@
 #include "MainComponent.h"
 
 using namespace juce;
+using namespace dsp;
 
 //==============================================================================
 MIDITimelineComponent::MIDITimelineComponent()
@@ -41,7 +42,6 @@ void MIDITimelineComponent::init()
 	repaintMatrixImage();
 	setComponentSize();
 	repaint();
-	//currentTimeUnit = 2000;
 }
 
 void MIDITimelineComponent::clearMatrix()
@@ -510,6 +510,24 @@ void MIDITimelineComponent::initMenu()
 	}
 }
 
+void MIDITimelineComponent::populateSelectionMatrix()
+{
+	selectionMatrix = std::make_unique<Matrix<int>>(noteRangeSize, selectedCellEnd - selectedCellStart);
+	selectionMatrix->clear();
+
+	for (int i = 0; i < noteRangeSize; i++)
+	{
+		for (int j = selectedCellStart; j < selectedCellEnd; j++)
+		{
+			// If there is note
+			if (noteEventMatrix[i][j].EventType == 1)
+			{
+				selectionMatrix->operator()(i, j - selectedCellStart) = noteEventMatrix[i][j].NoteNumber;
+			}
+		}
+	}
+}
+
 void MIDITimelineComponent::clearTimeline()
 {
 	clearMatrix();
@@ -662,16 +680,28 @@ void MIDITimelineComponent::processSelection()
 {
 	if (selectedCellStart > -1)
 	{
-		for (int i = 0; i < noteEventMatrix.size(); i++)
+		populateSelectionMatrix();
+
+		Matrix<int> selMatrixObj(*selectionMatrix);
+		musicMath.debugMatrix(selMatrixObj, noteRangeStart, noteRangeEnd);
+		Matrix<int> defMajorScaleMatrix(*musicMath._defaultMajorScaleDefinitionMatrix.get());// = ((Matrix<int>*)musicMath._defaultMajorScaleDefinitionMatrix->getRawDataPointer())->(12, 1, );
+		Matrix<int> defMinorScaleMatrix(*musicMath._defaultMinorScaleDefinitionMatrix.get());// (Matrix<int>*)musicMath._defaultMinorScaleDefinitionMatrix->getRawDataPointer());
+		////defMajorScaleMatrix.isOneColumnVector()
+
+		Matrix<int> defMajorScaleMatrixFull(1, noteRangeEnd - noteRangeStart);
+		Matrix<int> defMinorScaleMatrixFull(1, noteRangeEnd - noteRangeStart);
+
+		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
 		{
-			for (int j = selectedCellStart; j < selectedCellEnd; j++)
+			for (int n = noteRangeStart; n < noteRangeEnd; n++)
 			{
-				// If there is note
-				if (noteEventMatrix[i][j].EventType == 1)
-				{
-					DBG(String(noteEventMatrix[i][j].NoteName) + String(noteEventMatrix[i][j].NoteDuration));
-				}
+				defMajorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMajorScaleMatrix.operator()(0, n % 12);
+				defMinorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMinorScaleMatrix.operator()(0, n % 12);
 			}
+			musicMath.debugMatrix(defMajorScaleMatrixFull, noteRangeStart, noteRangeEnd);
+			Matrix<int> res = musicMath.multiplyMatrixAndVector(*selectionMatrix, defMajorScaleMatrixFull);
+			musicMath.debugMatrix(res, noteRangeStart, noteRangeEnd);
+			
 		}
 	}
 }

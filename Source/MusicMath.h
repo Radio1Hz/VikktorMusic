@@ -9,19 +9,22 @@
 */
 #pragma once
 #include <JuceHeader.h>
+using namespace std;
+using namespace juce;
+using namespace dsp;
 
 class NoteEventDesc
 {
 public:
 	/*-1: No Event, 0: Note Off, 1: Note On*/
-	juce::String	NoteName = "";
+	String	NoteName = "";
 	int				NoteNumber = -1;
 	int				NoteDuration = 0;
 	int				EventType = -1;
 	NoteEventDesc();
-	NoteEventDesc(juce::String noteName, int noteNumber);
-	NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration);
-	NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration, int eventType);
+	NoteEventDesc(String noteName, int noteNumber);
+	NoteEventDesc(String noteName, int noteNumber, int noteDuration);
+	NoteEventDesc(String noteName, int noteNumber, int noteDuration, int eventType);
 	~NoteEventDesc();
 };
 
@@ -31,26 +34,19 @@ public:
 	MusicMath();
 	~MusicMath();
 
-	juce::String				displayKeys();
-	juce::String				displayModes();
-	juce::String				getKeyName(int);
-	juce::String				getModeName();
-	juce::String				getModeDegree(int);
-	juce::String				getChordName();
-	void						allNotesOff(int channel);
-	juce::Colour				getKeyColour(int keyIndex);
-	juce::String				GetNoteName(int noteRoleIndex); // noteRoleIndex in (0, 1, 2, 3, 4, 5, 6) / Root, Second, Third, etc...
-	void						transformMIDINoteMessage(juce::MidiMessage& modifiedMsg);
-	std::vector<juce::String>	GetKeys();
-	std::vector<juce::String>	GetModes();
+	String				displayKeys();
+	String				displayModes();
+	String				getKeyName(int);
+	String				getModeName();
+	String				getModeDegree(int);
+	String				getChordName();
+	void				allNotesOff(int channel);
+	Colour				getKeyColour(int keyIndex);
+	String				GetNoteName(int noteRoleIndex); // noteRoleIndex in (0, 1, 2, 3, 4, 5, 6) / Root, Second, Third, etc...
+	void				transformMIDINoteMessage(MidiMessage& modifiedMsg);
+	vector<String>	GetKeys();
+	vector<String>	GetModes();
 
-	int							BPM;							// Beats per minute = Quarter notes per minute (tempo)
-
-	int							TPQN;							// Ticks per quarter note
-	double						Tb;								// Time duration of a beat in seconds
-	double						Tt;								// Time duration of a tick in seconds
-	int							TimeSignatureNominator = 4;		// 4/4
-	int							TimeSignatureDenominator = 4;
 	int							currentKey = 0;
 	int							currentKeyIndex = 0;
 	int							currentModeIndex = 0;
@@ -58,13 +54,19 @@ public:
 	int							translateKeyIndex(int keyIndex);
 	void						changeKey(int newKeyIndex);
 	void						changeMode(int newModeIndex);
-	int							translateRoleIndex(const juce::MidiMessage&);
+	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-	//MIDIAudio*					midiAudioObj;
+
+	void debugMatrix(const Matrix<int>& mat);
+	void debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd);
+	Matrix<int> multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2);
+	Matrix<int> multiplyMatrixAndVector(const Matrix<int>& mat1, const Matrix<int>& mat2);
+	unique_ptr<Matrix<int>> _defaultMajorScaleDefinitionMatrix;
+	unique_ptr<Matrix<int>> _defaultMinorScaleDefinitionMatrix;
 
 private:
-	std::vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
+	vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
 	{
 		0,			// C
 		7,			// G
@@ -80,7 +82,7 @@ private:
 		5			// F
 	};
 
-	std::vector<juce::String>	_keys_display =
+	vector<String>	_keys_display =
 	{
 		"C",
 		"G",
@@ -96,23 +98,23 @@ private:
 		"F"
 	};
 
-	std::vector<juce::Colour>	_keys_colour_codes =
+	vector<Colour>	_keys_colour_codes =
 	{
-		juce::Colour::fromRGBA(255, 165, 0, 255),	//C Major
-		juce::Colour::fromRGBA(0, 200, 0, 255),		//G Major
-		juce::Colour::fromRGBA(128, 128, 128, 255),	//D Major 
-		juce::Colour::fromRGBA(128, 0, 128, 255),	//A Major
-		juce::Colour::fromRGBA(200, 0, 0, 255),		//E Major
-		juce::Colour::fromRGBA(0, 0, 200, 255),		//B Major
-		juce::Colour::fromRGBA(199, 21, 133, 255),	//F# Major
-		juce::Colour::fromRGBA(200, 90, 0, 255),	//C# Major
-		juce::Colour::fromRGBA(0, 150, 0, 255),		//G# Major
-		juce::Colour::fromRGBA(90, 90, 90, 255),	//D# Major
-		juce::Colour::fromRGBA(90, 0, 90, 255),		//Bb Major
-		juce::Colour::fromRGBA(255, 105, 180, 255)	//F Major
+		Colour::fromRGBA(255, 165, 0, 255),	//C Major
+		Colour::fromRGBA(0, 200, 0, 255),		//G Major
+		Colour::fromRGBA(128, 128, 128, 255),	//D Major 
+		Colour::fromRGBA(128, 0, 128, 255),	//A Major
+		Colour::fromRGBA(200, 0, 0, 255),		//E Major
+		Colour::fromRGBA(0, 0, 200, 255),		//B Major
+		Colour::fromRGBA(199, 21, 133, 255),	//F# Major
+		Colour::fromRGBA(200, 90, 0, 255),	//C# Major
+		Colour::fromRGBA(0, 150, 0, 255),		//G# Major
+		Colour::fromRGBA(90, 90, 90, 255),	//D# Major
+		Colour::fromRGBA(90, 0, 90, 255),		//Bb Major
+		Colour::fromRGBA(255, 105, 180, 255)	//F Major
 	};
 
-	std::vector<std::vector<int>> _modes_offset
+	vector<vector<int>> _modes_offset
 	{
 		{0, 2, 4, 5, 7, 9, 11},
 		{0, 2, 3, 5, 7, 9, 10},
@@ -123,7 +125,9 @@ private:
 		{0, 1, 3, 5, 6, 8, 10}
 	};
 
-	std::vector<juce::String>	_modes_display =
+	unique_ptr<Matrix<int>> _keysDefinitions;
+
+	vector<String>	_modes_display =
 	{
 		"Ionian",
 		"Dorian",
@@ -134,7 +138,19 @@ private:
 		"Locrian"
 	};
 
-	std::vector<juce::String>	_modes_display_degrees =
+	//Ionian selected as default
+	vector<int>	_defaultMajorScaleDefinition =
+	{
+		1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1
+	};
+
+	//Aeolian selected as default
+	vector<int>	_defaultMinorScaleDefinition =
+	{
+		1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0
+	};
+
+	vector<String>	_modes_display_degrees =
 	{
 		"I",
 		"II",
