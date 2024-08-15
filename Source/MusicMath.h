@@ -63,9 +63,10 @@ public:
 	void debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd, String friendlyName);
 	Matrix<int> multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2);
 	Matrix<int> multiplyMatrixAndVector(const Matrix<int>& mat1, const Matrix<int>& mat2);
-	unique_ptr<Matrix<int>> _defaultMajorScaleDefinitionMatrix;
-	unique_ptr<Matrix<int>> _defaultMinorScaleDefinitionMatrix;
-
+	unique_ptr<Matrix<int>> _defaultMajorScaleDefinitionVector;
+	unique_ptr<Matrix<int>> _defaultMinorScaleDefinitionVector;
+	unique_ptr<Matrix<int>> _defaultMajorChordDefinitionVector;
+	unique_ptr<Matrix<int>> _defaultMinorChordDefinitionVector;
 private:
 	vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
 	{

@@ -14,43 +14,57 @@
 MusicMath::MusicMath()
 {
 	_keysDefinitions = make_unique<Matrix<int>>(12, 12);
-	_defaultMajorScaleDefinitionMatrix = make_unique<Matrix<int>>(1, 12);
-	_defaultMinorScaleDefinitionMatrix = make_unique<Matrix<int>>(1, 12);
+	_defaultMajorScaleDefinitionVector = make_unique<Matrix<int>>(1, 12);
+	_defaultMinorScaleDefinitionVector = make_unique<Matrix<int>>(1, 12);
+	_defaultMajorChordDefinitionVector = make_unique<Matrix<int>>(1, 12);
+	_defaultMinorChordDefinitionVector = make_unique<Matrix<int>>(1, 12);
 
+	_defaultMajorScaleDefinitionVector->clear();
+	_defaultMinorScaleDefinitionVector->clear();
+	_defaultMajorChordDefinitionVector->clear();
+	_defaultMinorChordDefinitionVector->clear();
 	/* Default Major = Ionian
-		1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0
+		1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0
 	}*/
 
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 0) = 1;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 1) = 0;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 2) = 1;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 3) = 0;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 4) = 1;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 5) = 1;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 6) = 0;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 7) = 1;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 8) = 0;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 9) = 1;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 10) = 0;
-	_defaultMajorScaleDefinitionMatrix->operator()(0, 11) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 0) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 1) = 0;
+	_defaultMajorScaleDefinitionVector->operator()(0, 2) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 3) = 0;
+	_defaultMajorScaleDefinitionVector->operator()(0, 4) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 5) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 6) = 0;
+	_defaultMajorScaleDefinitionVector->operator()(0, 7) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 8) = 0;
+	_defaultMajorScaleDefinitionVector->operator()(0, 9) = 1;
+	_defaultMajorScaleDefinitionVector->operator()(0, 10) = 0;
+	_defaultMajorScaleDefinitionVector->operator()(0, 11) = 1;
 
 	/* Default Minor = Aeolian
 		1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0
 	}*/
 
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 0) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 1) = 0;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 2) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 3) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 4) = 0;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 5) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 6) = 0;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 7) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 8) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 9) = 0;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 10) = 1;
-	_defaultMinorScaleDefinitionMatrix->operator()(0, 11) = 0;
+	_defaultMinorScaleDefinitionVector->operator()(0, 0) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 1) = 0;
+	_defaultMinorScaleDefinitionVector->operator()(0, 2) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 3) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 4) = 0;
+	_defaultMinorScaleDefinitionVector->operator()(0, 5) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 6) = 0;
+	_defaultMinorScaleDefinitionVector->operator()(0, 7) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 8) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 9) = 0;
+	_defaultMinorScaleDefinitionVector->operator()(0, 10) = 1;
+	_defaultMinorScaleDefinitionVector->operator()(0, 11) = 0;
 
+	
+	_defaultMajorChordDefinitionVector->operator()(0, 0) = 1;
+	_defaultMajorChordDefinitionVector->operator()(0, 4) = 1;
+	_defaultMajorChordDefinitionVector->operator()(0, 7) = 1;
+
+	_defaultMinorChordDefinitionVector->operator()(0, 0) = 1;
+	_defaultMinorChordDefinitionVector->operator()(0, 3) = 1;
+	_defaultMinorChordDefinitionVector->operator()(0, 7) = 1;
 
 }
 

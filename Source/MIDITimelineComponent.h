@@ -33,6 +33,8 @@ public:
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
 	void handleAsyncUpdate() override;
+	void operationOnSelection01();
+	void operationOnSelection02();
 	void shiftDragEvent(const juce::MouseEvent& event) override;
 	void shiftMouseDownEvent(const juce::MouseEvent& event) override;
 	void shiftMouseUpEvent(const juce::MouseEvent& event) override;

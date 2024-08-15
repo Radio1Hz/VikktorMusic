@@ -86,7 +86,7 @@ public:
 
 	void LogSpaceComponent::addNewMIDITimelineComponent()
 	{
-		MIDITimelineComponent* t0 = new MIDITimelineComponent(96, 0);
+		MIDITimelineComponent* t0 = new MIDITimelineComponent(8, 0);
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
 		t0->init();
@@ -95,8 +95,6 @@ public:
 
 	void LogSpaceComponent::addNewTimeObjectComponent()
 	{
-		//int size = rnd.nextInt(20) + 4;
-		//int pulses = rnd.nextInt(size / 2) + 1;
 		TimeObjectComponent* tO = new TimeObjectComponent();
 		tO->levelDimensions.add(2);
 		tO->levelDimensions.add(4);

@@ -267,7 +267,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			//Draw Selection
 			if (selectedCellStart > -1)
 			{
-				Rectangle<float> selectionRect(selectedCellStart * cursorWidth, 0.0f, cursorWidth * (selectedCellEnd - selectedCellStart), parentBounds.getHeight());
+				Rectangle<float> selectionRect(selectedCellStart * cursorWidth, 0.0f, cursorWidth * (selectedCellEnd - selectedCellStart + 1), parentBounds.getHeight());
 				selectionRect.translate(1.0f, (float)headerHeight + cursorWidth);
 				g.setColour(Colour::fromRGBA(192, 192, 192, 128));
 				g.fillRect(selectionRect);
@@ -440,8 +440,8 @@ void MIDITimelineComponent::processMidi()
 						double totalDurationTicks = matrixWidth * ticksPerTimeUnit;
 
 						int duration = roundToInt((noteEnd - noteStart) / ticksPerTimeUnit);
+						int column = roundToInt(((noteStart / totalDurationTicks) * (double)matrixWidth));
 
-						int column = (int)floor(((noteStart / totalDurationTicks) * (double)matrixWidth));
 						if (noteNumber >= noteRangeStart && noteNumber <= noteRangeEnd && column < matrixWidth)
 						{
 							if (duration > 0)
@@ -512,12 +512,12 @@ void MIDITimelineComponent::initMenu()
 
 void MIDITimelineComponent::populateSelectionMatrix()
 {
-	selectionMatrix = std::make_unique<Matrix<int>>(noteRangeSize, selectedCellEnd - selectedCellStart);
+	selectionMatrix = std::make_unique<Matrix<int>>(noteRangeSize, 1 + selectedCellEnd - selectedCellStart);
 	selectionMatrix->clear();
 
 	for (int i = 0; i < noteRangeSize; i++)
 	{
-		for (int j = selectedCellStart; j < selectedCellEnd; j++)
+		for (int j = selectedCellStart; j <= selectedCellEnd; j++)
 		{
 			// If there is note
 			if (noteEventMatrix[i][j].EventType == 1)
@@ -681,83 +681,7 @@ void MIDITimelineComponent::processSelection()
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-
-		//musicMath.debugMatrix(*selectionMatrix);
-
-		Matrix<int>& defMajorScaleMatrix(*musicMath._defaultMajorScaleDefinitionMatrix.get());
-		Matrix<int>& defMinorScaleMatrix(*musicMath._defaultMinorScaleDefinitionMatrix.get());
-
-		Matrix<int> defMajorScaleMatrixFull(1, noteRangeEnd - noteRangeStart);
-		Matrix<int> defMinorScaleMatrixFull(1, noteRangeEnd - noteRangeStart);
-
-		//Go through all 12 tonalities
-		for (int t = 0; t < 12; t++)
-		{
-			int tonalityMajSum = 0;
-			int tonalityMinSum = 0;
-			String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
-			
-			defMajorScaleMatrixFull.clear();
-			defMinorScaleMatrixFull.clear();
-
-			//Define template vectors for Major and Minor for the Tonality[t]
-			for (int n = noteRangeStart; n < noteRangeEnd; n++)
-			{
-				defMajorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMajorScaleMatrix.operator()(0, (n - t) % 12);
-				defMinorScaleMatrixFull.operator()(0, n - noteRangeStart) = defMinorScaleMatrix.operator()(0, (n - t) % 12);
-			}
-
-			for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
-			{
-				//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName));
-				// Matrix that only have data in column c, otherwise zero
-				Matrix<int> tempMatrix(*selectionMatrix);
-
-				for (int n = noteRangeStart; n < noteRangeEnd; n++)
-				{
-					for (int c1 = 0; c1 < selectionMatrix->getNumColumns(); c1++)
-					{
-						if (c1 != c)
-						{
-							tempMatrix.operator()(n - noteRangeStart, c1) = 0;
-						}
-						else
-						{
-							if (tempMatrix.operator()(n - noteRangeStart, c1) != 0)
-							{
-								tempMatrix.operator()(n - noteRangeStart, c1) = 1;
-							}
-						}
-					}
-				}
-
-				//musicMath.debugMatrix(defMajorScaleMatrixFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MAJOR defMajorScaleMatrixFull template for major");
-				//musicMath.debugMatrix(defMinorScaleMatrixFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MINOR defMinorScaleMatrixFull template for minor");
-
-				Matrix<int> resMaj = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleMatrixFull);
-				Matrix<int> resMin = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleMatrixFull);
-				//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MAJOR ");
-				//musicMath.debugMatrix(resMaj, noteRangeStart, noteRangeEnd, "resMaj result of multiplication");
-				//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MINOR ");
-				//musicMath.debugMatrix(resMin, noteRangeStart, noteRangeEnd, "resMin result of multiplication");
-				int sumMaj = musicMath.sumOfCellsInMatrix(resMaj);
-				int sumMin = musicMath.sumOfCellsInMatrix(resMin);
-
-				tonalityMajSum += sumMaj;
-				tonalityMinSum += sumMin;
-			}
-
-			if (tonalityMajSum > 0)
-			{
-				DBG(String(tonalityRootName) + " maj, sum: " + String(tonalityMajSum));
-			}
-
-			if (tonalityMinSum > 0)
-			{
-				DBG(String(tonalityRootName) + " min, sum: " + String(tonalityMinSum));
-			}
-		}
-
+		operationOnSelection02();
 	}
 }
 
@@ -771,15 +695,197 @@ void MIDITimelineComponent::handleAsyncUpdate()
 	repaint();
 }
 
+void MIDITimelineComponent::operationOnSelection02()
+{
+	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
+	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
+
+	Matrix<int> defMajorChordVector(*musicMath._defaultMajorChordDefinitionVector.get());
+	Matrix<int> defMinorChordVector(*musicMath._defaultMinorChordDefinitionVector.get());
+
+	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+
+	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
+	
+	int mostProbableRoot = 0;
+	String mostProbableRootFlavor = "maj";
+	int maxSumChord = 0;
+	int maxSumScale = 0;
+
+	Matrix<int> tempMatrix(*selectionMatrix);
+
+	//Normalize Matrix
+	for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
+	{
+		for (int n = noteRangeStart; n < noteRangeEnd; n++)
+		{
+			if (tempMatrix.operator()(n - noteRangeStart, c) != 0)
+			{
+				tempMatrix.operator()(n - noteRangeStart, c) = 1;
+			}
+		}
+	}
+
+	//Go through all 12 tonalities
+	for (int t = 0; t < 12; t++)
+	{
+		defMajorScaleVectorFull.clear();
+		defMinorScaleVectorFull.clear();
+
+		defMajorChordVectorFull.clear();
+		defMinorChordVectorFull.clear();
+
+		String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
+		{
+			//Define template vectors for Major and Minor for the Tonality[t]
+			for (int n = noteRangeStart; n < noteRangeEnd; n++)
+			{
+				defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
+				defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
+
+				defMajorChordVectorFull.operator()(0, n - noteRangeStart) = defMajorChordVector.operator()(0, (n - t) % 12);
+				defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
+			}
+		}
+		musicMath.debugMatrix(defMajorChordVectorFull, noteRangeStart, noteRangeEnd, "defMajorChordVectorFull");
+		musicMath.debugMatrix(defMinorChordVectorFull, noteRangeStart, noteRangeEnd, "defMinorChordVectorFull");
+		Matrix<int> resMajChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
+		Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
+		Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
+		Matrix<int> resMinScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
+		
+		int sumMajChord = musicMath.sumOfCellsInMatrix(resMajChord);
+		int sumMinChord = musicMath.sumOfCellsInMatrix(resMinChord);
+
+		int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
+		int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
+
+		if (sumMajScale > maxSumScale)
+		{
+			mostProbableRoot = t;
+			mostProbableRootFlavor = "maj";
+			maxSumScale = sumMajScale;
+		}
+
+		if (sumMinScale > maxSumScale)
+		{
+			mostProbableRoot = t;
+			mostProbableRootFlavor = "min";
+			maxSumScale = sumMinScale;
+		}
+
+		//if (sumMajChord > maxSumChord)
+		//{
+		//	mostProbableRoot = t;
+		//	mostProbableRootFlavor = "maj";
+		//	maxSumChord = sumMinChord;
+		//}
+
+		//if (sumMinChord > maxSumChord)
+		//{
+		//	mostProbableRoot = t;
+		//	mostProbableRootFlavor = "min";
+		//	maxSumChord = sumMinChord;
+		//}
+	}
+
+	DBG(MidiMessage::getMidiNoteName(mostProbableRoot, true, false, 4) + "" + String(mostProbableRootFlavor));
+}
+
+void MIDITimelineComponent::operationOnSelection01()
+{
+	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
+	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
+
+	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+
+	//Go through all 12 tonalities
+	for (int t = 0; t < 12; t++)
+	{
+		int tonalityMajSum = 0;
+		int tonalityMinSum = 0;
+		String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+
+		defMajorScaleVectorFull.clear();
+		defMinorScaleVectorFull.clear();
+
+		//Define template vectors for Major and Minor for the Tonality[t]
+		for (int n = noteRangeStart; n < noteRangeEnd; n++)
+		{
+			defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
+			defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
+		}
+
+		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
+		{
+			//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName));
+			// Matrix that only have data in column c, otherwise zero
+			Matrix<int> tempMatrix(*selectionMatrix);
+
+			for (int n = noteRangeStart; n < noteRangeEnd; n++)
+			{
+				for (int c1 = 0; c1 < selectionMatrix->getNumColumns(); c1++)
+				{
+					if (c1 != c)
+					{
+						tempMatrix.operator()(n - noteRangeStart, c1) = 0;
+					}
+					else
+					{
+						if (tempMatrix.operator()(n - noteRangeStart, c1) != 0)
+						{
+							tempMatrix.operator()(n - noteRangeStart, c1) = 1;
+						}
+					}
+				}
+			}
+
+			//musicMath.debugMatrix(defMajorScaleMatrixFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MAJOR defMajorScaleMatrixFull template for major");
+			//musicMath.debugMatrix(defMinorScaleVectorFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MINOR defMinorScaleVectorFull template for minor");
+			//musicMath.debugMatrix(tempMatrix, "tempMatrix");
+
+			Matrix<int> resMaj = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
+			Matrix<int> resMin = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
+			//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MAJOR ");
+			//musicMath.debugMatrix(resMaj, noteRangeStart, noteRangeEnd, "resMaj result of multiplication");
+			//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MINOR ");
+			//musicMath.debugMatrix(resMin, noteRangeStart, noteRangeEnd, "resMin result of multiplication");
+			int sumMaj = musicMath.sumOfCellsInMatrix(resMaj);
+			int sumMin = musicMath.sumOfCellsInMatrix(resMin);
+
+			tonalityMajSum += sumMaj;
+			tonalityMinSum += sumMin;
+		}
+
+		if (tonalityMajSum > 0)
+		{
+			DBG(String(tonalityRootName) + " maj, sum: " + String(tonalityMajSum));
+		}
+
+		if (tonalityMinSum > 0)
+		{
+			DBG(String(tonalityRootName) + " min, sum: " + String(tonalityMinSum));
+		}
+	}
+}
+
 void MIDITimelineComponent::shiftDragEvent(const juce::MouseEvent& event)
 {
-	int currentCell = roundToInt((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
+	int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
 	if (selectedCellStart == -1)
 	{
 		selectedCellStart = currentCell;
 	}
 
 	selectedCellEnd = currentCell;
+
+	if (selectedCellEnd > numTimeUnitsInMeasure * numMeasures - 1)
+		selectedCellEnd = numTimeUnitsInMeasure * numMeasures - 1;
+
 	repaint();
 }
 
