@@ -391,9 +391,10 @@ void MainComponent::timerCallback(int timerID)
 
 	if (timerID == (int)TimerType::TimePositionTimer)
 	{
-		timeLabel.setText(displayProgress(internalBufferCurrentPositionInSeconds, internalBufferTotalLengthInSeconds), NotificationType::dontSendNotification);
 		if (internalBufferTotalLengthInSeconds > 0.0)
 		{
+			timeLabel.setText(displayProgress(internalBufferCurrentPositionInSeconds, internalBufferTotalLengthInSeconds), NotificationType::dontSendNotification);
+
 			double percent = internalBufferCurrentPositionInSeconds / internalBufferTotalLengthInSeconds;
 			int newRasterX = (int)((double)internalBufferSamplesImage0.getWidth() * percent);
 			if (newRasterX != internalBufferPointerRasterX)

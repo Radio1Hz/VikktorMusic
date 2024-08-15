@@ -133,7 +133,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			//Time units are sexteenths and there are [numerator] units in one beat
 
 			double beatDuration = 60.0 / (double)AppProperties::getTempo();
-			double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
+			double timeUnitDuration = beatDuration / 4.0;
 			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 
@@ -197,7 +197,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 	}
 
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
-	double timeUnitDuration = beatDuration / numQuartersPerMeasure;
+	double timeUnitDuration = beatDuration / 4.0f;
 	double totalDurationSec = (timeUnitDuration * (double)numMeasures * (double)numTimeUnitsInMeasure);
 	double currentTimeSec = currentTimeUnit * timeUnitDuration;
 
@@ -594,12 +594,17 @@ void MIDITimelineComponent::repaintMatrixImage()
 
 		newImageSize.setWidth((int)((float)numberOfTimeUnits * timeUnitWidthPixels));
 		newImageSize.setHeight((int)((float)noteRangeSize * noteRowHeightPixels));
+		double aspectRatio = newImageSize.getWidth() / newImageSize.getHeight();
 
-		//aspectRatio = newImageSize.getWidth() / newImageSize.getHeight();
+		auto maxBitmapSize = 16000;
+		if (newImageSize.getWidth() > 16000)
+		{
+			newImageSize.setWidth(maxBitmapSize);
+			newImageSize.setHeight((int)((double)maxBitmapSize / aspectRatio));
+		}
 		matrixImage = juce::Image(juce::Image::RGB, newImageSize.getWidth(), newImageSize.getHeight(), true);
 
 		Graphics g0(matrixImage);
-		//g0.fillAll(Colour::fromRGBA(0, 0, 0, 10));
 		g0.setColour(Colours::grey);
 
 		for (int i = 0; i < noteRangeSize; i++)
@@ -630,7 +635,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 				if (j % numTimeUnitsInMeasure == 0)
 				{
 					g0.setColour(Colours::lightgrey);
-					g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 2.0f);
+					g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 1.0f);
 
 					if (i == noteRangeSize - 1)
 					{
@@ -1053,7 +1058,7 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
 	int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
 	currentTimeUnit = currentCell;
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
-	double timeUnitDuration = beatDuration / numQuartersPerMeasure;
+	double timeUnitDuration = beatDuration / 4.0;
 	double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 	samplesElapsedSincePlay = (int)samplesPerTimeUnit * currentCell;
 	if (synths.size() > 0)

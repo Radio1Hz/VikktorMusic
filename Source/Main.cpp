@@ -27,9 +27,9 @@ public:
     void initialise (const juce::String& /*commandLine*/) override
     {
         // This method is where you should put your application's initialisation code..
-        AppProperties::setTempo(120.0f);
-        AppProperties::setNumerator(4);
-        AppProperties::setDenominator(4);
+        AppProperties::setTempo(76);
+        AppProperties::setNumerator(3);
+        AppProperties::setDenominator(8);
         AppProperties::setProjectPath("C:\\Temp\\VikktorMusicDump\\");
         mainWindow.reset (new MainWindow (getApplicationName()));
     }
