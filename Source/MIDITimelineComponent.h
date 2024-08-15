@@ -33,8 +33,6 @@ public:
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
 	void handleAsyncUpdate() override;
-	void operationOnSelection01();
-	void operationOnSelection02();
 	void shiftDragEvent(const juce::MouseEvent& event) override;
 	void shiftMouseDownEvent(const juce::MouseEvent& event) override;
 	void shiftMouseUpEvent(const juce::MouseEvent& event) override;
@@ -56,6 +54,9 @@ private:
 	void clearTimeline();
 	void repaintMatrixImage();
 	void processSelection();
+	void analyzeContextInSelection();
+	void defineAllContextsPerMeasures();
+	void operationOnSelection01();
 	float minCellWidth = 10.0f;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;
@@ -64,18 +65,20 @@ private:
 	MusicMath musicMath;
 	Image matrixImage;
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
-	std::unique_ptr<FileChooser> fileChooser;
-	std::unique_ptr<MidiFile> midiFile;
+	unique_ptr<FileChooser> fileChooser;
+	unique_ptr<MidiFile> midiFile;
 	OwnedArray<MidiMessageSequence> midiTracks;
 	OwnedArray<SynthAudioSource> synths;
 	OwnedArray<MarkovMatrixComponent> measureMatrices;
-	std::vector<std::vector<NoteEventDesc>> noteEventMatrix;
-	std::vector<float> noteProbabilities;
+	vector<std::vector<NoteEventDesc>> noteEventMatrix;
+	vector<float> noteProbabilities;
+	vector<vector<ContextDesc>> contextPerMeasureVector;
+	
 	String projectPath = "";
 	String projectName = "";
 	int viewMode = 1; // 0 - MIDI, 1 - Matrix
 	int noteRangeStart = 36;
-	int noteRangeEnd = 96;
+	int noteRangeEnd = 84;
 	int noteRangeSize = 0;
 	int counter = 0;
 	int currentTimeUnit = 0;

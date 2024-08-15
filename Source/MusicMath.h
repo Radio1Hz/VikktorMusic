@@ -244,7 +244,6 @@ class ContextDesc
 {
 public:
 	bool	IsMajor = true;
-	String	ContextName = "";
 	int		RootMIDINote = -1;
 	int		ContextDuration = 0;
 	int		EventType = -1;

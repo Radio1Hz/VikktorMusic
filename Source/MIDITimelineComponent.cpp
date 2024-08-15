@@ -247,6 +247,8 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 	{
 		if (noteEventMatrix.size() > 0)
 		{
+			float measureWidthInPixels = parentBounds.getWidth() / (float)numMeasures;
+			float timeUnitWidthInPixels = parentBounds.getWidth() / ((float)numMeasures * (float)numTimeUnitsInMeasure);
 			int numberOfTimeUnits = (int)noteEventMatrix[0].size();
 			g.drawImage(matrixImage, parentBounds);
 			float cursorWidth = parentBounds.getWidth() / numberOfTimeUnits;
@@ -263,6 +265,33 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
 
 			g.drawText(cursorText, cursorInfoRect, juce::Justification::centred, true);
+			
+			if (measureWidthInPixels > 60)
+			{
+				g.setFont(10.0f);
+				
+				for (int currMeasure = 0; currMeasure < contextPerMeasureVector.size(); currMeasure++)
+				{
+					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
+					
+					measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + 3 * timeUnitWidthInPixels, 15.0f + (float)headerHeight + 1.0f);
+					String text = "";
+					for (int t = 0; t < contextPerMeasureVector[currMeasure].size(); t++)
+					{
+						if (t == 0)
+						{
+							text += contextPerMeasureVector[currMeasure][t].debug();
+						}
+						else
+						{
+							text += "\r\n" + contextPerMeasureVector[currMeasure][t].debug();
+						}
+					}
+
+					g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, juce::Justification::left);
+
+				}
+			}
 
 			//Draw Selection
 			if (selectedCellStart > -1)
@@ -341,6 +370,7 @@ void MIDITimelineComponent::loadMIDI()
 				projectName = file.getFileName();
 				name = file.getFileName() + " - Midi timeformat: " + String(midiFile->getTimeFormat()) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
 				processMidi();
+				defineAllContextsPerMeasures();
 				repaintMatrixImage();
 				setComponentSize();
 				repaint();
@@ -506,6 +536,7 @@ void MIDITimelineComponent::initMenu()
 		this->menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
 		this->menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		this->menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
+		this->menu.addItem("Analyze Context in Selection", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
 		this->menu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
 	}
 }
@@ -531,6 +562,7 @@ void MIDITimelineComponent::populateSelectionMatrix()
 void MIDITimelineComponent::clearTimeline()
 {
 	clearMatrix();
+	defineAllContextsPerMeasures();
 	repaintMatrixImage();
 	repaint();
 }
@@ -614,7 +646,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 						if (i < noteRangeSize - 1)
 						{
 							g0.setColour(Colours::white);
-							g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 1.0f);
+							g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 0.5f);
 						}
 					}
 					else
@@ -678,10 +710,11 @@ void MIDITimelineComponent::repaintMatrixImage()
 
 void MIDITimelineComponent::processSelection()
 {
+	
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-		operationOnSelection02();
+		analyzeContextInSelection();
 	}
 }
 
@@ -695,7 +728,7 @@ void MIDITimelineComponent::handleAsyncUpdate()
 	repaint();
 }
 
-void MIDITimelineComponent::operationOnSelection02()
+void MIDITimelineComponent::analyzeContextInSelection()
 {
 	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
 	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
@@ -716,6 +749,7 @@ void MIDITimelineComponent::operationOnSelection02()
 
 	Matrix<int> tempMatrix(*selectionMatrix);
 	list<ContextDesc> allPossiblieTonalities;
+
 	//Normalize Matrix
 	for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
 	{
@@ -750,8 +784,7 @@ void MIDITimelineComponent::operationOnSelection02()
 				defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
 			}
 		}
-		//musicMath.debugMatrix(defMajorChordVectorFull, noteRangeStart, noteRangeEnd, "defMajorChordVectorFull");
-		//musicMath.debugMatrix(defMinorChordVectorFull, noteRangeStart, noteRangeEnd, "defMinorChordVectorFull");
+
 		Matrix<int> resMajChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
 		Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
 		Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
@@ -762,11 +795,6 @@ void MIDITimelineComponent::operationOnSelection02()
 
 		int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
 		int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
-
-		//DBG(MidiMessage::getMidiNoteName(t, true, false, 4));
-		//DBG("sum sumMajChord + sumMinChord" + String(sumMajChord + sumMinChord));
-		////DBG("sumMinChord: " + String(sumMinChord));
-		//DBG("sum sumMajScale + sumMinScale" + String(sumMajScale + sumMinScale));
 		
 		if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
 		{
@@ -779,24 +807,137 @@ void MIDITimelineComponent::operationOnSelection02()
 				mostProbableRootFlavor = "min";
 			}
 
-			float p = (float)maxSum / (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
+			float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
 			mostProbableRoot = t;
 			maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
 			ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
 			allPossiblieTonalities.push_back(cd);
 		}
-
 	}
 
-	//allTonalities.sort();
 	allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
-	std::for_each(allPossiblieTonalities.begin(), allPossiblieTonalities.end(), [](ContextDesc cd)
-		{ 
-			DBG(cd.debug());
-		});
 
-	DBG(MidiMessage::getMidiNoteName(mostProbableRoot, true, false, 4) + "" + String(mostProbableRootFlavor));
-	
+	for (ContextDesc& ctx : allPossiblieTonalities)
+	{
+		ctx.Probability = ctx.Probability / (float)maxSum;
+		DBG(ctx.debug());
+	}
+}
+
+void MIDITimelineComponent::defineAllContextsPerMeasures()
+{
+	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
+	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
+
+	Matrix<int> defMajorChordVector(*musicMath._defaultMajorChordDefinitionVector.get());
+	Matrix<int> defMinorChordVector(*musicMath._defaultMinorChordDefinitionVector.get());
+
+	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+
+	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
+
+	// Martix of a size of a measure
+	contextPerMeasureVector.clear();
+	contextPerMeasureVector.resize(numMeasures);
+
+	for (int z = 0; z < numMeasures; z++)
+	{
+		int mostProbableRoot = 0;
+		String mostProbableRootFlavor = "maj";
+		int maxSum = 0;
+		list<ContextDesc> allPossiblieTonalities;
+		int timeunitStart = z * numTimeUnitsInMeasure;
+		//Copy portion of noteEventMatrix of one measure 1M
+		Matrix<int> tempMatrix(noteRangeEnd - noteRangeStart, numTimeUnitsInMeasure);
+		//Normalize Matrix
+		bool shouldNormalizeMatrix = true;
+		tempMatrix.clear();
+
+		for (int c = 0; c < tempMatrix.getNumColumns(); c++)
+		{
+			for (int n = noteRangeStart; n < noteRangeEnd; n++)
+			{
+				if (noteEventMatrix[n - noteRangeStart][timeunitStart + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][timeunitStart + c].EventType == 1)
+				{
+					tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalizeMatrix?1:n;
+				}
+				else
+				{
+					tempMatrix.operator()(n - noteRangeStart, c) = 0;
+				}
+			}
+		}
+		
+		for (int t = 0; t < 12; t++)
+		{
+			defMajorScaleVectorFull.clear();
+			defMinorScaleVectorFull.clear();
+
+			defMajorChordVectorFull.clear();
+			defMinorChordVectorFull.clear();
+
+			String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+			for (int c = 0; c < tempMatrix.getNumColumns(); c++)
+			{
+				//Define template vectors for Major and Minor for the Tonality[t]
+				for (int n = noteRangeStart; n < noteRangeEnd; n++)
+				{
+					defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
+					defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
+
+					defMajorChordVectorFull.operator()(0, n - noteRangeStart) = defMajorChordVector.operator()(0, (n - t) % 12);
+					defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
+				}
+			}
+
+			Matrix<int> resMajChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
+			Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
+			Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
+			Matrix<int> resMinScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
+
+			int sumMajChord = musicMath.sumOfCellsInMatrix(resMajChord);
+			int sumMinChord = musicMath.sumOfCellsInMatrix(resMinChord);
+
+			int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
+			int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
+
+			if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
+			{
+				if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
+				{
+					mostProbableRootFlavor = "maj";
+				}
+				else
+				{
+					mostProbableRootFlavor = "min";
+				}
+
+				float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
+				mostProbableRoot = t;
+				maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
+				ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
+				allPossiblieTonalities.push_back(cd);
+			}
+		}
+
+		allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
+
+		if (allPossiblieTonalities.size() > 0)
+		{
+			if (contextPerMeasureVector[z].empty())
+			{
+				std::vector<ContextDesc> vec;
+				contextPerMeasureVector[z] = vec;
+			}
+			for (ContextDesc &i : allPossiblieTonalities) 
+			{
+				i.Probability = (float)(i.Probability) / (float)maxSum;
+				contextPerMeasureVector[z].push_back(i);
+			}
+		}
+	}
 }
 
 void MIDITimelineComponent::operationOnSelection01()

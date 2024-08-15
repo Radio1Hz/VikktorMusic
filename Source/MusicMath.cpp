@@ -417,7 +417,6 @@ ContextDesc::ContextDesc()
 
 ContextDesc::ContextDesc(int rootMIDINote, bool isMajor)
 {
-	this->ContextName = MidiMessage::getMidiNoteName(rootMIDINote, true, false, 4);
 	this->IsMajor = isMajor;
 	this->RootMIDINote = rootMIDINote;
 	this->ContextDuration = 0;
@@ -425,7 +424,6 @@ ContextDesc::ContextDesc(int rootMIDINote, bool isMajor)
 }
 ContextDesc::ContextDesc(int rootMIDINote, bool isMajor, float probability)
 {
-	this->ContextName = MidiMessage::getMidiNoteName(rootMIDINote, true, false, 4);
 	this->IsMajor = isMajor;
 	this->RootMIDINote = rootMIDINote;
 	this->ContextDuration = 0;
@@ -438,5 +436,5 @@ ContextDesc::~ContextDesc()
 
 String ContextDesc::debug()
 {
-	return ContextName + (IsMajor ? "maj" : "min") + " p: " + String(this->Probability);
+	return MidiMessage::getMidiNoteName(RootMIDINote, true, false, 4) + (IsMajor ? "maj" : "min") + " p: " + String::formatted("%1.1f", this->Probability);
 }
