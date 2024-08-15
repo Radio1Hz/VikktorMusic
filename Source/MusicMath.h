@@ -13,21 +13,6 @@ using namespace std;
 using namespace juce;
 using namespace dsp;
 
-class NoteEventDesc
-{
-public:
-	/*-1: No Event, 0: Note Off, 1: Note On*/
-	String	NoteName = "";
-	int				NoteNumber = -1;
-	int				NoteDuration = 0;
-	int				EventType = -1;
-	NoteEventDesc();
-	NoteEventDesc(String noteName, int noteNumber);
-	NoteEventDesc(String noteName, int noteNumber, int noteDuration);
-	NoteEventDesc(String noteName, int noteNumber, int noteDuration, int eventType);
-	~NoteEventDesc();
-};
-
 class MusicMath
 {
 public:
@@ -239,3 +224,35 @@ Keys Colour coding:
 - B is Blue					(#0000FF or rgba(0, 0, 255, 1))
 
 */
+
+class NoteEventDesc
+{
+public:
+	/*-1: No Event, 0: Note Off, 1: Note On*/
+	String	NoteName = "";
+	int				NoteNumber = -1;
+	int				NoteDuration = 0;
+	int				EventType = -1;
+	NoteEventDesc();
+	NoteEventDesc(String noteName, int noteNumber);
+	NoteEventDesc(String noteName, int noteNumber, int noteDuration);
+	NoteEventDesc(String noteName, int noteNumber, int noteDuration, int eventType);
+	~NoteEventDesc();
+};
+
+class ContextDesc
+{
+public:
+	bool	IsMajor = true;
+	String	ContextName = "";
+	int		RootMIDINote = -1;
+	int		ContextDuration = 0;
+	int		EventType = -1;
+	float	Probability = 0.0;
+	String debug();
+	ContextDesc();
+	ContextDesc(int rootMIDINote, bool isMajor);
+	ContextDesc(int rootMIDINote, bool isMajor, float probability);
+	~ContextDesc();
+	
+};

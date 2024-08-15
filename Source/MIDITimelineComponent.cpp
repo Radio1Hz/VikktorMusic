@@ -711,11 +711,11 @@ void MIDITimelineComponent::operationOnSelection02()
 	
 	int mostProbableRoot = 0;
 	String mostProbableRootFlavor = "maj";
-	int maxSumChord = 0;
-	int maxSumScale = 0;
+
+	int maxSum = 0;
 
 	Matrix<int> tempMatrix(*selectionMatrix);
-
+	list<ContextDesc> allPossiblieTonalities;
 	//Normalize Matrix
 	for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
 	{
@@ -750,8 +750,8 @@ void MIDITimelineComponent::operationOnSelection02()
 				defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
 			}
 		}
-		musicMath.debugMatrix(defMajorChordVectorFull, noteRangeStart, noteRangeEnd, "defMajorChordVectorFull");
-		musicMath.debugMatrix(defMinorChordVectorFull, noteRangeStart, noteRangeEnd, "defMinorChordVectorFull");
+		//musicMath.debugMatrix(defMajorChordVectorFull, noteRangeStart, noteRangeEnd, "defMajorChordVectorFull");
+		//musicMath.debugMatrix(defMinorChordVectorFull, noteRangeStart, noteRangeEnd, "defMinorChordVectorFull");
 		Matrix<int> resMajChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
 		Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
 		Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
@@ -763,36 +763,40 @@ void MIDITimelineComponent::operationOnSelection02()
 		int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
 		int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
 
-		if (sumMajScale > maxSumScale)
+		//DBG(MidiMessage::getMidiNoteName(t, true, false, 4));
+		//DBG("sum sumMajChord + sumMinChord" + String(sumMajChord + sumMinChord));
+		////DBG("sumMinChord: " + String(sumMinChord));
+		//DBG("sum sumMajScale + sumMinScale" + String(sumMajScale + sumMinScale));
+		
+		if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
 		{
+			if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
+			{
+				mostProbableRootFlavor = "maj";
+			}
+			else
+			{
+				mostProbableRootFlavor = "min";
+			}
+
+			float p = (float)maxSum / (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
 			mostProbableRoot = t;
-			mostProbableRootFlavor = "maj";
-			maxSumScale = sumMajScale;
+			maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
+			ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
+			allPossiblieTonalities.push_back(cd);
 		}
 
-		if (sumMinScale > maxSumScale)
-		{
-			mostProbableRoot = t;
-			mostProbableRootFlavor = "min";
-			maxSumScale = sumMinScale;
-		}
-
-		//if (sumMajChord > maxSumChord)
-		//{
-		//	mostProbableRoot = t;
-		//	mostProbableRootFlavor = "maj";
-		//	maxSumChord = sumMinChord;
-		//}
-
-		//if (sumMinChord > maxSumChord)
-		//{
-		//	mostProbableRoot = t;
-		//	mostProbableRootFlavor = "min";
-		//	maxSumChord = sumMinChord;
-		//}
 	}
 
+	//allTonalities.sort();
+	allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
+	std::for_each(allPossiblieTonalities.begin(), allPossiblieTonalities.end(), [](ContextDesc cd)
+		{ 
+			DBG(cd.debug());
+		});
+
 	DBG(MidiMessage::getMidiNoteName(mostProbableRoot, true, false, 4) + "" + String(mostProbableRootFlavor));
+	
 }
 
 void MIDITimelineComponent::operationOnSelection01()
@@ -843,10 +847,6 @@ void MIDITimelineComponent::operationOnSelection01()
 					}
 				}
 			}
-
-			//musicMath.debugMatrix(defMajorScaleMatrixFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MAJOR defMajorScaleMatrixFull template for major");
-			//musicMath.debugMatrix(defMinorScaleVectorFull, noteRangeStart, noteRangeEnd, String(tonalityRootName) + " MINOR defMinorScaleVectorFull template for minor");
-			//musicMath.debugMatrix(tempMatrix, "tempMatrix");
 
 			Matrix<int> resMaj = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
 			Matrix<int> resMin = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);

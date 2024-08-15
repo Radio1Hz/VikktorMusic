@@ -411,3 +411,32 @@ NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber, int noteDura
 NoteEventDesc::~NoteEventDesc()
 {
 }
+
+ContextDesc::ContextDesc()
+{}
+
+ContextDesc::ContextDesc(int rootMIDINote, bool isMajor)
+{
+	this->ContextName = MidiMessage::getMidiNoteName(rootMIDINote, true, false, 4);
+	this->IsMajor = isMajor;
+	this->RootMIDINote = rootMIDINote;
+	this->ContextDuration = 0;
+	
+}
+ContextDesc::ContextDesc(int rootMIDINote, bool isMajor, float probability)
+{
+	this->ContextName = MidiMessage::getMidiNoteName(rootMIDINote, true, false, 4);
+	this->IsMajor = isMajor;
+	this->RootMIDINote = rootMIDINote;
+	this->ContextDuration = 0;
+	this->Probability = probability;
+}
+
+ContextDesc::~ContextDesc()
+{
+}
+
+String ContextDesc::debug()
+{
+	return ContextName + (IsMajor ? "maj" : "min") + " p: " + String(this->Probability);
+}
