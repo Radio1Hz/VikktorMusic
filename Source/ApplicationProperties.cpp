@@ -47,6 +47,16 @@ void AppProperties::setDenominator(int den)
     AppProperties::denominator = den;
 }
 
+bool AppProperties::getShouldSaveAudio()
+{
+    return AppProperties::shouldSaveAudio;
+}
+
+void AppProperties::setShouldSaveAudio(bool ssa)
+{
+    AppProperties::shouldSaveAudio = ssa;
+}
+
 String AppProperties::getProjectPath()
 {
     return AppProperties::projectPath;

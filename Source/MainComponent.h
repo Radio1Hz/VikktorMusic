@@ -35,6 +35,7 @@ public:
 	void updateToggleStateAudio(juce::Button* button);
 	void updateToggleStateSettings(juce::Button* button);
 	void updateToggleStateVisualize(juce::Button* button);
+	void updateToggleStateSavePlayedAudio(juce::Button* button);
 
 	static juce::String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
 	static juce::String displayLocalTime(double currentPositionInSeconds, double totalLengthInSeconds);
@@ -77,38 +78,39 @@ private:
 	LogSpaceComponent logSpaceComponent;
 	DebugComponent debugComponent;
 	NewProjectComponent newProjectComponent;
-	juce::TextButton playButton;
-	juce::TextButton stopButton;
-	juce::TextButton loadButton;
-	juce::TextButton newButton;
-	juce::Label tempoLabel;
-	juce::TextEditor tempoText;
-	juce::Label keySignatureLabel;
-	juce::TextEditor keySignatureNumeratorText;
-	juce::Label keySignatureSeparatorLabel;
-	juce::TextEditor keySignatureDenominatorText;
+	TextButton playButton;
+	TextButton stopButton;
+	TextButton loadButton;
+	TextButton newButton;
+	Label tempoLabel;
+	TextEditor tempoText;
+	Label keySignatureLabel;
+	TextEditor keySignatureNumeratorText;
+	Label keySignatureSeparatorLabel;
+	TextEditor keySignatureDenominatorText;
 
-	juce::Label timeLabel;
-	juce::ToggleButton audioOnToggleButton;
-	juce::ToggleButton audioSettingsToggleButton;
-	juce::ToggleButton audioVisualizeToggleButton;
-	juce::DialogWindow newDialogWindow;
+	Label timeLabel;
+	ToggleButton audioOnToggleButton;
+	ToggleButton audioSettingsToggleButton;
+	ToggleButton audioVisualizeToggleButton;
+	DialogWindow newDialogWindow;
+	ToggleButton savePlayedAudioSamplesToggleButton;
 	AudioDeviceSelectorComponent audioSetupComp;
-
+	bool savePlayedAudioSamples = true;
 	// Inherited via MultiTimer
 	void timerCallback(int timerID) override;
 	void changeState(TransportState newState);
 
-	juce::AudioFormatManager formatManager;
+	AudioFormatManager formatManager;
 	std::unique_ptr<FileChooser> fileChooser;
 	
 	// Internal Buffer related 
 
-	juce::AudioBuffer<float> internalAudioBuffer;
-	juce::Image internalBufferSamplesImage0;
-	juce::Image internalBufferSamplesImage1;
-	juce::Image audioSampleBlockImage;
-	juce::Array<float> audioSampleBufferCopy;
+	AudioBuffer<float> internalAudioBuffer;
+	Image internalBufferSamplesImage0;
+	Image internalBufferSamplesImage1;
+	Image audioSampleBlockImage;
+	Array<float> audioSampleBufferCopy;
 	int audioSampleBufferCopyNumSamples = 0;
 	int64 audioBlockProcessedTimeInMilliseconds = 0;
 	double internalBufferTotalLengthInSeconds = 0.0;
@@ -119,6 +121,7 @@ private:
 	int internalBufferCurrentSamplePlaying = 0;
 	int internalBufferPointerRasterX = 0;
 	bool shouldVisualize = false;
+
 	TransportState state;
 	juce::Random random;
 

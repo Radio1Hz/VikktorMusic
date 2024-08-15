@@ -27,6 +27,9 @@ audioSetupComp(
 	audioOnToggleButton.setButtonText("Audio On");
 	audioOnToggleButton.onClick = [this] { updateToggleStateAudio(&audioOnToggleButton); };
 
+	savePlayedAudioSamplesToggleButton.setButtonText("Save Audio");
+	savePlayedAudioSamplesToggleButton.onClick = [this] { updateToggleStateSavePlayedAudio(&savePlayedAudioSamplesToggleButton); };
+
 	audioSettingsToggleButton.setButtonText("Settings");
 	audioSettingsToggleButton.onClick = [this] { updateToggleStateSettings(&audioSettingsToggleButton); };
 
@@ -37,6 +40,8 @@ audioSetupComp(
 	{
 		audioOnToggleButton.triggerClick();
 	}
+
+	savePlayedAudioSamplesToggleButton.triggerClick();
 
 	playButton.setButtonText("Play");
 	playButton.onClick = [this] { playButtonClicked(); };
@@ -55,7 +60,7 @@ audioSetupComp(
 	newButton.onClick = [this] { newButtonClicked(); };
 	newButton.setColour(juce::TextButton::buttonColourId, juce::Colours::orangered);
 	newButton.setEnabled(true);
-	
+
 	tempoText.setText(String(AppProperties::getTempo()));
 	tempoText.setJustification(Justification::centred);
 	tempoText.onTextChange = [this] { tempoTextChanged(); };
@@ -75,7 +80,6 @@ audioSetupComp(
 	keySignatureNumeratorText.onFocusLost = [this] { timeSignatureChanged(); };
 	keySignatureDenominatorText.onFocusLost = [this] { timeSignatureChanged(); };
 
-
 	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
 
@@ -92,6 +96,7 @@ audioSetupComp(
 	addAndMakeVisible(debugComponent);
 	addAndMakeVisible(audioSettingsToggleButton);
 	addAndMakeVisible(audioVisualizeToggleButton);
+	addAndMakeVisible(savePlayedAudioSamplesToggleButton);
 
 	addAndMakeVisible(keySignatureLabel);
 	addAndMakeVisible(keySignatureNumeratorText);
@@ -198,7 +203,7 @@ void MainComponent::newButtonClicked()
 
 void MainComponent::setNewProject(int bpm, int measures)
 {
-	double newLengthInSeconds = (60.0/bpm) * 4 * measures;
+	double newLengthInSeconds = (60.0 / bpm) * 4 * measures;
 	internalAudioBuffer.setSize(2, (int)(internalBufferSampleRate * newLengthInSeconds), false, true, false);
 
 	internalBufferTotalLengthInSeconds = newLengthInSeconds;
@@ -444,6 +449,15 @@ void MainComponent::updateToggleStateVisualize(juce::Button* button)
 	repaint();
 }
 
+void MainComponent::updateToggleStateSavePlayedAudio(juce::Button* button)
+{
+	savePlayedAudioSamples = button->getToggleState();
+	if (savePlayedAudioSamples)
+	{
+		AppProperties::setShouldSaveAudio(true);
+	}
+}
+
 juce::String MainComponent::displayProgress(double currentPositionInSeconds, double totalLengthInSeconds)
 {
 	RelativeTime currentTime = RelativeTime(currentPositionInSeconds);
@@ -609,7 +623,7 @@ void MainComponent::resized()
 	int controlsAreaOffsetFromBottom = 120;
 
 	debugComponent.setBounds(0, 0, getWidth(), 15);
-	logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom-15);
+	logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom - 15);
 	audioSettingsToggleButton.setBounds(getWidth() - 80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	audioVisualizeToggleButton.setBounds(getWidth() - 160, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	timeLabel.setBounds(getWidth() - 360, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
@@ -624,6 +638,7 @@ void MainComponent::resized()
 	keySignatureNumeratorText.setBounds(480, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	keySignatureSeparatorLabel.setBounds(540, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	keySignatureDenominatorText.setBounds(600, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	savePlayedAudioSamplesToggleButton.setBounds(660, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	internalBufferSamplesImage0 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = juce::Image(juce::Image::RGB, getWidth(), 30, true);
 

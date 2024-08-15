@@ -31,6 +31,7 @@ MIDITimelineComponent::MIDITimelineComponent(int numMeasures, int synthID)
 
 void MIDITimelineComponent::init()
 {
+
 	noteRangeSize = noteRangeEnd - noteRangeStart;
 	noteEventMatrix.resize(noteRangeSize);
 	clearMatrix();
@@ -38,7 +39,8 @@ void MIDITimelineComponent::init()
 	this->name = "MIDI Timeline (" + String(this->numMeasures) + " measures)";
 	this->initMenu();
 	setAudioChannels(0, 2);
-
+	// Init audioBuffer to 10sec
+	audioBuffer.setSize(2, 10 * (int)sampleRateInt, false);
 	repaintMatrixImage();
 	setComponentSize();
 	repaint();
@@ -137,7 +139,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 
-			samplesElapsedSincePlay += bufferToFill.numSamples;
+			
 			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
 
 			// If end happened - replay			
@@ -171,6 +173,20 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 				triggerRepaint();
 			}
 			synths[0]->getNextAudioBlock(bufferToFill);
+
+
+			if (AppProperties::getShouldSaveAudio())
+			{
+				//Transfer and append samples from bufferToFill to audioBuffer
+				
+				int numSamplesInBuffer = audioBuffer.getNumSamples();
+				for (int i = 0; i < bufferToFill.numSamples; i++)
+				{
+					audioBuffer.setSample(0, (samplesElapsedSincePlay + i) % numSamplesInBuffer, bufferToFill.buffer->getSample(0, i));
+					audioBuffer.setSample(1, (samplesElapsedSincePlay + i) % numSamplesInBuffer, bufferToFill.buffer->getSample(1, i));
+				}
+			}
+			samplesElapsedSincePlay += bufferToFill.numSamples;
 		}
 	}
 }
@@ -264,16 +280,16 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
 
 			g.drawText(cursorText, cursorInfoRect, juce::Justification::centred, true);
-			
+
 			if (measureWidthInPixels > 60)
 			{
 				g.setFont(10.0f);
-				
+
 				for (int currMeasure = 0; currMeasure < contextPerMeasureVector.size(); currMeasure++)
 				{
 					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
-					
-					measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + timeUnitWidthInPixels, 2*timeUnitWidthInPixels + (float)headerHeight + 1.0f);
+
+					measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
 					String text = "";
 					for (int t = 0; t < contextPerMeasureVector[currMeasure].size(); t++)
 					{
@@ -464,7 +480,7 @@ void MIDITimelineComponent::processMidi()
 
 						int ticksPerMeasure = (int)((float)midiFile->getTimeFormat() * (float)numQuartersPerMeasure);
 
-						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)numQuartersPerMeasure)/4.0;
+						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)numQuartersPerMeasure) / 4.0;
 						double totalDurationTicks = matrixWidth * ticksPerTimeUnit;
 
 						int duration = roundToInt((noteEnd - noteStart) / ticksPerTimeUnit);
@@ -536,6 +552,7 @@ void MIDITimelineComponent::initMenu()
 		this->menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
 		this->menu.addItem("Analyze Context in Selection", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
 		this->menu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
+		this->menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
 	}
 }
 
@@ -713,7 +730,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 
 void MIDITimelineComponent::processSelection()
 {
-	
+
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
@@ -744,7 +761,7 @@ void MIDITimelineComponent::analyzeContextInSelection()
 
 	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
 	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-	
+
 	int mostProbableRoot = 0;
 	String mostProbableRootFlavor = "maj";
 
@@ -792,13 +809,13 @@ void MIDITimelineComponent::analyzeContextInSelection()
 		Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
 		Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
 		Matrix<int> resMinScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
-		
+
 		int sumMajChord = musicMath.sumOfCellsInMatrix(resMajChord);
 		int sumMinChord = musicMath.sumOfCellsInMatrix(resMinChord);
 
 		int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
 		int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
-		
+
 		if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
 		{
 			if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
@@ -864,7 +881,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 			{
 				if (noteEventMatrix[n - noteRangeStart][timeunitStart + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][timeunitStart + c].EventType == 1)
 				{
-					tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalizeMatrix?1:n;
+					tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalizeMatrix ? 1 : n;
 				}
 				else
 				{
@@ -872,7 +889,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 				}
 			}
 		}
-		
+
 		for (int t = 0; t < 12; t++)
 		{
 			defMajorScaleVectorFull.clear();
@@ -934,7 +951,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 				std::vector<ContextDesc> vec;
 				contextPerMeasureVector[z] = vec;
 			}
-			for (ContextDesc &i : allPossiblieTonalities) 
+			for (ContextDesc& i : allPossiblieTonalities)
 			{
 				i.Probability = (float)(i.Probability) / (float)maxSum;
 				contextPerMeasureVector[z].push_back(i);
@@ -1015,6 +1032,30 @@ void MIDITimelineComponent::operationOnSelection01()
 			DBG(String(tonalityRootName) + " min, sum: " + String(tonalityMinSum));
 		}
 	}
+}
+
+void MIDITimelineComponent::saveAudioBufferToDisk()
+{
+	String wavPath = AppProperties::getProjectPath() + projectName + " audioBuffer.wav";
+	File file(wavPath);
+	file.deleteFile();
+
+	WavAudioFormat format;
+	std::unique_ptr<AudioFormatWriter> writer;
+
+	writer.reset(format.createWriterFor(new FileOutputStream(file),
+		(double)sampleRateInt,
+		audioBuffer.getNumChannels(),
+		24,
+		{},
+		0));
+
+	if (writer != nullptr)
+	{
+		writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
+		writer->flush();
+	}
+
 }
 
 void MIDITimelineComponent::shiftDragEvent(const juce::MouseEvent& event)

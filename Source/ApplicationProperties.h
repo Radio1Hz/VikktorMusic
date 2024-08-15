@@ -25,6 +25,9 @@ public:
     static int getDenominator();
     static void setDenominator(int den);
     
+    static bool getShouldSaveAudio();
+    static void setShouldSaveAudio(bool ssa);
+    
     static String getProjectPath();
     static void setProjectPath(String path);
 
@@ -37,6 +40,7 @@ public:
 private:
     AppProperties();
     inline static float tempo;
+    inline static bool shouldSaveAudio = false;
     inline static int numerator;
     inline static int denominator;
     inline static String projectPath;

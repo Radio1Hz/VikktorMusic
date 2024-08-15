@@ -57,6 +57,7 @@ private:
 	void analyzeContextInSelection();
 	void defineAllContextsPerMeasures();
 	void operationOnSelection01();
+	void saveAudioBufferToDisk();
 	float minCellWidth = 10.0f;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;
