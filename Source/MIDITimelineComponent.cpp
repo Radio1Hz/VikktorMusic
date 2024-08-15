@@ -46,7 +46,7 @@ void MIDITimelineComponent::init()
 
 void MIDITimelineComponent::clearMatrix()
 {
-	numQuartersPerMeasure = (4.0f / (float)AppProperties::getDenominator()) * (float)AppProperties::getNumerator();
+	numQuartersPerMeasure = 4.0f * (float)AppProperties::getNumerator() / (float)AppProperties::getDenominator();
 	numTimeUnitsInMeasure = (int)(numQuartersPerMeasure * 4.0f);
 
 	for (int i = 0; i < this->noteRangeSize; i++)
@@ -197,7 +197,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 	}
 
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
-	double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
+	double timeUnitDuration = beatDuration / numQuartersPerMeasure;
 	double totalDurationSec = (timeUnitDuration * (double)numMeasures * (double)numTimeUnitsInMeasure);
 	double currentTimeSec = currentTimeUnit * timeUnitDuration;
 
@@ -213,7 +213,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 		float totalDuration = (float)midiFile->getLastTimestamp();
 
 		g.setFont(getFontSize());
-		int ticksPerMeasure = (int)(midiFile->getTimeFormat() * (4.0f / (float)AppProperties::getDenominator()) * (float)AppProperties::getNumerator());
+		int ticksPerMeasure = (int)(midiFile->getTimeFormat() * numQuartersPerMeasure);
 		for (int measureIndex = 0; measureIndex < numMeasures; measureIndex++)
 		{
 			float x = (float)(measureIndex * ticksPerMeasure * parentBounds.getWidth() / totalDuration);
@@ -256,7 +256,6 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			Rectangle<float> cursorInfoRect(currentX + cursorWidth, parentBounds.getTopRight().y + 15.0f, 40.0f, 15.0f);
 			g.setColour(Colour::fromRGBA(128, 128, 128, 128));
 			g.fillRect(currentX, parentBounds.getTopLeft().y, cursorWidth, parentBounds.getHeight());
-			//g.setColour(Colour::fromRGB(128, 128, 128));
 			g.fillRect(cursorInfoRect);
 			int currentMeasureIndex = (int)floor((float)numMeasures * ((float)currentTimeUnit / (float)numberOfTimeUnits));
 			int currentTimeUnitWithinMeasureIndex = (currentMeasureIndex * numTimeUnitsInMeasure + currentTimeUnit) % (numTimeUnitsInMeasure);
@@ -274,7 +273,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 				{
 					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
 					
-					measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + 3 * timeUnitWidthInPixels, 15.0f + (float)headerHeight + 1.0f);
+					measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + timeUnitWidthInPixels, 2*timeUnitWidthInPixels + (float)headerHeight + 1.0f);
 					String text = "";
 					for (int t = 0; t < contextPerMeasureVector[currMeasure].size(); t++)
 					{
@@ -463,16 +462,15 @@ void MIDITimelineComponent::processMidi()
 							noteEnd = noteOffHolder->message.getTimeStamp();
 						}
 
+						int ticksPerMeasure = (int)((float)midiFile->getTimeFormat() * (float)numQuartersPerMeasure);
 
-						int ticksPerMeasure = (int)(midiFile->getTimeFormat() * (4.0f / (float)AppProperties::getDenominator()) * (float)AppProperties::getNumerator());
-
-						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)AppProperties::getNumerator()) / (double)AppProperties::getDenominator();
+						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)numQuartersPerMeasure)/4.0;
 						double totalDurationTicks = matrixWidth * ticksPerTimeUnit;
 
 						int duration = roundToInt((noteEnd - noteStart) / ticksPerTimeUnit);
 						int column = roundToInt(((noteStart / totalDurationTicks) * (double)matrixWidth));
 
-						if (noteNumber >= noteRangeStart && noteNumber <= noteRangeEnd && column < matrixWidth)
+						if (noteNumber >= noteRangeStart && noteNumber < noteRangeEnd && column < matrixWidth)
 						{
 							if (duration > 0)
 							{
@@ -1055,7 +1053,7 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
 	int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
 	currentTimeUnit = currentCell;
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
-	double timeUnitDuration = beatDuration / (double)AppProperties::getDenominator();
+	double timeUnitDuration = beatDuration / numQuartersPerMeasure;
 	double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 	samplesElapsedSincePlay = (int)samplesPerTimeUnit * currentCell;
 	if (synths.size() > 0)
