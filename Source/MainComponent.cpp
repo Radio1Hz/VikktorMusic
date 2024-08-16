@@ -613,7 +613,6 @@ void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill
 	}
 
 	audioBlockProcessedTimeInMilliseconds = (int64)Time::getMillisecondCounterHiRes() - counterHiRes;
-
 }
 
 void MainComponent::releaseResources()

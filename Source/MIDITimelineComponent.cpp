@@ -556,16 +556,24 @@ void MIDITimelineComponent::setComponentSize()
 void MIDITimelineComponent::initMenu()
 {
 	this->menu.clear();
+	this->menu.addSectionHeader("Menu");
+
 	this->menu.addItem("Load MIDI", std::bind(&MIDITimelineComponent::loadMIDI, this));
 
 	if (noteEventMatrix.size() > 0)
 	{
+		PopupMenu selectionSubMenu;
+		selectionSubMenu.addItem("Analyze Context in Selection", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
+		selectionSubMenu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
+
+		this->menu.addSeparator();
+		this->menu.addSubMenu("Selection", selectionSubMenu, true);
+		this->menu.addSeparator();
+
 		this->menu.addItem("Play", std::bind(&MIDITimelineComponent::playMIDI, this));
 		this->menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
 		this->menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		this->menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
-		this->menu.addItem("Analyze Context in Selection", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
-		this->menu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
 		this->menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
 		this->menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
 	}
