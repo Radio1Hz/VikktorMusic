@@ -18,7 +18,7 @@ class MusicMath
 public:
 	MusicMath();
 	~MusicMath();
-
+	static String getNoteNameByMIDINoteNumber(int noteNumber);
 	String				displayKeys();
 	String				displayModes();
 	String				getKeyName(int);

@@ -29,41 +29,33 @@ using namespace juce;
 
 class LogSpaceComponent : public juce::Component
 {
-//Properties
+
 public:
 
 	double zoom = 1;
 	juce::Point<double> currentPosition;
 	CommunicationAgent* listeningSourceComponent;
-	//MainComponent* mainComponent;
 
 private:
 	bool isResized = false;
 	int dragX = 0;
 	int dragY = 0;
 
-	juce::PopupMenu menu;
-	juce::Random rnd;
-	juce::OwnedArray<TimeObjectComponent> timeObjects;
-	juce::OwnedArray<MarkovMatrixComponent> markovObjects;
-	juce::OwnedArray<TimerComponent> timerObjects;
-	juce::OwnedArray<PlotComponentLogistic> plotObjects;
-	juce::OwnedArray<AudioComponent> audioObjects;
-	juce::OwnedArray<MIDISynthComponent> midiObjects;
-	juce::OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;
-	juce::OwnedArray<ComponentStateController> stateControllerObjects;
-	juce::OwnedArray<MIDITimelineComponent> MIDITimelineObjects;
+	PopupMenu menu;
+	Random rnd;
+	OwnedArray<TimeObjectComponent> timeObjects;
+	OwnedArray<MarkovMatrixComponent> markovObjects;
+	OwnedArray<TimerComponent> timerObjects;
+	OwnedArray<PlotComponentLogistic> plotObjects;
+	OwnedArray<AudioComponent> audioObjects;
+	OwnedArray<MIDISynthComponent> midiObjects;
+	OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;
+	OwnedArray<ComponentStateController> stateControllerObjects;
+	OwnedArray<MIDITimelineComponent> MIDITimelineObjects;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LogSpaceComponent)
 
 public:
-
-	//LogSpaceComponent(MainComponent* mainComponentPtr)
-	//{
-	//	//mainComponent = mainComponentPtr;
-	//	rnd = Random::getSystemRandom();
-	//	initMenu();
-	//}
 
 	LogSpaceComponent()
 	{
@@ -75,12 +67,12 @@ public:
 	{
 		menu.clear();
 		//menu.addItem("Add new Timer", std::bind(&LogSpaceComponent::addNewTimer, this));
-		menu.addItem("Add new Markov Matrix", std::bind(&LogSpaceComponent::addMarkovMatrix, this));
 		//menu.addItem("Add new Plot", std::bind(&LogSpaceComponent::addNewPlot, this));
 		//menu.addItem("Add new Audio Component", std::bind(&LogSpaceComponent::addNewAudioComponent, this));
 		//menu.addItem("Add new MIDI Synth Component", std::bind(&LogSpaceComponent::addNewMIDISynthComponent, this));
 		//menu.addItem("Add new Euclidian Rhythm Component", std::bind(&LogSpaceComponent::addNewEuclidianTimer, this));
 		//menu.addItem("Add new Time Object Componet", std::bind(&LogSpaceComponent::addNewTimeObjectComponent, this));
+		menu.addItem("Add new Markov Matrix", std::bind(&LogSpaceComponent::addMarkovMatrix, this));
 		menu.addItem("Add new MIDI Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineComponent, this));
 	}
 
@@ -90,7 +82,6 @@ public:
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
 		t0->init();
-		//resized();
 	}
 
 	void LogSpaceComponent::addNewTimeObjectComponent()

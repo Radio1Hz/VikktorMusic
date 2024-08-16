@@ -19,6 +19,7 @@
 
 using namespace juce;
 using namespace dsp;
+using namespace std;
 //==============================================================================
 
 class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, private AsyncUpdater
@@ -26,9 +27,7 @@ class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, p
 public:
 	MIDITimelineComponent();
 	MIDITimelineComponent(int numMeasures, int synthID);
-	void clearMatrix();
 	~MIDITimelineComponent() override;
-
 	void paint(juce::Graphics&) override;
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
@@ -37,20 +36,24 @@ public:
 	void shiftMouseDownEvent(const juce::MouseEvent& event) override;
 	void shiftMouseUpEvent(const juce::MouseEvent& event) override;
 	void mouseDoubleClickEvent(const juce::MouseEvent& event) override;
-	void triggerRepaint();
-	
+	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+	void releaseResources() override;
+
 	void playMIDI();
 	void stopMIDI();
 	void processMidi();
 	void allNotesOff();
 	void init();
+	void triggerRepaint();
 
 private:
+	//Methods
+	void clearMatrix();
 	void loadMIDI();
 	void setComponentSize();
 	void initMenu();
 	void populateSelectionMatrix();
-	std::unique_ptr<juce::dsp::Matrix<int>> selectionMatrix;
 	void clearTimeline();
 	void repaintMatrixImage();
 	void processSelection();
@@ -59,49 +62,66 @@ private:
 	void operationOnSelection01();
 	void saveAudioBufferToDisk();
 	void saveMIDIFileToDisk();
-	float minCellWidth = 10.0f;
+	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
+	void MIDITimelineComponent::scanPlugins();
+
+	//Selection related
+	unique_ptr<Matrix<int>> selectionMatrix;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;
 	bool selectionInProgress = false;
-	void MIDITimelineComponent::scanPlugins();
-	MusicMath musicMath;
-	Image matrixImage;
-	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
-	unique_ptr<FileChooser> fileChooser;
-	unique_ptr<MidiFile> midiFile;
-	OwnedArray<MidiMessageSequence> midiTracks;
-	OwnedArray<SynthAudioSource> synths;
-	OwnedArray<MarkovMatrixComponent> measureMatrices;
-	vector<std::vector<NoteEventDesc>> noteEventMatrix;
+
+	//Matrix 
+	vector<vector<NoteEventDesc>> noteEventMatrix;
 	vector<float> noteProbabilities;
 	vector<vector<ContextDesc>> contextPerMeasureVector;
-	
-	String projectPath = "";
-	String projectName = "";
+
+	//Graphics
+	float minCellWidth = 10.0f;
+	Image matrixImage;
 	int viewMode = 1; // 0 - MIDI, 1 - Matrix
+	float timelineHeightRatio = 0.075f;
+
+	//MusicMath
+	MusicMath musicMath;
 	int noteRangeStart = 36;
 	int noteRangeEnd = 84;
 	int noteRangeSize = 0;
-	int counter = 0;
 	int currentTimeUnit = 0;
-	float timelineHeightRatio = 0.075f;
 	short defaultTicksPerQuarterNote = 196;
+	int numMeasures = 0;
+	int numTimeUnitsInMeasure = 0;
+	float numQuartersPerMeasure = 0;
+
+	//MIDI File
+	unique_ptr<FileChooser> fileChooser;
+	unique_ptr<MidiFile> midiFile;
+	OwnedArray<MidiMessageSequence> midiTracks;
+
+	//Synth
+	OwnedArray<SynthAudioSource> synths;
+	OwnedArray<MarkovMatrixComponent> measureMatrices;
+
+	//Project
+	String projectPath = "";
+	String projectName = "";
+	
+	//AudioBuffer 
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
 	bool isPlaying = false;
 	int samplesElapsedSincePlay = 0;
-	int numMeasures = 0;
+	AudioBuffer<float> audioBuffer;
+	AudioDeviceManager audioDeviceManager;
+	AudioPluginFormatManager formatManager;
+
+	//Other
+	int counter = 0;
 	int synthID = 0;
-	int numTimeUnitsInMeasure = 0;
-	float numQuartersPerMeasure = 0;
-	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
-	void releaseResources() override;
 	bool initializationIsComplete = false;
-	juce::AudioDeviceManager audioDeviceManager;
-	juce::AudioPluginFormatManager formatManager;
-	std::unique_ptr<juce::AudioPluginInstance> pluginInstance;
-	juce::AudioBuffer<float> audioBuffer;
+	
+	//Plugin
+	unique_ptr<AudioPluginInstance> pluginInstance;
 	 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MIDITimelineComponent)
 };

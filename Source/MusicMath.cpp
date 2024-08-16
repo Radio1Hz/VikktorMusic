@@ -73,6 +73,11 @@ MusicMath::~MusicMath()
 
 }
 
+String MusicMath::getNoteNameByMIDINoteNumber(int noteNumber)
+{
+	return MidiMessage::getMidiNoteName(noteNumber, true, false, 4);
+}
+
 juce::String MusicMath::displayKeys()
 {
 	juce::String out = "";
@@ -195,7 +200,7 @@ juce::String MusicMath::getModeDegree(int modeIndex)
 juce::String MusicMath::getChordName()
 {
 	int realNoteNumber = _keys_offset[currentKeyIndex] + _modes_offset[0][currentModeIndex];
-	juce::String chordName = juce::MidiMessage::getMidiNoteName(realNoteNumber, true, false, 3);
+	juce::String chordName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
 
 	if (chordName == "A#")  // Ugly fix
 		chordName = "Bb";
@@ -212,7 +217,7 @@ juce::String MusicMath::getChordName()
 juce::String MusicMath::GetNoteName(int noteRoleIndex)
 {
 	int realNoteNumber = _keys_offset[currentKeyIndex] + _modes_offset[0][currentModeIndex] + _modes_offset[currentModeIndex][noteRoleIndex];
-	juce::String noteName = juce::MidiMessage::getMidiNoteName(realNoteNumber, true, false, 3);
+	juce::String noteName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
 	return noteName;
 }
 
@@ -307,7 +312,7 @@ void MusicMath::debugMatrix(const Matrix<int>& mat, int noteRangeStart, int note
 	
 	for (int n = noteRangeStart; n < noteRangeEnd; n++)
 	{
-		String note = MidiMessage::getMidiNoteName(n, true, true, 4);
+		String note = MusicMath::getNoteNameByMIDINoteNumber(n);
 		row += String(n) + "\t";
 		row2 += String(note) + "\t";
 	}
@@ -436,5 +441,5 @@ ContextDesc::~ContextDesc()
 
 String ContextDesc::debug()
 {
-	return MidiMessage::getMidiNoteName(RootMIDINote, true, false, 4) + (IsMajor ? "maj" : "min") + " p: " + String::formatted("%1.1f", this->Probability);
+	return MusicMath::getNoteNameByMIDINoteNumber(RootMIDINote) + (IsMajor ? "maj" : "min") + " p: " + String::formatted("%1.1f", this->Probability);
 }

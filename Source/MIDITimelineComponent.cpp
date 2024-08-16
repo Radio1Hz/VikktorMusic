@@ -29,9 +29,9 @@ MIDITimelineComponent::MIDITimelineComponent(int numMeasures, int synthID)
 	this->synthID = synthID;
 }
 
+//Called after its addAndMakeVisible()
 void MIDITimelineComponent::init()
 {
-
 	noteRangeSize = noteRangeEnd - noteRangeStart;
 	noteEventMatrix.resize(noteRangeSize);
 	clearMatrix();
@@ -40,7 +40,7 @@ void MIDITimelineComponent::init()
 	this->initMenu();
 	setAudioChannels(0, 2);
 	// Init audioBuffer to 10sec
-	audioBuffer.setSize(2, 10 * (int)sampleRateInt, false);
+	audioBuffer.setSize(2, 20 * (int)sampleRateInt, false);
 	repaintMatrixImage();
 	setComponentSize();
 	repaint();
@@ -100,12 +100,9 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 
 			//Duration of one quarter. 
 			//Time units are sexteenths and there are [numerator] units in one beat
-
 			double beatDuration = 60.0 / (double)AppProperties::getTempo();
 			double timeUnitDuration = beatDuration / 4.0;
-			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
-
 
 			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
 
@@ -165,7 +162,6 @@ void MIDITimelineComponent::releaseResources()
 		synth->releaseResources();
 	}
 }
-
 
 void MIDITimelineComponent::paint(juce::Graphics& g)
 {
@@ -317,7 +313,7 @@ void MIDITimelineComponent::drawMIDIEvents(Rectangle<float> trackRect, int track
 			if (getFontSize() / 8 > 1)
 			{
 				g.setFont(getFontSize() / 8);
-				g.drawText(midiMessage.getMidiNoteName(noteNumber, true, true, 4), Rectangle<float>(trackRect.getTopLeft().getX() + pixelStart, trackRect.getTopLeft().getY() + yVel - getFontSize() / 8.0f, getFontSize(), getFontSize() / 8.0f), Justification::topLeft);
+				g.drawText(MusicMath::getNoteNameByMIDINoteNumber(noteNumber), Rectangle<float>(trackRect.getTopLeft().getX() + pixelStart, trackRect.getTopLeft().getY() + yVel - getFontSize() / 8.0f, getFontSize(), getFontSize() / 8.0f), Justification::topLeft);
 
 			}
 			g.drawLine(trackRect.getTopLeft().getX() + pixelStart, trackRect.getTopLeft().getY() + yVel, trackRect.getTopLeft().getX() + pixelEnd, trackRect.getTopLeft().getY() + yVel, 1.0f);
@@ -458,7 +454,7 @@ void MIDITimelineComponent::processMidi()
 						{
 							if (duration > 0)
 							{
-								NoteEventDesc nEventOff(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 0);
+								NoteEventDesc nEventOff(MusicMath::getNoteNameByMIDINoteNumber(noteNumber), noteNumber, duration, 0);
 
 								if (column + duration < noteEventMatrix[0].size())
 								{
@@ -469,7 +465,7 @@ void MIDITimelineComponent::processMidi()
 									noteEventMatrix[noteNumber - noteRangeStart][noteEventMatrix[0].size() - 1] = nEventOff;
 								}
 
-								NoteEventDesc nEventOn(midiMessage.getMidiNoteName(noteNumber, true, false, 4), noteNumber, duration, 1);
+								NoteEventDesc nEventOn(MusicMath::getNoteNameByMIDINoteNumber(noteNumber), noteNumber, duration, 1);
 								noteEventMatrix[noteNumber - noteRangeStart][column] = nEventOn;
 							}
 							else
@@ -499,11 +495,7 @@ void MIDITimelineComponent::setComponentSize()
 	{
 		setBounds((int)localBounds.getX(), (int)localBounds.getY(), (int)((float)aspectRatio * localBounds.getHeight()), (int)(localBounds.getHeight()));
 	}
-	//if (midiFile)
-	//{
-	//	float trackHeight = (localBounds.getHeight() * (1 - this->timelineHeightRatio)) / (midiTracks.size());
-	//	setBounds((int)localBounds.getX(), (int)localBounds.getY(), (int)localBounds.getWidth(), (int)trackHeight * midiTracks.size() + (int)(localBounds.getHeight() * (this->timelineHeightRatio)));
-	//}
+	
 	repaint();
 }
 
@@ -584,7 +576,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 		auto maxBitmapSize = 16000;
 		if (newImageSize.getWidth() > maxBitmapSize)
 		{
-			double sizeRatio = (double)maxBitmapSize / (double)newImageSize.getWidth();
+			float sizeRatio = (float)maxBitmapSize / (float)newImageSize.getWidth();
 			newImageSize.setWidth(maxBitmapSize);
 			newImageSize.setHeight((int)((double)maxBitmapSize / aspectRatio));
 			timeUnitWidthPixels = minCellWidth * sizeRatio;
@@ -755,11 +747,10 @@ void MIDITimelineComponent::analyzeContextInSelection()
 	{
 		defMajorScaleVectorFull.clear();
 		defMinorScaleVectorFull.clear();
-
 		defMajorChordVectorFull.clear();
 		defMinorChordVectorFull.clear();
 
-		String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+		String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
 		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
 		{
 			//Define template vectors for Major and Minor for the Tonality[t]
@@ -866,7 +857,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 			defMajorChordVectorFull.clear();
 			defMinorChordVectorFull.clear();
 
-			String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+			String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
 			for (int c = 0; c < tempMatrix.getNumColumns(); c++)
 			{
 				//Define template vectors for Major and Minor for the Tonality[t]
@@ -941,7 +932,7 @@ void MIDITimelineComponent::operationOnSelection01()
 	{
 		int tonalityMajSum = 0;
 		int tonalityMinSum = 0;
-		String tonalityRootName = String(MidiMessage::getMidiNoteName(t, true, false, 4));
+		String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
 
 		defMajorScaleVectorFull.clear();
 		defMinorScaleVectorFull.clear();
