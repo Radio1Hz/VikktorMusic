@@ -98,6 +98,8 @@ private:
 	unique_ptr<MidiFile> midiFile;
 	OwnedArray<MidiMessageSequence> midiTracks;
 	unique_ptr<MidiOutput> midiOutput;
+	int defaultMIDIChannel = 1;
+	bool produceMIDIOutput = true;
 
 	//Synth
 	OwnedArray<SynthAudioSource> synths;
@@ -115,6 +117,7 @@ private:
 	AudioBuffer<float> audioBuffer;
 	AudioDeviceManager audioDeviceManager;
 	AudioPluginFormatManager formatManager;
+	bool produceAudioOutput = false;
 
 	//Other
 	int counter = 0;

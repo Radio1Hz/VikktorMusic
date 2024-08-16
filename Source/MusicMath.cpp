@@ -153,7 +153,7 @@ void MusicMath::changeKey(int newKeyIndex)
 
 void MusicMath::allNotesOff(int channel)
 {
-	juce::MidiMessage anOff = juce::MidiMessage::allNotesOff(channel);
+	MidiMessage anOff = MidiMessage::allNotesOff(channel);
 	//midiAudioObj->playNote(anOff);
 }
 

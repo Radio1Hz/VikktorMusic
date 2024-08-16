@@ -42,6 +42,7 @@ void MIDITimelineComponent::init()
 	int selectedAvailableMIDIDeviceId = 0;
 	MidiDeviceInfo defaultDevice = MidiOutput::getDefaultDevice();
 	Array<MidiDeviceInfo> availableDevices = MidiOutput::getAvailableDevices();
+	defaultMIDIChannel = 1 + Random::getSystemRandom().nextInt(16);
 
 	for (MidiDeviceInfo di : availableDevices)
 	{
@@ -127,33 +128,40 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			{
 				currentTimeUnit = 0;
 				samplesElapsedSincePlay = 0;
-				this->synths[0]->synth.allNotesOff(0, true);
+				this->synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
 				triggerRepaint();
 			}
 
 			// If change happened
 			if (currentTimeUnitPredicted > currentTimeUnitSnapshot)
 			{
-				//synths[0]->synth.allNotesOff(0,true);
 				for (int i = 0; i < noteEventMatrix.size(); i++)
 				{
 					if (noteEventMatrix[i][currentTimeUnit].EventType != -1)
 					{
 						if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
 						{
-							//synths[0]->synth.noteOn(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
-							if (midiOutput != nullptr)
+							if (produceAudioOutput)
 							{
-								MidiMessage noteOn(juce::MidiMessage::noteOn(1, noteEventMatrix[i][currentTimeUnit].NoteNumber, (juce::uint8)127));
+								synths[0]->synth.noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
+							}
+
+							if (midiOutput != nullptr && produceMIDIOutput)
+							{
+								MidiMessage noteOn(juce::MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (juce::uint8)127));
 								midiOutput->sendMessageNow(noteOn);
 							}
 						}
 						if (noteEventMatrix[i][currentTimeUnit].EventType == 0)
 						{
-							//synths[0]->synth.noteOff(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
-							if (midiOutput != nullptr)
+							if (produceAudioOutput)
 							{
-								MidiMessage noteOff(juce::MidiMessage::noteOff(1, noteEventMatrix[i][currentTimeUnit].NoteNumber));
+								synths[0]->synth.noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
+							}
+
+							if (midiOutput != nullptr && produceMIDIOutput)
+							{
+								MidiMessage noteOff(juce::MidiMessage::noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber));
 								midiOutput->sendMessageNow(noteOff);
 							}
 
@@ -387,7 +395,7 @@ void MIDITimelineComponent::allNotesOff()
 {
 	if (this->synths.size() > 0)
 	{
-		this->synths[0]->synth.allNotesOff(0, true);
+		this->synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
 	}
 }
 
@@ -582,12 +590,13 @@ void MIDITimelineComponent::stopMIDI()
 
 	if (synths.size() > 0)
 	{
-		synths[0]->synth.allNotesOff(0, true);
+		synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
 	}
 
 	if (midiOutput != nullptr)
 	{
-		midiOutput->sendMessageNow(MidiMessage::allNotesOff(1));
+		if (midiOutput->isBackgroundThreadRunning())
+			midiOutput->sendMessageNow(MidiMessage::allNotesOff(defaultMIDIChannel));
 	}
 }
 
@@ -1066,6 +1075,7 @@ void MIDITimelineComponent::saveMIDIFileToDisk()
 			double currentMIDITimestamp = ((float)j / (float)noteEventMatrix[0].size()) * totalDurationInMIDITicks;
 			NoteEventDesc noteInMatrix = noteEventMatrix[i][j];
 
+			//No need for defaultMIDIChannel because we save it to disk.
 			if (noteInMatrix.EventType == 0)
 			{
 				MidiMessage msg = MidiMessage::noteOff(1, noteInMatrix.NoteNumber, (uint8)128);
@@ -1135,7 +1145,7 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
 	samplesElapsedSincePlay = (int)samplesPerTimeUnit * currentCell;
 	if (synths.size() > 0)
 	{
-		synths[0]->synth.allNotesOff(0, true);
+		synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
 	}
 	repaint();
 }
