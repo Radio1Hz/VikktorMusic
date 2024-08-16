@@ -26,8 +26,14 @@ public:
     static void setDenominator(int den);
     
     static bool getShouldSaveAudio();
-    static void setShouldSaveAudio(bool ssa);
-    
+    static void setShouldSaveAudio(bool ssa); 
+
+    static bool getInternalSynthAudioOut();
+    static void setInternalSynthAudioOut(bool iSO);
+
+    static bool getMIDIOut();
+    static void setMIDIOut(bool mO);
+
     static String getProjectPath();
     static void setProjectPath(String path);
 
@@ -41,6 +47,8 @@ private:
     AppProperties();
     inline static float tempo;
     inline static bool shouldSaveAudio = false;
+    inline static bool internalSynthAudioOut = false;
+    inline static bool MIDIOut = false;
     inline static int numerator;
     inline static int denominator;
     inline static String projectPath;

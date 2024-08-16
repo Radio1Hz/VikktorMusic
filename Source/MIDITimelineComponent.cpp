@@ -112,6 +112,9 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 		//Check Midi Messages
 		if (!synths.isEmpty())
 		{
+			bool produceAudio = AppProperties::getInternalSynthAudioOut();
+			bool produceMIDI = AppProperties::getMIDIOut();
+
 			int numberOfTimeUnits = (int)noteEventMatrix[0].size();
 			int currentTimeUnitSnapshot = currentTimeUnit;
 
@@ -128,7 +131,17 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 			{
 				currentTimeUnit = 0;
 				samplesElapsedSincePlay = 0;
-				this->synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
+
+				if (produceAudio)
+				{
+					this->synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
+				}
+
+				if (midiOutput != nullptr && produceMIDI)
+				{
+					MidiMessage noteOff(MidiMessage::allNotesOff(defaultMIDIChannel));
+					midiOutput->sendMessageNow(noteOff);
+				}
 				triggerRepaint();
 			}
 
@@ -141,25 +154,26 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 					{
 						if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
 						{
-							if (produceAudioOutput)
+							if (produceAudio)
 							{
 								synths[0]->synth.noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
 							}
 
-							if (midiOutput != nullptr && produceMIDIOutput)
+							if (midiOutput != nullptr && produceMIDI)
 							{
 								MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)127));
 								midiOutput->sendMessageNow(noteOn);
 							}
 						}
+
 						if (noteEventMatrix[i][currentTimeUnit].EventType == 0)
 						{
-							if (produceAudioOutput)
+							if (produceAudio)
 							{
 								synths[0]->synth.noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
 							}
 
-							if (midiOutput != nullptr && produceMIDIOutput)
+							if (midiOutput != nullptr && produceMIDI)
 							{
 								MidiMessage noteOff(MidiMessage::noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber));
 								midiOutput->sendMessageNow(noteOff);
@@ -396,6 +410,12 @@ void MIDITimelineComponent::allNotesOff()
 	if (this->synths.size() > 0)
 	{
 		this->synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
+	}
+
+	if (midiOutput != nullptr)
+	{
+		MidiMessage noteOff(MidiMessage::allNotesOff(defaultMIDIChannel));
+		midiOutput->sendMessageNow(noteOff);
 	}
 }
 

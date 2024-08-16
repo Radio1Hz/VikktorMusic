@@ -30,6 +30,12 @@ audioSetupComp(
 	savePlayedAudioSamplesToggleButton.setButtonText("Buffer Audio");
 	savePlayedAudioSamplesToggleButton.onClick = [this] { updateToggleStateSavePlayedAudio(&savePlayedAudioSamplesToggleButton); };
 
+	produceAudioToggleButton.setButtonText("Internal Synth");
+	produceAudioToggleButton.onClick = [this] { updateProduceAudioToggleButton(&produceAudioToggleButton); };
+
+	produceMIDIToggleButton.setButtonText("MIDI Out");
+	produceMIDIToggleButton.onClick = [this] { updateProduceMIDIToggleButton(&produceMIDIToggleButton); };
+
 	audioSettingsToggleButton.setButtonText("Settings");
 	audioSettingsToggleButton.onClick = [this] { updateToggleStateSettings(&audioSettingsToggleButton); };
 
@@ -42,6 +48,8 @@ audioSetupComp(
 	}
 
 	savePlayedAudioSamplesToggleButton.triggerClick();
+	produceAudioToggleButton.triggerClick();
+	produceMIDIToggleButton.triggerClick();
 
 	playButton.setButtonText("Play");
 	playButton.onClick = [this] { playButtonClicked(); };
@@ -98,6 +106,9 @@ audioSetupComp(
 	addAndMakeVisible(audioVisualizeToggleButton);
 	addAndMakeVisible(savePlayedAudioSamplesToggleButton);
 
+	addAndMakeVisible(produceAudioToggleButton);
+	addAndMakeVisible(produceMIDIToggleButton);
+
 	addAndMakeVisible(keySignatureLabel);
 	addAndMakeVisible(keySignatureNumeratorText);
 	addAndMakeVisible(keySignatureSeparatorLabel);
@@ -139,6 +150,14 @@ void MainComponent::timeSignatureChanged()
 {
 	AppProperties::setNumerator((int)keySignatureNumeratorText.getText().getDoubleValue());
 	AppProperties::setDenominator((int)keySignatureDenominatorText.getText().getDoubleValue());
+
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->allNotesOff();
+		}
+	}
 	logSpaceComponent.repaint();
 }
 
@@ -458,6 +477,32 @@ void MainComponent::updateToggleStateSavePlayedAudio(Button* button)
 	}
 }
 
+void MainComponent::updateProduceAudioToggleButton(Button* button)
+{
+	AppProperties::setInternalSynthAudioOut(button->getToggleState());
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->allNotesOff();
+		}
+	}
+	logSpaceComponent.repaint();
+}
+
+void MainComponent::updateProduceMIDIToggleButton(Button* button)
+{
+	AppProperties::setMIDIOut(button->getToggleState());
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->allNotesOff();
+		}
+	}
+	logSpaceComponent.repaint();
+}
+
 String MainComponent::displayProgress(double currentPositionInSeconds, double totalLengthInSeconds)
 {
 	RelativeTime currentTime = RelativeTime(currentPositionInSeconds);
@@ -639,6 +684,9 @@ void MainComponent::resized()
 	keySignatureSeparatorLabel.setBounds(540, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	keySignatureDenominatorText.setBounds(600, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	savePlayedAudioSamplesToggleButton.setBounds(660, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	produceAudioToggleButton.setBounds(720, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	produceMIDIToggleButton.setBounds(780, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+
 	internalBufferSamplesImage0 = Image(Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = Image(Image::RGB, getWidth(), 30, true);
 

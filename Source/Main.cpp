@@ -30,6 +30,8 @@ public:
         AppProperties::setTempo(120);
         AppProperties::setNumerator(4);
         AppProperties::setDenominator(4);
+        AppProperties::setInternalSynthAudioOut(true);
+        AppProperties::setMIDIOut(true);
         AppProperties::setProjectPath("C:\\Temp\\VikktorMusicDump\\");
         mainWindow.reset (new MainWindow (getApplicationName()));
     }
