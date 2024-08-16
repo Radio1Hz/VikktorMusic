@@ -574,19 +574,20 @@ void MIDITimelineComponent::repaintMatrixImage()
 	{
 		Rectangle<int> parentBounds = getReducedLocalBounds();
 		Rectangle<int> newImageSize(200, 200);
-		float noteRowHeightPixels = minCellWidth;
-		float timeUnitWidthPixels = noteRowHeightPixels;
+		float timeUnitWidthPixels = minCellWidth;
 		int numberOfTimeUnits = (int)noteEventMatrix[0].size();
 
 		newImageSize.setWidth((int)((float)numberOfTimeUnits * timeUnitWidthPixels));
-		newImageSize.setHeight((int)((float)noteRangeSize * noteRowHeightPixels));
+		newImageSize.setHeight((int)((float)noteRangeSize * timeUnitWidthPixels));
 		double aspectRatio = newImageSize.getWidth() / newImageSize.getHeight();
 
 		auto maxBitmapSize = 16000;
-		if (newImageSize.getWidth() > 16000)
+		if (newImageSize.getWidth() > maxBitmapSize)
 		{
+			double sizeRatio = (double)maxBitmapSize / (double)newImageSize.getWidth();
 			newImageSize.setWidth(maxBitmapSize);
 			newImageSize.setHeight((int)((double)maxBitmapSize / aspectRatio));
+			timeUnitWidthPixels = minCellWidth * sizeRatio;
 		}
 		matrixImage = juce::Image(juce::Image::RGB, newImageSize.getWidth(), newImageSize.getHeight(), true);
 
@@ -645,11 +646,9 @@ void MIDITimelineComponent::repaintMatrixImage()
 					}
 				}
 
-
 				if (noteEventMatrix[i][j].EventType == 1) //if note on
 				{
 					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
-					textBox.translate(-1.0f, 0.0f);
 					g0.setColour(Colours::darkred);
 					g0.fillRect(textBox);
 					g0.setColour(Colours::white);
