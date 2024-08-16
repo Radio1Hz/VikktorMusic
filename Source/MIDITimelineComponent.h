@@ -58,6 +58,7 @@ private:
 	void defineAllContextsPerMeasures();
 	void operationOnSelection01();
 	void saveAudioBufferToDisk();
+	void saveMIDIFileToDisk();
 	float minCellWidth = 10.0f;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;
@@ -84,6 +85,7 @@ private:
 	int counter = 0;
 	int currentTimeUnit = 0;
 	float timelineHeightRatio = 0.075f;
+	short defaultTicksPerQuarterNote = 196;
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
 	bool isPlaying = false;

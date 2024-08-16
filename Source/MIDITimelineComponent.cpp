@@ -86,40 +86,7 @@ void MIDITimelineComponent::prepareToPlay(int samplesPerBlockExpected, double sa
 
 void MIDITimelineComponent::scanPlugins()
 {
-	//String path = "C:\\Program Files\\Common Files\\VST3";
-	//juce::AudioPluginFormatManager& fm = *new juce::AudioPluginFormatManager();
-	//fm.addDefaultFormats();
 
-	//juce::OwnedArray<juce::PluginDescription>& typesFound = *new juce::OwnedArray<juce::PluginDescription>();
-
-	//Array<juce::AudioPluginFormat*> formats = fm.getFormats();
-	//AudioPluginFormat* format = NULL;
-
-	//for (int i = 0; i < formats.size(); i++) {
-	//	auto f = formats[i];
-	//	juce::String name = f->getName();
-	//	if (name.equalsIgnoreCase("VST3")) 
-	//	{
-	//		format = f;
-	//		break;
-	//	}
-	//}
-	//
-	//KnownPluginList pluginList = &(new KnownPluginList());
-	//PluginDirectoryScanner* scanner = new PluginDirectoryScanner(*pluginList, format, path, true, NULL, false );
-
-	//auto desc = typesFound[0];
-
-	//juce::String& errorMessage = *new juce::String();
-	//std::unique_ptr<juce::AudioPluginInstance> instance = fm.createPluginInstance(
-	//	*desc,
-	//	sampleRateInt,
-	//	samplesPerBlockExpectedInt,
-	//	errorMessage
-	//);
-	//pluginInstance = std::move(instance);
-	////pluginInstance->enableAllBuses();
-	//
 }
 
 void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
@@ -139,7 +106,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			//double totalDuration = numberOfTimeUnits * timeUnitDuration;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 
-			
+
 			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
 
 			// If end happened - replay			
@@ -178,7 +145,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 			if (AppProperties::getShouldSaveAudio())
 			{
 				//Transfer and append samples from bufferToFill to audioBuffer
-				
+
 				int numSamplesInBuffer = audioBuffer.getNumSamples();
 				for (int i = 0; i < bufferToFill.numSamples; i++)
 				{
@@ -208,7 +175,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 
 	if (this->midiFile)
 	{
-		String midiInfo = "Midi timeformat: " + String(midiFile->getTimeFormat()) + " Last timestamp: " + String(midiFile->getLastTimestamp()) + " Tracks: " + String(midiFile->getNumTracks());
+		String midiInfo = "Midi timeformat: " + String(defaultTicksPerQuarterNote) + " Last timestamp: " + String(midiFile->getLastTimestamp()) + " Tracks: " + String(midiFile->getNumTracks());
 		this->name += midiInfo;
 	}
 
@@ -229,7 +196,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 		float totalDuration = (float)midiFile->getLastTimestamp();
 
 		g.setFont(getFontSize());
-		int ticksPerMeasure = (int)(midiFile->getTimeFormat() * numQuartersPerMeasure);
+		int ticksPerMeasure = (int)((float)defaultTicksPerQuarterNote * numQuartersPerMeasure);
 		for (int measureIndex = 0; measureIndex < numMeasures; measureIndex++)
 		{
 			float x = (float)(measureIndex * ticksPerMeasure * parentBounds.getWidth() / totalDuration);
@@ -382,8 +349,9 @@ void MIDITimelineComponent::loadMIDI()
 				midiFile = std::make_unique<MidiFile>();
 				std::unique_ptr<FileInputStream> str = file.createInputStream();
 				midiFile->readFrom(*str);
+				defaultTicksPerQuarterNote = midiFile->getTimeFormat();
 				projectName = file.getFileName();
-				name = file.getFileName() + " - Midi timeformat: " + String(midiFile->getTimeFormat()) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
+				name = file.getFileName() + " - Midi timeformat: " + String(defaultTicksPerQuarterNote) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
 				processMidi();
 				defineAllContextsPerMeasures();
 				repaintMatrixImage();
@@ -420,7 +388,7 @@ void MIDITimelineComponent::processMidi()
 
 		String majMin = "";
 		//double midiTicksPerMeasure = ((double)numTimeUnitsInMeasure);
-		double maxMatrixTicksCapacity = (double)numMeasures * numQuartersPerMeasure * (double)midiFile->getTimeFormat();
+		double maxMatrixTicksCapacity = (double)numMeasures * numQuartersPerMeasure * (double)defaultTicksPerQuarterNote;
 
 		for (int trackIndex = 0; trackIndex < midiTracks.size(); trackIndex++)
 		{
@@ -478,7 +446,7 @@ void MIDITimelineComponent::processMidi()
 							noteEnd = noteOffHolder->message.getTimeStamp();
 						}
 
-						int ticksPerMeasure = (int)((float)midiFile->getTimeFormat() * (float)numQuartersPerMeasure);
+						int ticksPerMeasure = (int)((float)defaultTicksPerQuarterNote * (float)numQuartersPerMeasure);
 
 						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)numQuartersPerMeasure) / 4.0;
 						double totalDurationTicks = matrixWidth * ticksPerTimeUnit;
@@ -553,6 +521,7 @@ void MIDITimelineComponent::initMenu()
 		this->menu.addItem("Analyze Context in Selection", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
 		this->menu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
 		this->menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
+		this->menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
 	}
 }
 
@@ -1056,6 +1025,47 @@ void MIDITimelineComponent::saveAudioBufferToDisk()
 		writer->flush();
 	}
 
+}
+
+void MIDITimelineComponent::saveMIDIFileToDisk()
+{
+	MidiMessageSequence seq;
+	MidiMessage msgKeySig = MidiMessage::keySignatureMetaEvent(0, false); // Cmaj
+	MidiMessage msgTimeSig = MidiMessage::timeSignatureMetaEvent(AppProperties::getNumerator(), AppProperties::getDenominator()); // Cmaj
+	msgKeySig.setTimeStamp(0);
+	msgTimeSig.setTimeStamp(0);
+	seq.addEvent(msgKeySig);
+	seq.addEvent(msgTimeSig);
+
+	float totalDurationInMIDITicks = (float)defaultTicksPerQuarterNote * (float)numMeasures * numQuartersPerMeasure;
+	for (int i = 0; i < noteEventMatrix.size(); i++)
+	{
+		for (int j = 0; j < noteEventMatrix[0].size(); j++)
+		{
+			double currentMIDITimestamp = ((float)j / (float)noteEventMatrix[0].size()) * totalDurationInMIDITicks;
+			NoteEventDesc noteInMatrix = noteEventMatrix[i][j];
+
+			if (noteInMatrix.EventType == 0)
+			{
+				MidiMessage msg = MidiMessage::noteOff(1, noteInMatrix.NoteNumber, (uint8)128);
+				msg.setTimeStamp(currentMIDITimestamp);
+				seq.addEvent(msg);
+			}
+
+			if (noteInMatrix.EventType == 1)
+			{
+				MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
+				msg.setTimeStamp(currentMIDITimestamp);
+				seq.addEvent(msg);
+			}
+		}
+	}
+	MidiFile outputFile;
+	outputFile.setTicksPerQuarterNote(defaultTicksPerQuarterNote);
+	outputFile.addTrack(seq);
+	FileOutputStream outStr(File(AppProperties::getProjectPath() + projectName + "_out.mid"));
+	outputFile.writeTo(outStr);
+	outStr.flush();
 }
 
 void MIDITimelineComponent::shiftDragEvent(const juce::MouseEvent& event)
