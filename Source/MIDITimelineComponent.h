@@ -93,10 +93,11 @@ private:
 	int numTimeUnitsInMeasure = 0;
 	float numQuartersPerMeasure = 0;
 
-	//MIDI File
+	//MIDI
 	unique_ptr<FileChooser> fileChooser;
 	unique_ptr<MidiFile> midiFile;
 	OwnedArray<MidiMessageSequence> midiTracks;
+	unique_ptr<MidiOutput> midiOutput;
 
 	//Synth
 	OwnedArray<SynthAudioSource> synths;
@@ -106,7 +107,7 @@ private:
 	String projectPath = "";
 	String projectName = "";
 	
-	//AudioBuffer 
+	//AudioBuffer
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
 	bool isPlaying = false;

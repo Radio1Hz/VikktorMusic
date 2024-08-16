@@ -39,6 +39,19 @@ void MIDITimelineComponent::init()
 	this->name = "MIDI Timeline (" + String(this->numMeasures) + " measures)";
 	this->initMenu();
 	setAudioChannels(0, 2);
+	int selectedAvailableMIDIDeviceId = 0;
+	MidiDeviceInfo defaultDevice = MidiOutput::getDefaultDevice();
+	Array<MidiDeviceInfo> availableDevices = MidiOutput::getAvailableDevices();
+
+	for (MidiDeviceInfo di : availableDevices)
+	{
+		String diid = di.identifier;
+		String diname = di.name;
+		selectedAvailableMIDIDeviceId++;
+	}
+
+	midiOutput = MidiOutput::openDevice(defaultDevice.identifier);
+
 	// Init audioBuffer to 10sec
 	audioBuffer.setSize(2, 20 * (int)sampleRateInt, false);
 	repaintMatrixImage();
@@ -70,6 +83,8 @@ MIDITimelineComponent::~MIDITimelineComponent()
 		arr.clear();
 	}
 	noteEventMatrix.clear();
+	if (midiOutput != nullptr)
+		midiOutput->stopBackgroundThread();
 	shutdownAudio();
 }
 
@@ -93,6 +108,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 {
 	if (isPlaying)
 	{
+		//Check Midi Messages
 		if (!synths.isEmpty())
 		{
 			int numberOfTimeUnits = (int)noteEventMatrix[0].size();
@@ -125,11 +141,22 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 					{
 						if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
 						{
-							synths[0]->synth.noteOn(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
+							//synths[0]->synth.noteOn(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
+							if (midiOutput != nullptr)
+							{
+								MidiMessage noteOn(juce::MidiMessage::noteOn(1, noteEventMatrix[i][currentTimeUnit].NoteNumber, (juce::uint8)127));
+								midiOutput->sendMessageNow(noteOn);
+							}
 						}
 						if (noteEventMatrix[i][currentTimeUnit].EventType == 0)
 						{
-							synths[0]->synth.noteOff(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
+							//synths[0]->synth.noteOff(0, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
+							if (midiOutput != nullptr)
+							{
+								MidiMessage noteOff(juce::MidiMessage::noteOff(1, noteEventMatrix[i][currentTimeUnit].NoteNumber));
+								midiOutput->sendMessageNow(noteOff);
+							}
+
 						}
 					}
 				}
@@ -137,7 +164,6 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 				triggerRepaint();
 			}
 			synths[0]->getNextAudioBlock(bufferToFill);
-
 
 			if (AppProperties::getShouldSaveAudio())
 			{
@@ -495,7 +521,7 @@ void MIDITimelineComponent::setComponentSize()
 	{
 		setBounds((int)localBounds.getX(), (int)localBounds.getY(), (int)((float)aspectRatio * localBounds.getHeight()), (int)(localBounds.getHeight()));
 	}
-	
+
 	repaint();
 }
 
@@ -557,6 +583,11 @@ void MIDITimelineComponent::stopMIDI()
 	if (synths.size() > 0)
 	{
 		synths[0]->synth.allNotesOff(0, true);
+	}
+
+	if (midiOutput != nullptr)
+	{
+		midiOutput->sendMessageNow(MidiMessage::allNotesOff(1));
 	}
 }
 
