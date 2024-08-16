@@ -27,13 +27,13 @@
 using namespace juce;
 //==============================================================================
 
-class LogSpaceComponent : public juce::Component
+class LogSpaceComponent : public Component
 {
 
 public:
 
 	double zoom = 1;
-	juce::Point<double> currentPosition;
+	Point<double> currentPosition;
 	CommunicationAgent* listeningSourceComponent;
 
 private:
@@ -142,9 +142,9 @@ public:
 
 	void LogSpaceComponent::addMarkovMatrix()
 	{
-		//MarkovMatrix* mO = new MarkovMatrix(juce::Random::getSystemRandom().nextInt(24)+1);
+		//MarkovMatrix* mO = new MarkovMatrix(Random::getSystemRandom().nextInt(24)+1);
 		//MarkovMatrixComponent* mO = new MarkovMatrixComponent(3);
-		MarkovMatrixComponent* mO = new MarkovMatrixComponent(juce::Random::getSystemRandom().nextInt(4) + 2);
+		MarkovMatrixComponent* mO = new MarkovMatrixComponent(Random::getSystemRandom().nextInt(4) + 2);
 		//mO->iWillListenToYou(euclidTimerObjects[euclidTimerObjects.size() - 1]);
 		markovObjects.add(mO);
 		addAndMakeVisible(mO);
@@ -157,17 +157,17 @@ public:
 		removeAllChildren();
 		deleteAllChildren();
 
-		/* juce::OwnedArray<TimeObjectComponent> timeObjects;
-		 juce::OwnedArray<MarkovMatrixComponent> markovObjects;
-		 juce::OwnedArray<TimerComponent> timerObjects;
-		 juce::OwnedArray<PlotComponent> plotObjects;
-		 juce::OwnedArray<AudioComponent> audioObjects;
-		 juce::OwnedArray<MIDISynthComponent> midiObjects;
-		 juce::OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;*/
+		/* OwnedArray<TimeObjectComponent> timeObjects;
+		 OwnedArray<MarkovMatrixComponent> markovObjects;
+		 OwnedArray<TimerComponent> timerObjects;
+		 OwnedArray<PlotComponent> plotObjects;
+		 OwnedArray<AudioComponent> audioObjects;
+		 OwnedArray<MIDISynthComponent> midiObjects;
+		 OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;*/
 
 	}
 
-	void LogSpaceComponent::shiftMouseUpEvent(const juce::MouseEvent& event)
+	void LogSpaceComponent::shiftMouseUpEvent(const MouseEvent& event)
 	{
 		if (this->listeningSourceComponent != NULL)
 		{
@@ -182,7 +182,7 @@ public:
 		}
 	}
 
-	void LogSpaceComponent::mouseDown(const juce::MouseEvent& event) override
+	void LogSpaceComponent::mouseDown(const MouseEvent& event) override
 	{
 		if (event.getNumberOfClicks() == 2)
 		{
@@ -216,7 +216,7 @@ public:
 		}
 	}
 
-	void LogSpaceComponent::mouseUp(const juce::MouseEvent& event) override
+	void LogSpaceComponent::mouseUp(const MouseEvent& event) override
 	{
 		dragX = 0;
 		dragY = 0;
@@ -225,12 +225,12 @@ public:
 			shiftMouseUpEvent(event);
 		}
 	}
-	void LogSpaceComponent::mouseDrag(const juce::MouseEvent& event) override
+	void LogSpaceComponent::mouseDrag(const MouseEvent& event) override
 	{
 		int x = event.getDistanceFromDragStartX();
 		int y = event.getDistanceFromDragStartY();
 
-		juce::Rectangle<int> rect;
+		Rectangle<int> rect;
 
 		for (auto* tO : getChildren())
 		{
@@ -246,7 +246,7 @@ public:
 		repaint();
 	}
 
-	void paint(juce::Graphics& g) override
+	void paint(Graphics& g) override
 	{
 		g.fillAll(Colours::darkgrey);
 		g.setColour(Colours::darkorange);
@@ -319,7 +319,7 @@ public:
 			{
 				if (getLocalBounds().getWidth() >= 200)
 				{
-					cO->setBounds(juce::Random::getSystemRandom().nextInt(getLocalBounds().getWidth() - 200), juce::Random::getSystemRandom().nextInt(getLocalBounds().getHeight() - 200), 200, 200);
+					cO->setBounds(Random::getSystemRandom().nextInt(getLocalBounds().getWidth() - 200), Random::getSystemRandom().nextInt(getLocalBounds().getHeight() - 200), 200, 200);
 				}
 
 			}
@@ -329,13 +329,13 @@ public:
 
 };
 
-struct ExampleListener : public juce::ValueTree::Listener
+struct ExampleListener : public ValueTree::Listener
 {
-	ExampleListener(juce::ValueTree v)
+	ExampleListener(ValueTree v)
 		: tree(v)
 	{
 		tree.addListener(this);
 	}
 
-	juce::ValueTree tree;
+	ValueTree tree;
 };

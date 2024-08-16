@@ -78,9 +78,9 @@ String MusicMath::getNoteNameByMIDINoteNumber(int noteNumber)
 	return MidiMessage::getMidiNoteName(noteNumber, true, false, 4);
 }
 
-juce::String MusicMath::displayKeys()
+String MusicMath::displayKeys()
 {
-	juce::String out = "";
+	String out = "";
 	for (int i = 0; i < 12; i++)
 	{
 		if (currentKey == _keys_offset[i])
@@ -95,9 +95,9 @@ juce::String MusicMath::displayKeys()
 	return out;
 }
 
-juce::String MusicMath::displayModes()
+String MusicMath::displayModes()
 {
-	juce::String out = "";
+	String out = "";
 	for (int i = 0; i < 7; i++)
 	{
 		if (currentModeIndex == i)
@@ -113,15 +113,15 @@ juce::String MusicMath::displayModes()
 	return out;
 }
 
-std::vector<juce::String> MusicMath::GetKeys()
+std::vector<String> MusicMath::GetKeys()
 {
-	std::vector<juce::String> copyKeys = _keys_display;
+	std::vector<String> copyKeys = _keys_display;
 	return copyKeys;
 }
 
-std::vector<juce::String> MusicMath::GetModes()
+std::vector<String> MusicMath::GetModes()
 {
-	std::vector<juce::String> copyModes = _modes_display_degrees;
+	std::vector<String> copyModes = _modes_display_degrees;
 	return copyModes;
 }
 
@@ -178,29 +178,29 @@ int MusicMath::translateRoleToModeOffset(int roleIndex, int modeIndex)
 	return _modes_offset[modeIndex][roleIndex];
 }
 
-juce::String MusicMath::getKeyName(int keyIndex)
+String MusicMath::getKeyName(int keyIndex)
 {
 	return _keys_display[keyIndex];
 }
-juce::Colour MusicMath::getKeyColour(int keyIndex)
+Colour MusicMath::getKeyColour(int keyIndex)
 {
 	return _keys_colour_codes[keyIndex];
 }
 
-juce::String MusicMath::getModeName()
+String MusicMath::getModeName()
 {
 	return _modes_display[currentModeIndex];
 }
 
-juce::String MusicMath::getModeDegree(int modeIndex)
+String MusicMath::getModeDegree(int modeIndex)
 {
 	return _modes_display_degrees[modeIndex];
 }
 
-juce::String MusicMath::getChordName()
+String MusicMath::getChordName()
 {
 	int realNoteNumber = _keys_offset[currentKeyIndex] + _modes_offset[0][currentModeIndex];
-	juce::String chordName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
+	String chordName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
 
 	if (chordName == "A#")  // Ugly fix
 		chordName = "Bb";
@@ -214,16 +214,16 @@ juce::String MusicMath::getChordName()
 	return chordName;
 }
 
-juce::String MusicMath::GetNoteName(int noteRoleIndex)
+String MusicMath::GetNoteName(int noteRoleIndex)
 {
 	int realNoteNumber = _keys_offset[currentKeyIndex] + _modes_offset[0][currentModeIndex] + _modes_offset[currentModeIndex][noteRoleIndex];
-	juce::String noteName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
+	String noteName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
 	return noteName;
 }
 
-void MusicMath::transformMIDINoteMessage(juce::MidiMessage& modifiedMsg)
+void MusicMath::transformMIDINoteMessage(MidiMessage& modifiedMsg)
 {
-	if (!juce::MidiMessage::isMidiNoteBlack(modifiedMsg.getNoteNumber()))
+	if (!MidiMessage::isMidiNoteBlack(modifiedMsg.getNoteNumber()))
 	{
 		int octave = modifiedMsg.getNoteNumber() / 12;
 		int roleIndex = translateRoleIndex(modifiedMsg);
@@ -236,7 +236,7 @@ void MusicMath::transformMIDINoteMessage(juce::MidiMessage& modifiedMsg)
 
 // Input: MidiNoteNumber (60, 61, 62...) Output: Role in the scale (white keys index 0, 1, 2, 3 [root, second, third...]) 
 // Returns -1 if black key
-int MusicMath::translateRoleIndex(const juce::MidiMessage& midiNote)
+int MusicMath::translateRoleIndex(const MidiMessage& midiNote)
 {
 	return getRoleByNoteNumber(midiNote.getNoteNumber());
 }
@@ -244,7 +244,7 @@ int MusicMath::translateRoleIndex(const juce::MidiMessage& midiNote)
 int MusicMath::getRoleByNoteNumber(int noteNumber)
 {
 	int moduoNumber = noteNumber % 12;
-	if (!juce::MidiMessage::isMidiNoteBlack(moduoNumber))
+	if (!MidiMessage::isMidiNoteBlack(moduoNumber))
 	{
 		switch (moduoNumber)
 		{
@@ -392,20 +392,20 @@ Octave	C	C#	D	D#	E	F	F#	G	G#	A	Bb	B
 */
 NoteEventDesc::NoteEventDesc()
 {}
-NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber)
+NoteEventDesc::NoteEventDesc(String noteName, int noteNumber)
 {
 	this->NoteName = noteName;
 	this->NoteNumber = noteNumber;
 }
 
-NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration)
+NoteEventDesc::NoteEventDesc(String noteName, int noteNumber, int noteDuration)
 {
 	this->NoteName = noteName;
 	this->NoteNumber = noteNumber;
 	this->NoteDuration = noteDuration;
 }
 
-NoteEventDesc::NoteEventDesc(juce::String noteName, int noteNumber, int noteDuration, int eventType)
+NoteEventDesc::NoteEventDesc(String noteName, int noteNumber, int noteDuration, int eventType)
 {
 	this->NoteName = noteName;
 	this->NoteNumber = noteNumber;

@@ -28,16 +28,16 @@ public:
 	MIDITimelineComponent();
 	MIDITimelineComponent(int numMeasures, int synthID);
 	~MIDITimelineComponent() override;
-	void paint(juce::Graphics&) override;
+	void paint(Graphics&) override;
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
 	void handleAsyncUpdate() override;
-	void shiftDragEvent(const juce::MouseEvent& event) override;
-	void shiftMouseDownEvent(const juce::MouseEvent& event) override;
-	void shiftMouseUpEvent(const juce::MouseEvent& event) override;
-	void mouseDoubleClickEvent(const juce::MouseEvent& event) override;
+	void shiftDragEvent(const MouseEvent& event) override;
+	void shiftMouseDownEvent(const MouseEvent& event) override;
+	void shiftMouseUpEvent(const MouseEvent& event) override;
+	void mouseDoubleClickEvent(const MouseEvent& event) override;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+	void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
 	void releaseResources() override;
 
 	void playMIDI();
@@ -85,7 +85,7 @@ private:
 	//MusicMath
 	MusicMath musicMath;
 	int noteRangeStart = 36;
-	int noteRangeEnd = 84;
+	int noteRangeEnd = 92;
 	int noteRangeSize = 0;
 	int currentTimeUnit = 0;
 	short defaultTicksPerQuarterNote = 196;

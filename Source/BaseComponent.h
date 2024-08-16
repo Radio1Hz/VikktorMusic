@@ -15,7 +15,7 @@ using namespace juce;
 //==============================================================================
 /*
 */
-class BaseComponent : public juce::AudioAppComponent
+class BaseComponent : public AudioAppComponent
 {
 public:
     BaseComponent();
@@ -24,16 +24,16 @@ public:
     void mouseWheelMove(const MouseEvent& event, const MouseWheelDetails& wheel) override;
     void paint (Graphics&) override;
     void resized() override;
-    virtual void zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel);
-    virtual void controlClickEvent(const juce::MouseEvent& event);
-    virtual void controlDragEvent(const juce::MouseEvent& event);
-    virtual void shiftDragEvent(const juce::MouseEvent& event);
-    virtual void shiftMouseUpEvent(const juce::MouseEvent& event);
-    virtual void controlDoubleClickEvent(const juce::MouseEvent& event);
-    virtual void controlMouseDownEvent(const juce::MouseEvent& event);
-    virtual void controlMouseUpEvent(const juce::MouseEvent& event);
-    virtual void shiftMouseDownEvent(const juce::MouseEvent& event);
-    virtual void mouseDoubleClickEvent(const juce::MouseEvent& event);
+    virtual void zoomEvent(const MouseEvent& event, const MouseWheelDetails& wheel);
+    virtual void controlClickEvent(const MouseEvent& event);
+    virtual void controlDragEvent(const MouseEvent& event);
+    virtual void shiftDragEvent(const MouseEvent& event);
+    virtual void shiftMouseUpEvent(const MouseEvent& event);
+    virtual void controlDoubleClickEvent(const MouseEvent& event);
+    virtual void controlMouseDownEvent(const MouseEvent& event);
+    virtual void controlMouseUpEvent(const MouseEvent& event);
+    virtual void shiftMouseDownEvent(const MouseEvent& event);
+    virtual void mouseDoubleClickEvent(const MouseEvent& event);
     
     void drawOutline (Graphics&);
     void mouseDrag(const MouseEvent& event) override;
@@ -58,7 +58,7 @@ protected:
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;
     void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
-    juce::PopupMenu menu;
+    PopupMenu menu;
 private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BaseComponent)

@@ -18,7 +18,7 @@
 using namespace juce;
 
 
-class SynthAudioSource : public juce::AudioSource
+class SynthAudioSource : public AudioSource
 {
 
 public:
@@ -51,13 +51,13 @@ public:
 
     void releaseResources() override {};
 
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override
+    void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override
     {
         bufferToFill.clearActiveBufferRegion();
 
-        juce::MidiBuffer incomingMidi;
+        MidiBuffer incomingMidi;
         synth.renderNextBlock(*bufferToFill.buffer, incomingMidi, bufferToFill.startSample, bufferToFill.numSamples);
     }
 
-    juce::Synthesiser synth;
+    Synthesiser synth;
 };

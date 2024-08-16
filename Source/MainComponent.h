@@ -12,7 +12,7 @@
 	your controls and content.
 */
 
-class MainComponent : public juce::AudioAppComponent, juce::KeyListener , public juce::ChangeListener, public juce::MultiTimer, public juce::ValueTree::Listener
+class MainComponent : public AudioAppComponent, KeyListener , public ChangeListener, public MultiTimer, public ValueTree::Listener
 {
 public:
 	//====================================================================================================================
@@ -28,31 +28,23 @@ public:
 	void timeSignatureChanged();
 	void ReadSamplesToAudioSampleBufferImage();
 	
-	void changeListenerCallback(juce::ChangeBroadcaster* source);
+	void changeListenerCallback(ChangeBroadcaster* source);
 	void playButtonClicked();
 	void stopButtonClicked();
 	void setupProjectTree();
-	void updateToggleStateAudio(juce::Button* button);
-	void updateToggleStateSettings(juce::Button* button);
-	void updateToggleStateVisualize(juce::Button* button);
-	void updateToggleStateSavePlayedAudio(juce::Button* button);
+	void updateToggleStateAudio(Button* button);
+	void updateToggleStateSettings(Button* button);
+	void updateToggleStateVisualize(Button* button);
+	void updateToggleStateSavePlayedAudio(Button* button);
 
-	static juce::String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
-	static juce::String displayLocalTime(double currentPositionInSeconds, double totalLengthInSeconds);
-
-	/*
-	AudioAppComponent::setAudioChannels(): We must call this to register the number of input and output channels we need. Typically, we do this in our constructor. In turn, this function triggers the start of audio processing in our application.
-	AudioAppComponent::shutdownAudio(): We must call this to shutdown the audio system. Typically, we do this in our destructor.
-	AudioAppComponent::prepareToPlay() : This is called just before audio processing starts.
-	AudioAppComponent::releaseResources() : This is called when audio processing has finished.
-	AudioAppComponent::getNextAudioBlock() : This is called each time the audio hardware needs a new block of audio data.
-	*/
+	static String displayProgress(double currentPositionInSeconds, double totalLengthInSeconds);
+	static String displayLocalTime(double currentPositionInSeconds, double totalLengthInSeconds);
 
 	void prepareToPlay(int	samplesPerBlockExpected, double	sampleRate);
 	void releaseResources();
 	void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill);
 
-	void paint(juce::Graphics& g) override;
+	void paint(Graphics& g) override;
 	void resized() override;
 	bool MainComponent::keyPressed(const KeyPress& key, Component* originatingComponent) override;
 	void setAudioOn();
@@ -123,7 +115,7 @@ private:
 	bool shouldVisualize = false;
 
 	TransportState state;
-	juce::Random random;
+	Random random;
 
 	void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
 	void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;

@@ -61,9 +61,9 @@ void BaseComponent::drawOutline (Graphics& g)
         g.setColour(Colours::white);
         rect.translate(5, 0);
 
-        juce::String state = juce::String(name);
-        state.append(juce::String(" S:"), 7);
-        state.append(juce::String(component_state), 6);
+        String state = String(name);
+        state.append(String(" S:"), 7);
+        state.append(String(component_state), 6);
 
         g.drawText(state, rect, Justification::centredLeft, true);
     }
@@ -74,16 +74,16 @@ void BaseComponent::resized()
     setSize(250, 250);
 }
 
-void BaseComponent::zoomEvent(const juce::MouseEvent & /*event*/, const juce::MouseWheelDetails & /*wheel*/){}
-void BaseComponent::controlClickEvent(const juce::MouseEvent& /*event*/) {}
-void BaseComponent::controlDragEvent(const juce::MouseEvent& /*event*/) {}
-void BaseComponent::shiftDragEvent(const juce::MouseEvent& /*event*/){}
-void BaseComponent::shiftMouseUpEvent(const juce::MouseEvent& /*event*/){}
-void BaseComponent::controlDoubleClickEvent(const juce::MouseEvent& /*event*/) {}
-void BaseComponent::controlMouseDownEvent(const juce::MouseEvent& /*event*/) {}
-void BaseComponent::controlMouseUpEvent(const juce::MouseEvent& /*event*/) {}
-void BaseComponent::shiftMouseDownEvent(const juce::MouseEvent& /*event*/) {}
-void BaseComponent::mouseDoubleClickEvent(const juce::MouseEvent& /*event*/){}
+void BaseComponent::zoomEvent(const MouseEvent & /*event*/, const MouseWheelDetails & /*wheel*/){}
+void BaseComponent::controlClickEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::controlDragEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::shiftDragEvent(const MouseEvent& /*event*/){}
+void BaseComponent::shiftMouseUpEvent(const MouseEvent& /*event*/){}
+void BaseComponent::controlDoubleClickEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::controlMouseDownEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::controlMouseUpEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::shiftMouseDownEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::mouseDoubleClickEvent(const MouseEvent& /*event*/){}
 
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
@@ -109,7 +109,7 @@ Rectangle<int> BaseComponent::getReducedBounds()
     return rect;
 }
 
-void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+void BaseComponent::mouseWheelMove(const MouseEvent& event, const MouseWheelDetails& wheel)
 {
     if (event.mods.isCtrlDown())
     {
@@ -119,7 +119,7 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
     {
         if (!this->embeddedMode)
         {
-            juce::Rectangle<int> rect = getReducedBounds();
+            Rectangle<int> rect = getReducedBounds();
             Point<float> originPointRelative = Point<float>(((float)(event.x - 1) / (float)rect.getWidth()), (int)((float)event.y - (float)headerHeight + 1.0f) / (float)rect.getHeight());
             int deltaWidth = (int)((float)rect.getWidth() * wheel.deltaY);
             int deltaHeight = (int)((float)rect.getHeight() * wheel.deltaY);
@@ -157,7 +157,7 @@ void BaseComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::Mo
      
 }
 
-void BaseComponent::mouseDrag(const juce::MouseEvent& event)
+void BaseComponent::mouseDrag(const MouseEvent& event)
 {
     if (event.mods.isCtrlDown())
     {
@@ -184,7 +184,7 @@ void BaseComponent::mouseDrag(const juce::MouseEvent& event)
     
 }
 
-void BaseComponent::mouseUp(const juce::MouseEvent& event)
+void BaseComponent::mouseUp(const MouseEvent& event)
 {
     if (event.mods.isCtrlDown())
     {
@@ -196,7 +196,7 @@ void BaseComponent::mouseUp(const juce::MouseEvent& event)
     }
 }
 
-void BaseComponent::mouseDown(const juce::MouseEvent& event)
+void BaseComponent::mouseDown(const MouseEvent& event)
 {
     if (event.mods.isCtrlDown())
     {

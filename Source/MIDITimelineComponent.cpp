@@ -42,7 +42,7 @@ void MIDITimelineComponent::init()
 	int selectedAvailableMIDIDeviceId = 0;
 	MidiDeviceInfo defaultDevice = MidiOutput::getDefaultDevice();
 	Array<MidiDeviceInfo> availableDevices = MidiOutput::getAvailableDevices();
-	defaultMIDIChannel = 1 + Random::getSystemRandom().nextInt(16);
+	defaultMIDIChannel = 1;
 
 	for (MidiDeviceInfo di : availableDevices)
 	{
@@ -105,7 +105,7 @@ void MIDITimelineComponent::scanPlugins()
 
 }
 
-void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
+void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
 {
 	if (isPlaying)
 	{
@@ -148,7 +148,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 
 							if (midiOutput != nullptr && produceMIDIOutput)
 							{
-								MidiMessage noteOn(juce::MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (juce::uint8)127));
+								MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)127));
 								midiOutput->sendMessageNow(noteOn);
 							}
 						}
@@ -161,7 +161,7 @@ void MIDITimelineComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
 
 							if (midiOutput != nullptr && produceMIDIOutput)
 							{
-								MidiMessage noteOff(juce::MidiMessage::noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber));
+								MidiMessage noteOff(MidiMessage::noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber));
 								midiOutput->sendMessageNow(noteOff);
 							}
 
@@ -197,7 +197,7 @@ void MIDITimelineComponent::releaseResources()
 	}
 }
 
-void MIDITimelineComponent::paint(juce::Graphics& g)
+void MIDITimelineComponent::paint(Graphics& g)
 {
 	String tempoInfo = " Tempo: " + String(AppProperties::getTempo());
 	String measuresInfo = " Measures: " + String(this->numMeasures);
@@ -244,14 +244,14 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 
 		for (int i = 0; i < midiTracks.size(); i++)
 		{
-			g.setColour(juce::Colours::grey);
+			g.setColour(Colours::grey);
 			if (i < midiTracks.size())
 			{
 				g.drawLine(0.0f, trackRect.getTopLeft().y, trackRect.getWidth(), trackRect.getTopLeft().y);
 			}
 
 			g.setFont(trackHeight / 25.0f);
-			g.drawText("Track " + String(i + 1), trackRect, juce::Justification::topLeft, true);
+			g.drawText("Track " + String(i + 1), trackRect, Justification::topLeft, true);
 			drawMIDIEvents(trackRect, i, g);
 			trackRect.translate(0, (float)trackHeight);
 		}
@@ -272,11 +272,11 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 			g.fillRect(cursorInfoRect);
 			int currentMeasureIndex = (int)floor((float)numMeasures * ((float)currentTimeUnit / (float)numberOfTimeUnits));
 			int currentTimeUnitWithinMeasureIndex = (currentMeasureIndex * numTimeUnitsInMeasure + currentTimeUnit) % (numTimeUnitsInMeasure);
-			g.setColour(juce::Colours::white);
+			g.setColour(Colours::white);
 			g.setFont(12.0f);
 			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
 
-			g.drawText(cursorText, cursorInfoRect, juce::Justification::centred, true);
+			g.drawText(cursorText, cursorInfoRect, Justification::centred, true);
 
 			if (measureWidthInPixels > 60)
 			{
@@ -300,7 +300,7 @@ void MIDITimelineComponent::paint(juce::Graphics& g)
 						}
 					}
 
-					g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, juce::Justification::left);
+					g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
 
 				}
 			}
@@ -324,12 +324,12 @@ void MIDITimelineComponent::drawMIDIEvents(Rectangle<float> trackRect, int track
 
 	for (int i = 0; i < midiTracks[trackIndex]->getNumEvents(); i++)
 	{
-		juce::MidiMessageSequence::MidiEventHolder* midiEvent = midiTracks[trackIndex]->getEventPointer(i);
+		MidiMessageSequence::MidiEventHolder* midiEvent = midiTracks[trackIndex]->getEventPointer(i);
 		MidiMessage midiMessage = midiEvent->message;
 
 		if (midiMessage.isNoteOn())
 		{
-			juce::MidiMessageSequence::MidiEventHolder* noteOffHolder = midiEvent->noteOffObject;
+			MidiMessageSequence::MidiEventHolder* noteOffHolder = midiEvent->noteOffObject;
 			int noteNumber = midiMessage.getNoteNumber();
 			double noteStart = midiMessage.getTimeStamp();
 			double noteEnd = noteStart;
@@ -372,7 +372,7 @@ void MIDITimelineComponent::loadMIDI()
 		{
 			File file(chooser.getResult());
 
-			if (file != juce::File{})
+			if (file != File{})
 			{
 				clearMatrix();
 				currentTimeUnit = 0;
@@ -424,7 +424,7 @@ void MIDITimelineComponent::processMidi()
 		{
 			for (int eventIndex = 0; eventIndex < midiTracks[trackIndex]->getNumEvents(); eventIndex++)
 			{
-				juce::MidiMessageSequence::MidiEventHolder* midiEvent = midiTracks[trackIndex]->getEventPointer(eventIndex);
+				MidiMessageSequence::MidiEventHolder* midiEvent = midiTracks[trackIndex]->getEventPointer(eventIndex);
 				MidiMessage midiMessage = midiEvent->message;
 				double currentMIDITicks = midiMessage.getTimeStamp();
 				if (currentMIDITicks > maxMatrixTicksCapacity)
@@ -460,12 +460,12 @@ void MIDITimelineComponent::processMidi()
 			{
 				for (int eventIndex = 0; eventIndex < midiTracks[trackIndex]->getNumEvents(); eventIndex++)
 				{
-					juce::MidiMessageSequence::MidiEventHolder* midiEvent = midiTracks[trackIndex]->getEventPointer(eventIndex);
+					MidiMessageSequence::MidiEventHolder* midiEvent = midiTracks[trackIndex]->getEventPointer(eventIndex);
 					MidiMessage midiMessage = midiEvent->message;
 
 					if (midiMessage.isNoteOn())
 					{
-						juce::MidiMessageSequence::MidiEventHolder* noteOffHolder = midiEvent->noteOffObject;
+						MidiMessageSequence::MidiEventHolder* noteOffHolder = midiEvent->noteOffObject;
 						int noteNumber = midiMessage.getNoteNumber();
 						double noteStart = midiMessage.getTimeStamp();
 
@@ -621,7 +621,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 			newImageSize.setHeight((int)((double)maxBitmapSize / aspectRatio));
 			timeUnitWidthPixels = minCellWidth * sizeRatio;
 		}
-		matrixImage = juce::Image(juce::Image::RGB, newImageSize.getWidth(), newImageSize.getHeight(), true);
+		matrixImage = Image(Image::RGB, newImageSize.getWidth(), newImageSize.getHeight(), true);
 
 		Graphics g0(matrixImage);
 		g0.setColour(Colours::grey);
@@ -1099,7 +1099,7 @@ void MIDITimelineComponent::saveMIDIFileToDisk()
 	outStr.flush();
 }
 
-void MIDITimelineComponent::shiftDragEvent(const juce::MouseEvent& event)
+void MIDITimelineComponent::shiftDragEvent(const MouseEvent& event)
 {
 	int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
 	if (selectedCellStart == -1)
@@ -1115,7 +1115,7 @@ void MIDITimelineComponent::shiftDragEvent(const juce::MouseEvent& event)
 	repaint();
 }
 
-void MIDITimelineComponent::shiftMouseDownEvent(const juce::MouseEvent& event)
+void MIDITimelineComponent::shiftMouseDownEvent(const MouseEvent& event)
 {
 	if (!selectionInProgress)
 	{
@@ -1126,12 +1126,12 @@ void MIDITimelineComponent::shiftMouseDownEvent(const juce::MouseEvent& event)
 	}
 }
 
-void MIDITimelineComponent::shiftMouseUpEvent(const juce::MouseEvent& /*event*/)
+void MIDITimelineComponent::shiftMouseUpEvent(const MouseEvent& /*event*/)
 {
 	selectionInProgress = false;
 }
 
-void MIDITimelineComponent::mouseDoubleClickEvent(const juce::MouseEvent& event)
+void MIDITimelineComponent::mouseDoubleClickEvent(const MouseEvent& event)
 {
 	selectionInProgress = false;
 	selectedCellStart = -1;

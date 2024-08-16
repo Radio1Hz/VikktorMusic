@@ -21,7 +21,7 @@ MarkovMatrixComponent::MarkovMatrixComponent(int size, bool readOnly)
 	this->readOnlyMode = readOnly;
 	this->size = size;
 	this->name = "Markov Matrix " + String(size);
-	matrix = std::make_unique<juce::dsp::Matrix<float>>(size, size);
+	matrix = std::make_unique<dsp::Matrix<float>>(size, size);
 	resetMatrix();
 	createChildren();
 }
@@ -63,7 +63,7 @@ void MarkovMatrixComponent::nextStep()
 	repaint();
 }
 
-void MarkovMatrixComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+void MarkovMatrixComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
 	if (TimerComponent* d = dynamic_cast<TimerComponent*>(source))
 	{
@@ -125,10 +125,10 @@ void MarkovMatrixComponent::rearrangeMatrix(ProbabilitySlider* d, int /*algoryth
 }
 
 
-juce::Array<float> MarkovMatrixComponent::getProbabilitiesArray(bool test = false)
+Array<float> MarkovMatrixComponent::getProbabilitiesArray(bool test = false)
 {
-	juce::Array<float> arr;
-	juce::Array<float> ret;
+	Array<float> arr;
+	Array<float> ret;
 	float sum = 0;
 
 	arr.clear();
@@ -136,7 +136,7 @@ juce::Array<float> MarkovMatrixComponent::getProbabilitiesArray(bool test = fals
 	for (int i = 0; i < size - 1; i++)
 	{
 		arr.add(0.0f);
-		//arr.add(juce::Random::getSystemRandom().nextFloat());
+		//arr.add(Random::getSystemRandom().nextFloat());
 	}
 
 	arr.sort();
@@ -171,7 +171,7 @@ MarkovMatrixComponent::~MarkovMatrixComponent()
 	deleteAllChildren();
 }
 
-void MarkovMatrixComponent::paint(juce::Graphics& g)
+void MarkovMatrixComponent::paint(Graphics& g)
 {
 	drawOutline(g);
 	Rectangle<int> localRect = getReducedLocalBounds();
@@ -201,7 +201,7 @@ void MarkovMatrixComponent::resized()
 
 	for (auto* sO : sliders)
 	{
-		sO->setBounds(juce::Rectangle<int>(getReducedLocalBounds().getX() + sO->col * sliders_width / size, getReducedLocalBounds().getY() + sO->row * sliders_height/ size, sliders_width / size, sliders_height/ size));
+		sO->setBounds(Rectangle<int>(getReducedLocalBounds().getX() + sO->col * sliders_width / size, getReducedLocalBounds().getY() + sO->row * sliders_height/ size, sliders_width / size, sliders_height/ size));
 	}
 }
 

@@ -12,19 +12,19 @@
 
 using namespace juce;
 //==============================================================================
-class VikktorMusicApplication  : public juce::JUCEApplication 
+class VikktorMusicApplication  : public JUCEApplication 
 {
 public:
     //==============================================================================
     
     VikktorMusicApplication() {}
 
-    const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
-    const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
+    const String getApplicationName() override       { return ProjectInfo::projectName; }
+    const String getApplicationVersion() override    { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed() override             { return true; }
 
     //==============================================================================
-    void initialise (const juce::String& /*commandLine*/) override
+    void initialise (const String& /*commandLine*/) override
     {
         // This method is where you should put your application's initialisation code..
         AppProperties::setTempo(120);
@@ -48,7 +48,7 @@ public:
         quit();
     }
 
-    void anotherInstanceStarted (const juce::String& /*commandLine*/) override
+    void anotherInstanceStarted (const String& /*commandLine*/) override
     {
         // When another instance of the app is launched while this one is running,
         // this method is invoked, and the commandLine parameter tells you what
@@ -61,13 +61,13 @@ public:
         our MainComponent class.
     */
 
-    class MainWindow    : public juce::DocumentWindow
+    class MainWindow    : public DocumentWindow
     {
     public:
-        MainWindow (juce::String name)
+        MainWindow (String name)
             : DocumentWindow (name,
-                              juce::Desktop::getInstance().getDefaultLookAndFeel()
-                                                          .findColour (juce::ResizableWindow::backgroundColourId),
+                              Desktop::getInstance().getDefaultLookAndFeel()
+                                                          .findColour (ResizableWindow::backgroundColourId),
                               DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (false);
@@ -83,7 +83,7 @@ public:
             
             setVisible (true);
             setFullScreen(true);
-            //juce::Desktop::getInstance().setKioskModeComponent(getTopLevelComponent(), true);
+            //Desktop::getInstance().setKioskModeComponent(getTopLevelComponent(), true);
         }
 
         void closeButtonPressed() override
