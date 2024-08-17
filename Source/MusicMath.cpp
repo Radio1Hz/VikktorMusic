@@ -302,7 +302,7 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 	return -1;
 }
 
-list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE)
+list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, bool shouldWeightByDuration)
 {
 	list<ContextDesc> allPossiblieTonalities;
 
@@ -333,11 +333,13 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 		{
 			if (noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][sCS + c].EventType == 1)
 			{
+				int duration = noteEventMatrix[n - noteRangeStart][sCS + c].NoteDuration;
 				if (startTonality < 0)
 				{
 					startTonality = noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber % 12;
 				}
-				tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 : n;
+				int weight = 1 * (shouldWeightByDuration ? duration : 1);
+				tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 * weight : n * weight;
 			}
 			else
 			{

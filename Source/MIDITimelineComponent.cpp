@@ -187,13 +187,13 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 
 						if (midiOutput != nullptr && produceMIDI)
 						{
-							MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)127));
+							MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)255));
 							midiOutput->sendMessageNow(noteOn);
 						}
 
 						//Send Note Off into Future
 						int playingNoteDuration = noteEventMatrix[i][currentTimeUnit].NoteDuration; // In TimeUnits
-						int playingNoteDurationInSamples = playingNoteDuration * samplesPerTimeUnit;
+						int playingNoteDurationInSamples = playingNoteDuration * (int)samplesPerTimeUnit;
 						notesOffInFuture.set(playingNoteNumber - musicMath.getNoteRangeStart(), samplesElapsedSincePlay + playingNoteDurationInSamples);
 					}
 				}
@@ -789,7 +789,7 @@ void MIDITimelineComponent::analyzeContextInSelection()
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd);
+		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd, true);
 		for (ContextDesc& desc : allPossibleTonalities)
 		{
 			DBG(desc.debug());
@@ -807,7 +807,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 		int pseudoSelectedCellStart = z * numTimeUnitsInMeasure;
 		int pseudoSelectedCellEnd = (z + 1) * numTimeUnitsInMeasure - 1;
 
-		list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd);
+		list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, true);
 
 		if (allPossiblieTonalities.size() > 0)
 		{
@@ -876,7 +876,7 @@ void MIDITimelineComponent::saveMIDIFileToDisk()
 			//No need for defaultMIDIChannel because we save it to disk.
 			if (noteInMatrix.EventType == 1)
 			{
-				MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
+				MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)255);
 				msg.setTimeStamp(currentMIDITimestamp);
 				seq.addEvent(msg);
 
@@ -921,7 +921,7 @@ void MIDITimelineComponent::saveSelectionAsMIDIFile()
 
 				if (noteInMatrix.EventType == 1)
 				{
-					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
+					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)255);
 					msg.setTimeStamp(currentMIDITimestamp);
 					seq.addEvent(msg);
 

@@ -78,7 +78,7 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
+	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, bool shouldWeightByDuration);
 	int sumOfCellsInMatrix(const Matrix<int>& mat);
 	void debugMatrix(const Matrix<int>& mat, String friendlyName, bool showNoteRange);
 	Matrix<int> multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2);
