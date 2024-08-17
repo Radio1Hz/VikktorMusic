@@ -557,9 +557,9 @@ void MIDITimelineComponent::initMenu()
 	if (noteEventMatrix.size() > 0)
 	{
 		PopupMenu selectionSubMenu;
-		selectionSubMenu.addItem("Analyze Context in Selection", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
-		selectionSubMenu.addItem("Save Selection as MIDI File", std::bind(&MIDITimelineComponent::saveSelectionAsMIDIFile, this));
-		selectionSubMenu.addItem("Process Selection", std::bind(&MIDITimelineComponent::processSelection, this));
+		selectionSubMenu.addItem("Analyze", std::bind(&MIDITimelineComponent::analyzeContextInSelection, this));
+		selectionSubMenu.addItem("Save as .mid", std::bind(&MIDITimelineComponent::saveSelectionAsMIDIFile, this));
+		selectionSubMenu.addItem("Clear", std::bind(&MIDITimelineComponent::clearSelection, this));
 
 		this->menu.addSeparator();
 		this->menu.addSubMenu("Selection", selectionSubMenu, true);
@@ -891,45 +891,67 @@ void MIDITimelineComponent::saveSelectionAsMIDIFile()
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-		//MidiMessageSequence seq;
+		MidiMessageSequence seq;
 
-		//MidiMessage msgKeySig = MidiMessage::keySignatureMetaEvent(0, false); // Cmaj
-		//MidiMessage msgTimeSig = MidiMessage::timeSignatureMetaEvent(AppProperties::getNumerator(), AppProperties::getDenominator()); // Cmaj
-		//msgKeySig.setTimeStamp(0);
-		//msgTimeSig.setTimeStamp(0);
-		//seq.addEvent(msgKeySig);
-		//seq.addEvent(msgTimeSig);
+		MidiMessage msgKeySig = MidiMessage::keySignatureMetaEvent(0, false); // Cmaj
+		MidiMessage msgTimeSig = MidiMessage::timeSignatureMetaEvent(AppProperties::getNumerator(), AppProperties::getDenominator()); // Cmaj
+		msgKeySig.setTimeStamp(0);
+		msgTimeSig.setTimeStamp(0);
+		seq.addEvent(msgKeySig);
+		seq.addEvent(msgTimeSig);
 
-		//float totalDurationInMIDITicks = (float)selectionMatrix->getNumColumns() * (float)defaultTicksPerQuarterNote / 4.0f;
-		//for (int j = selectedCellStart; j <= selectedCellEnd; j++)
-		//{
-		//	for (int i = noteRangeStart; i < noteRangeEnd; i++)
-		//	{
-		//		double currentMIDITimestamp = ((float)(j - selectedCellStart) / (float)selectionMatrix->getNumColumns()) * totalDurationInMIDITicks;
-		//		NoteEventDesc noteInMatrix = noteEventMatrix[i - noteRangeStart][j];
+		float totalDurationInMIDITicks = (float)selectionMatrix->getNumColumns() * (float)defaultTicksPerQuarterNote / 4.0f;
+		for (int j = selectedCellStart; j <= selectedCellEnd; j++)
+		{
+			for (int i = musicMath.getNoteRangeStart(); i < musicMath.getNoteRangeEnd(); i++)
+			{
+				double currentMIDITimestamp = ((float)(j - selectedCellStart) / (float)selectionMatrix->getNumColumns()) * totalDurationInMIDITicks;
+				NoteEventDesc noteInMatrix = noteEventMatrix[i - musicMath.getNoteRangeStart()][j];
 
-		//		if (noteInMatrix.EventType == 1)
-		//		{
-		//			MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
-		//			msg.setTimeStamp(currentMIDITimestamp);
-		//			seq.addEvent(msg);
+				if (noteInMatrix.EventType == 1)
+				{
+					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
+					msg.setTimeStamp(currentMIDITimestamp);
+					seq.addEvent(msg);
 
-		//			double offTimestamp = currentMIDITimestamp + ((double)defaultTicksPerQuarterNote / 4.0) * (double)noteInMatrix.NoteDuration - 1;
-		//			MidiMessage msgOff = MidiMessage::noteOff(1, noteInMatrix.NoteNumber, (uint8)0);
-		//			msgOff.setTimeStamp(offTimestamp);
-		//			seq.addEvent(msgOff);
-		//		}
-		//	}
-		//}
-		//seq.updateMatchedPairs();
-		//MidiFile outputFile;
-		//const String outFileName = AppProperties::getProjectPath() + projectName + ".selection." + String(selectedCellStart) + "-" + String(selectedCellEnd) + "." + String(Time::currentTimeMillis()) + ".mid";
-		//outputFile.addTrack(seq);
-		//outputFile.setTicksPerQuarterNote(defaultTicksPerQuarterNote);
+					double offTimestamp = currentMIDITimestamp + ((double)defaultTicksPerQuarterNote / 4.0) * (double)noteInMatrix.NoteDuration - 1;
+					MidiMessage msgOff = MidiMessage::noteOff(1, noteInMatrix.NoteNumber, (uint8)0);
+					msgOff.setTimeStamp(offTimestamp);
+					seq.addEvent(msgOff);
+				}
+			}
+		}
+		seq.updateMatchedPairs();
+		MidiFile outputFile;
+		const String outFileName = AppProperties::getProjectPath() + projectName + ".selection." + String(selectedCellStart) + "-" + String(selectedCellEnd) + "." + String(Time::currentTimeMillis()) + ".mid";
+		outputFile.addTrack(seq);
+		outputFile.setTicksPerQuarterNote(defaultTicksPerQuarterNote);
 
-		//FileOutputStream outStr(File(outFileName + ""));
-		//outputFile.writeTo(outStr);
-		//outStr.flush();
+		FileOutputStream outStr(File(outFileName + ""));
+		outputFile.writeTo(outStr);
+		outStr.flush();
+	}
+}
+
+void MIDITimelineComponent::clearSelection()
+{
+	if (selectedCellStart > -1)
+	{
+		for (int j = selectedCellStart; j <= selectedCellEnd; j++)
+		{
+			for (int i = musicMath.getNoteRangeStart(); i < musicMath.getNoteRangeEnd(); i++)
+			{
+				NoteEventDesc currentDesc = noteEventMatrix[i - musicMath.getNoteRangeStart()][j];
+				if (currentDesc.EventType == 1)
+				{
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].EventType = -1;
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteNumber = 0;
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteDuration = 0;
+				}
+			}
+		}
+		repaintMatrixImage();
+		repaint();
 	}
 }
 

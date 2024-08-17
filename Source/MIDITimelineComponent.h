@@ -63,6 +63,7 @@ private:
 	void saveAudioBufferToDisk();
 	void saveMIDIFileToDisk();
 	void saveSelectionAsMIDIFile();
+	void clearSelection();
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
 	void MIDITimelineComponent::scanPlugins();
 
