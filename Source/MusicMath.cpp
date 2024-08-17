@@ -68,6 +68,12 @@ MusicMath::MusicMath()
 
 }
 
+MusicMath::MusicMath(int noteRangeStart, int noteRangeEnd)
+{
+	this->noteRangeStart = noteRangeStart;
+	this->noteRangeEnd = noteRangeEnd;
+}
+
 MusicMath::~MusicMath()
 {
 
@@ -233,6 +239,27 @@ void MusicMath::transformMIDINoteMessage(MidiMessage& modifiedMsg)
 	}
 }
 
+void MusicMath::setNoteRange(int nRS, int nRE)
+{
+	this->noteRangeStart = nRS;
+	this->noteRangeEnd = nRE;
+}
+
+int MusicMath::getNoteRangeSize()
+{
+	return noteRangeEnd - noteRangeStart;
+}
+
+int MusicMath::getNoteRangeStart()
+{
+	return noteRangeStart;
+}
+
+int MusicMath::getNoteRangeEnd()
+{
+	return noteRangeEnd;
+}
+
 // Input: MidiNoteNumber (60, 61, 62...) Output: Role in the scale (white keys index 0, 1, 2, 3 [root, second, third...]) 
 // Returns -1 if black key
 int MusicMath::translateRoleIndex(const MidiMessage& midiNote)
@@ -275,7 +302,7 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 	return -1;
 }
 
-list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int noteRangeStart, int noteRangeEnd)
+list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE)
 {
 	list<ContextDesc> allPossiblieTonalities;
 
@@ -292,7 +319,7 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 	String mostProbableRootFlavor = "maj";
 
 	int maxSum = 0;
-	int numColumns = selectedCellEnd - selectedCellStart + 1;
+	int numColumns = sCE - sCS + 1;
 	Matrix<int> tempMatrix(noteRangeEnd - noteRangeStart, numColumns);
 	tempMatrix.clear();
 
@@ -304,11 +331,11 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 	{
 		for (int n = noteRangeStart; n < noteRangeEnd; n++)
 		{
-			if (noteEventMatrix[n - noteRangeStart][selectedCellStart + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][selectedCellStart + c].EventType == 1)
+			if (noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][sCS + c].EventType == 1)
 			{
 				if (startTonality < 0)
 				{
-					startTonality = noteEventMatrix[n - noteRangeStart][selectedCellStart + c].NoteNumber % 12;
+					startTonality = noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber % 12;
 				}
 				tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 : n;
 			}
@@ -394,23 +421,16 @@ int MusicMath::sumOfCellsInMatrix(const Matrix<int>& mat)
 	return res;
 }
 
-void MusicMath::debugMatrix(const Matrix<int>& mat, String friendlyName = "")
+void MusicMath::debugMatrix(const Matrix<int>& mat, String friendlyName, bool showNoteRange)
 {
-	DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "] ------------------------------------------------------------");
-	for (int i = 0; i < mat.getNumRows(); i++)
+	if (showNoteRange)
 	{
-		String row = "";
-		for (int j = 0; j < mat.getNumColumns(); j++)
-		{
-			row += String(mat(i, j)) + "\t";
-		}
-		DBG(row);
+		DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "]" + " Note Range: " + String(noteRangeStart) + "-" + String(noteRangeEnd) + " ------------------------------------------------------------");
 	}
-}
-
-void MusicMath::debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd, String friendlyName)
-{
-	DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "]" + " Note Range: " + String(noteRangeStart) + "-" + String(noteRangeEnd) + " ------------------------------------------------------------");
+	else
+	{
+		DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "] ------------------------------------------------------------");
+	}
 	String row = "";
 	String row2 = "";
 

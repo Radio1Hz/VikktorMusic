@@ -47,6 +47,7 @@ class MusicMath
 {
 public:
 	MusicMath();
+	MusicMath(int noteRangeStart, int noteRangeEnd);
 	~MusicMath();
 	static String getNoteNameByMIDINoteNumber(int noteNumber);
 	String				displayKeys();
@@ -59,6 +60,11 @@ public:
 	Colour				getKeyColour(int keyIndex);
 	String				GetNoteName(int noteRoleIndex); // noteRoleIndex in (0, 1, 2, 3, 4, 5, 6) / Root, Second, Third, etc...
 	void				transformMIDINoteMessage(MidiMessage& modifiedMsg);
+	void				setNoteRange(int noteRangeStart, int noteRangeEnd);
+	int					getNoteRangeSize();
+	int					getNoteRangeStart();
+	int					getNoteRangeEnd();
+
 	vector<String>	GetKeys();
 	vector<String>	GetModes();
 
@@ -72,10 +78,9 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int noteRangeStart, int noteRangeEnd);
+	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
 	int sumOfCellsInMatrix(const Matrix<int>& mat);
-	void debugMatrix(const Matrix<int>& mat, String friendlyName);
-	void debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd, String friendlyName);
+	void debugMatrix(const Matrix<int>& mat, String friendlyName, bool showNoteRange);
 	Matrix<int> multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2);
 	Matrix<int> multiplyMatrixAndVector(const Matrix<int>& mat1, const Matrix<int>& mat2);
 	unique_ptr<Matrix<int>> _defaultMajorScaleDefinitionVector;
@@ -83,6 +88,10 @@ public:
 	unique_ptr<Matrix<int>> _defaultMajorChordDefinitionVector;
 	unique_ptr<Matrix<int>> _defaultMinorChordDefinitionVector;
 private:
+
+	int noteRangeStart = 36;
+	int noteRangeEnd = 92;
+
 	vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
 	{
 		0,			// C

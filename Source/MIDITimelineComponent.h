@@ -49,7 +49,7 @@ public:
 
 private:
 	//Methods
-	void clearMatrix();
+	void clearNoteEventMatrix();
 	void loadMIDI();
 	void setComponentSize();
 	void initMenu();
@@ -85,9 +85,7 @@ private:
 
 	//MusicMath
 	MusicMath musicMath;
-	int noteRangeStart = 36;
-	int noteRangeEnd = 92;
-	int noteRangeSize = 0;
+
 	int currentTimeUnit = 0;
 	short defaultTicksPerQuarterNote = 196;
 	int numMeasures = 0;
