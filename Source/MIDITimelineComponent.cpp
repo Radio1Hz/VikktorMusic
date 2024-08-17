@@ -30,7 +30,7 @@ MIDITimelineComponent::MIDITimelineComponent(int nM, int sID)
 	synthID = sID;
 	defaultMIDIChannel = 1;
 
-	musicMath.setNoteRange(32, 82);
+	musicMath.setNoteRange(32, 92);
 	notesOffInFuture.resize(musicMath.getNoteRangeSize());
 
 	clearNoteEventMatrix();
@@ -129,14 +129,13 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 			double timeUnitDuration = beatDuration / 4.0;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 
-			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSinceStart / samplesPerTimeUnit);
+			int currentTimeUnitPredicted = (int)floor((double)sampleIndex / samplesPerTimeUnit);
 
 			// If end happened - replay			
 			if (currentTimeUnitPredicted >= numberOfTimeUnits)
 			{
 				currentTimeUnit = 0;
-				samplesElapsedSinceStart = 0;
-				notesOffInFuture.fill(0);
+				sampleIndex = 0;
 
 				if (produceAudio)
 				{
@@ -159,7 +158,7 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 					//Check if some notes needs to be turned off
 					for (int n = 0; n < notesOffInFuture.size(); n++)
 					{
-						if (notesOffInFuture[n] > 0 && notesOffInFuture[n] < samplesElapsedSinceStart)
+						if (notesOffInFuture[n] > 0 && notesOffInFuture[n] < samplesElapsed)
 						{
 							if (produceAudio)
 							{
@@ -194,32 +193,19 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 						//Send Note Off into Future
 						int playingNoteDuration = noteEventMatrix[i][currentTimeUnit].NoteDuration; // In TimeUnits
 						int playingNoteDurationInSamples = playingNoteDuration * (int)samplesPerTimeUnit;
-						notesOffInFuture.set(playingNoteNumber - musicMath.getNoteRangeStart(), samplesElapsedSinceStart + playingNoteDurationInSamples);
+						notesOffInFuture.set(playingNoteNumber - musicMath.getNoteRangeStart(), samplesElapsed + playingNoteDurationInSamples);
 					}
 				}
 				currentTimeUnit++;
-
 				//If Loop
 				if (loopCellStart > -1)
 				{
 					if (currentTimeUnit >= loopCellStart + loopWidthInTimeUnits)
 					{
 						currentTimeUnit = loopCellStart;
-						notesOffInFuture.fill(0);
-						samplesElapsedSinceStart = (int)samplesPerTimeUnit * loopCellStart;
-
-						if (synths.size() > 0)
-						{
-							synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
-						}
-
-						if (midiOutput != nullptr)
-						{
-							midiOutput->sendMessageNow(MidiMessage::allNotesOff(defaultMIDIChannel));
-						}
+						sampleIndex = (int)samplesPerTimeUnit * loopCellStart;
 					}
 				}
-
 				triggerRepaint();
 			}
 
@@ -242,7 +228,8 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 					}
 				}
 			}
-			samplesElapsedSinceStart += bufferToFill.numSamples;
+			sampleIndex += bufferToFill.numSamples;
+			samplesElapsed += bufferToFill.numSamples;
 		}
 	}
 }
@@ -645,6 +632,7 @@ void MIDITimelineComponent::playMIDI()
 {
 	isPlaying = true;
 	notesOffInFuture.fill(0);
+	samplesElapsed = 0;
 }
 
 void MIDITimelineComponent::stopMIDI()
@@ -652,11 +640,13 @@ void MIDITimelineComponent::stopMIDI()
 	isPlaying = false;
 	notesOffInFuture.fill(0);
 
-	samplesElapsedSinceStart = 0;
+	sampleIndex = 0;
 	currentTimeUnit = 0;
 
 	loopCellStart = -1;
 	loopWidthInTimeUnits = 0;
+
+	samplesElapsed = 0;
 
 	if (synths.size() > 0)
 	{
@@ -851,7 +841,7 @@ void MIDITimelineComponent::loopSelection()
 		double beatDuration = 60.0 / (double)AppProperties::getTempo();
 		double timeUnitDuration = beatDuration / 4.0;
 		double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
-		samplesElapsedSinceStart = (int)samplesPerTimeUnit * loopCellStart;
+		sampleIndex = (int)samplesPerTimeUnit * loopCellStart;
 		playMIDI();
 		repaint();
 	}
@@ -1100,7 +1090,7 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const MouseEvent& event)
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
 	double timeUnitDuration = beatDuration / 4.0;
 	double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
-	samplesElapsedSinceStart = (int)samplesPerTimeUnit * currentCell;
+	sampleIndex = (int)samplesPerTimeUnit * currentCell;
 	if (synths.size() > 0)
 	{
 		synths[0]->synth.allNotesOff(defaultMIDIChannel, true);

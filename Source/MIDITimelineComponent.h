@@ -118,7 +118,8 @@ private:
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
 	bool isPlaying = false;
-	int samplesElapsedSinceStart = 0;
+	int sampleIndex = 0;
+	int samplesElapsed = 0;
 	int audioBufferSampleIndex = 0;
 	AudioBuffer<float> audioBuffer;
 	AudioDeviceManager audioDeviceManager;
