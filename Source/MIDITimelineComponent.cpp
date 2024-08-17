@@ -30,7 +30,7 @@ MIDITimelineComponent::MIDITimelineComponent(int nM, int sID)
 	synthID = sID;
 	defaultMIDIChannel = 1;
 
-	musicMath.setNoteRange(36, 92);
+	musicMath.setNoteRange(32, 82);
 	notesOffInFuture.resize(musicMath.getNoteRangeSize());
 
 	clearNoteEventMatrix();
@@ -129,13 +129,13 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 			double timeUnitDuration = beatDuration / 4.0;
 			double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
 
-			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSincePlay / samplesPerTimeUnit);
+			int currentTimeUnitPredicted = (int)floor((double)samplesElapsedSinceStart / samplesPerTimeUnit);
 
 			// If end happened - replay			
 			if (currentTimeUnitPredicted >= numberOfTimeUnits)
 			{
 				currentTimeUnit = 0;
-				samplesElapsedSincePlay = 0;
+				samplesElapsedSinceStart = 0;
 				notesOffInFuture.fill(0);
 
 				if (produceAudio)
@@ -159,7 +159,7 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 					//Check if some notes needs to be turned off
 					for (int n = 0; n < notesOffInFuture.size(); n++)
 					{
-						if (notesOffInFuture[n] > 0 && notesOffInFuture[n] < samplesElapsedSincePlay)
+						if (notesOffInFuture[n] > 0 && notesOffInFuture[n] < samplesElapsedSinceStart)
 						{
 							if (produceAudio)
 							{
@@ -194,26 +194,55 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 						//Send Note Off into Future
 						int playingNoteDuration = noteEventMatrix[i][currentTimeUnit].NoteDuration; // In TimeUnits
 						int playingNoteDurationInSamples = playingNoteDuration * (int)samplesPerTimeUnit;
-						notesOffInFuture.set(playingNoteNumber - musicMath.getNoteRangeStart(), samplesElapsedSincePlay + playingNoteDurationInSamples);
+						notesOffInFuture.set(playingNoteNumber - musicMath.getNoteRangeStart(), samplesElapsedSinceStart + playingNoteDurationInSamples);
 					}
 				}
 				currentTimeUnit++;
+
+				//If Loop
+				if (loopCellStart > -1)
+				{
+					if (currentTimeUnit >= loopCellStart + loopWidthInTimeUnits)
+					{
+						currentTimeUnit = loopCellStart;
+						notesOffInFuture.fill(0);
+						samplesElapsedSinceStart = (int)samplesPerTimeUnit * loopCellStart;
+
+						if (synths.size() > 0)
+						{
+							synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
+						}
+
+						if (midiOutput != nullptr)
+						{
+							midiOutput->sendMessageNow(MidiMessage::allNotesOff(defaultMIDIChannel));
+						}
+					}
+				}
+
 				triggerRepaint();
 			}
+
 			synths[0]->getNextAudioBlock(bufferToFill);
 
 			if (AppProperties::getShouldSaveAudio())
 			{
 				//Transfer and append samples from bufferToFill to audioBuffer
-
 				int numSamplesInBuffer = audioBuffer.getNumSamples();
 				for (int i = 0; i < bufferToFill.numSamples; i++)
 				{
-					audioBuffer.setSample(0, (samplesElapsedSincePlay + i) % numSamplesInBuffer, bufferToFill.buffer->getSample(0, i));
-					audioBuffer.setSample(1, (samplesElapsedSincePlay + i) % numSamplesInBuffer, bufferToFill.buffer->getSample(1, i));
+					audioBuffer.setSample(0, audioBufferSampleIndex, bufferToFill.buffer->getSample(0, i));
+					audioBuffer.setSample(1, audioBufferSampleIndex, bufferToFill.buffer->getSample(1, i));
+
+					audioBufferSampleIndex++;
+
+					if (audioBufferSampleIndex >= numSamplesInBuffer)
+					{
+						audioBufferSampleIndex = 0;
+					}
 				}
 			}
-			samplesElapsedSincePlay += bufferToFill.numSamples;
+			samplesElapsedSinceStart += bufferToFill.numSamples;
 		}
 	}
 }
@@ -562,16 +591,25 @@ void MIDITimelineComponent::initMenu()
 		selectionSubMenu.addItem("Save as .mid", std::bind(&MIDITimelineComponent::saveSelectionAsMIDIFile, this));
 		selectionSubMenu.addItem("Clear", std::bind(&MIDITimelineComponent::clearSelection, this));
 
-		this->menu.addSeparator();
-		this->menu.addSubMenu("Selection", selectionSubMenu, true);
-		this->menu.addSeparator();
+		PopupMenu generateSubMenu;
+		generateSubMenu.addItem("Ramp - Chromatic", std::bind(&MIDITimelineComponent::generateRampChromatic, this));
+		//generateSubMenu.addItem("Save as .mid", std::bind(&MIDITimelineComponent::saveSelectionAsMIDIFile, this));
+		//generateSubMenu.addItem("Clear", std::bind(&MIDITimelineComponent::clearSelection, this));
 
-		this->menu.addItem("Play", std::bind(&MIDITimelineComponent::playMIDI, this));
-		this->menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
-		this->menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
-		this->menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
-		this->menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
-		this->menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
+		menu.addSeparator();
+		menu.addSubMenu("Selection", selectionSubMenu, true);
+		menu.addSeparator();
+
+		menu.addSubMenu("Generate", generateSubMenu, true);
+		menu.addSeparator();
+
+		menu.addItem("Play", std::bind(&MIDITimelineComponent::playMIDI, this));
+		menu.addItem("Loop Selection", std::bind(&MIDITimelineComponent::loopSelection, this));
+		menu.addItem("Stop", std::bind(&MIDITimelineComponent::stopMIDI, this));
+		menu.addItem("Clear", std::bind(&MIDITimelineComponent::clearTimeline, this));
+		menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
+		menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
+		menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
 	}
 }
 
@@ -614,8 +652,11 @@ void MIDITimelineComponent::stopMIDI()
 	isPlaying = false;
 	notesOffInFuture.fill(0);
 
-	samplesElapsedSincePlay = 0;
+	samplesElapsedSinceStart = 0;
 	currentTimeUnit = 0;
+
+	loopCellStart = -1;
+	loopWidthInTimeUnits = 0;
 
 	if (synths.size() > 0)
 	{
@@ -797,6 +838,25 @@ void MIDITimelineComponent::analyzeContextInSelection()
 	}
 }
 
+void MIDITimelineComponent::loopSelection()
+{
+	if (selectedCellStart > -1)
+	{
+		// 0 - 15: Width = 16
+		int selectionWidth = selectedCellEnd - selectedCellStart + 1;
+		stopMIDI();
+		currentTimeUnit = selectedCellStart;
+		loopCellStart = selectedCellStart;
+		loopWidthInTimeUnits = selectionWidth;
+		double beatDuration = 60.0 / (double)AppProperties::getTempo();
+		double timeUnitDuration = beatDuration / 4.0;
+		double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
+		samplesElapsedSinceStart = (int)samplesPerTimeUnit * loopCellStart;
+		playMIDI();
+		repaint();
+	}
+}
+
 void MIDITimelineComponent::defineAllContextsPerMeasures()
 {
 	contextPerMeasureVector.clear();
@@ -974,6 +1034,29 @@ void MIDITimelineComponent::clearSelection()
 	}
 }
 
+void MIDITimelineComponent::generateRampChromatic()
+{
+	if (selectedCellStart > -1)
+	{
+		int currentNote = musicMath.getNoteRangeStart();
+		for (int i = selectedCellStart; i <= selectedCellEnd; i++)
+		{
+			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].EventType = 1;
+			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].NoteNumber = currentNote;
+			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].NoteDuration = 1;
+
+			currentNote++;
+
+			if (currentNote >= musicMath.getNoteRangeEnd())
+			{
+				currentNote = musicMath.getNoteRangeStart();
+			}
+		}
+		repaintMatrixImage();
+		repaint();
+	}
+}
+
 void MIDITimelineComponent::shiftDragEvent(const MouseEvent& event)
 {
 	int currentCell = (int)((double)(numTimeUnitsInMeasure * numMeasures) * ((double)event.x / (double)getLocalBounds().getWidth()));
@@ -1017,7 +1100,7 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const MouseEvent& event)
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
 	double timeUnitDuration = beatDuration / 4.0;
 	double samplesPerTimeUnit = sampleRateInt * timeUnitDuration;
-	samplesElapsedSincePlay = (int)samplesPerTimeUnit * currentCell;
+	samplesElapsedSinceStart = (int)samplesPerTimeUnit * currentCell;
 	if (synths.size() > 0)
 	{
 		synths[0]->synth.allNotesOff(defaultMIDIChannel, true);

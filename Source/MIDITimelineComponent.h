@@ -49,6 +49,8 @@ public:
 
 private:
 	//Methods
+	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
+	void MIDITimelineComponent::scanPlugins();
 	void clearNoteEventMatrix();
 	void loadMIDI();
 	void setComponentSize();
@@ -58,20 +60,23 @@ private:
 	void repaintMatrixImage();
 	void processSelection();
 	void analyzeContextInSelection();
+	void loopSelection();
 	void defineAllContextsPerMeasures();
 	void operationOnSelection01();
 	void saveAudioBufferToDisk();
 	void saveMIDIFileToDisk();
 	void saveSelectionAsMIDIFile();
 	void clearSelection();
-	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
-	void MIDITimelineComponent::scanPlugins();
+	void generateRampChromatic();
 
 	//Selection related
 	unique_ptr<Matrix<NoteEventDesc>> selectionMatrix;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;
 	bool selectionInProgress = false;
+
+	int loopCellStart = -1;
+	int loopWidthInTimeUnits = 0;
 
 	//Matrix 
 	vector<vector<NoteEventDesc>> noteEventMatrix;
@@ -113,7 +118,8 @@ private:
 	int samplesPerBlockExpectedInt = 0;
 	double sampleRateInt = 0;
 	bool isPlaying = false;
-	int samplesElapsedSincePlay = 0;
+	int samplesElapsedSinceStart = 0;
+	int audioBufferSampleIndex = 0;
 	AudioBuffer<float> audioBuffer;
 	AudioDeviceManager audioDeviceManager;
 	AudioPluginFormatManager formatManager;
