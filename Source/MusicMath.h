@@ -13,6 +13,36 @@ using namespace std;
 using namespace juce;
 using namespace dsp;
 
+
+class NoteEventDesc
+{
+public:
+	/*-1: No Event, 0: Note Off, 1: Note On*/
+	int		NoteNumber = -1;
+	int		NoteDuration = 0;
+	int		EventType = -1;
+	NoteEventDesc();
+	NoteEventDesc(int noteNumber);
+	NoteEventDesc(int noteNumber, int noteDuration);
+	NoteEventDesc(int noteNumber, int noteDuration, int eventType);
+	~NoteEventDesc();
+};
+
+class ContextDesc
+{
+public:
+	bool	IsMajor = true;
+	int		RootMIDINote = -1;
+	int		ContextDuration = 0;
+	int		EventType = -1;
+	float	Probability = 0.0;
+	String debug();
+	ContextDesc();
+	ContextDesc(int rootMIDINote, bool isMajor);
+	ContextDesc(int rootMIDINote, bool isMajor, float probability);
+	~ContextDesc();
+};
+
 class MusicMath
 {
 public:
@@ -42,7 +72,7 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-
+	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int noteRangeStart, int noteRangeEnd);
 	int sumOfCellsInMatrix(const Matrix<int>& mat);
 	void debugMatrix(const Matrix<int>& mat, String friendlyName);
 	void debugMatrix(const Matrix<int>& mat, int noteRangeStart, int noteRangeEnd, String friendlyName);
@@ -224,34 +254,3 @@ Keys Colour coding:
 - B is Blue					(#0000FF or rgba(0, 0, 255, 1))
 
 */
-
-class NoteEventDesc
-{
-public:
-	/*-1: No Event, 0: Note Off, 1: Note On*/
-	String	NoteName = "";
-	int				NoteNumber = -1;
-	int				NoteDuration = 0;
-	int				EventType = -1;
-	NoteEventDesc();
-	NoteEventDesc(String noteName, int noteNumber);
-	NoteEventDesc(String noteName, int noteNumber, int noteDuration);
-	NoteEventDesc(String noteName, int noteNumber, int noteDuration, int eventType);
-	~NoteEventDesc();
-};
-
-class ContextDesc
-{
-public:
-	bool	IsMajor = true;
-	int		RootMIDINote = -1;
-	int		ContextDuration = 0;
-	int		EventType = -1;
-	float	Probability = 0.0;
-	String debug();
-	ContextDesc();
-	ContextDesc(int rootMIDINote, bool isMajor);
-	ContextDesc(int rootMIDINote, bool isMajor, float probability);
-	~ContextDesc();
-	
-};

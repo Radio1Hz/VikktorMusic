@@ -57,7 +57,7 @@ MusicMath::MusicMath()
 	_defaultMinorScaleDefinitionVector->operator()(0, 10) = 1;
 	_defaultMinorScaleDefinitionVector->operator()(0, 11) = 0;
 
-	
+
 	_defaultMajorChordDefinitionVector->operator()(0, 0) = 1;
 	_defaultMajorChordDefinitionVector->operator()(0, 4) = 1;
 	_defaultMajorChordDefinitionVector->operator()(0, 7) = 1;
@@ -217,8 +217,7 @@ String MusicMath::getChordName()
 String MusicMath::GetNoteName(int noteRoleIndex)
 {
 	int realNoteNumber = _keys_offset[currentKeyIndex] + _modes_offset[0][currentModeIndex] + _modes_offset[currentModeIndex][noteRoleIndex];
-	String noteName = MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
-	return noteName;
+	return MusicMath::getNoteNameByMIDINoteNumber(realNoteNumber);
 }
 
 void MusicMath::transformMIDINoteMessage(MidiMessage& modifiedMsg)
@@ -276,12 +275,117 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 	return -1;
 }
 
+list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int noteRangeStart, int noteRangeEnd)
+{
+	list<ContextDesc> allPossiblieTonalities;
+
+	Matrix<int>& defMajorScaleVector(*_defaultMajorScaleDefinitionVector.get());
+	Matrix<int>& defMinorScaleVector(*_defaultMinorScaleDefinitionVector.get());
+	Matrix<int> defMajorChordVector(*_defaultMajorChordDefinitionVector.get());
+	Matrix<int> defMinorChordVector(*_defaultMinorChordDefinitionVector.get());
+	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
+	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
+
+	int mostProbableRoot = 0;
+	String mostProbableRootFlavor = "maj";
+
+	int maxSum = 0;
+	int numColumns = selectedCellEnd - selectedCellStart + 1;
+	Matrix<int> tempMatrix(noteRangeEnd - noteRangeStart, numColumns);
+	tempMatrix.clear();
+
+	int startTonality = -1;
+	//Normalize Matrix
+	bool shouldNormalize = true;
+
+	for (int c = 0; c < tempMatrix.getNumColumns(); c++)
+	{
+		for (int n = noteRangeStart; n < noteRangeEnd; n++)
+		{
+			if (noteEventMatrix[n - noteRangeStart][selectedCellStart + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][selectedCellStart + c].EventType == 1)
+			{
+				if (startTonality < 0)
+				{
+					startTonality = noteEventMatrix[n - noteRangeStart][selectedCellStart + c].NoteNumber % 12;
+				}
+				tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 : n;
+			}
+			else
+			{
+				tempMatrix.operator()(n - noteRangeStart, c) = 0;
+			}
+		}
+	}
+
+	//Go through all 12 tonalities
+	for (int tIndex = 0; tIndex < 12; tIndex++)
+	{
+		int t = (startTonality + tIndex) % 12;
+
+		defMajorScaleVectorFull.clear();
+		defMinorScaleVectorFull.clear();
+		defMajorChordVectorFull.clear();
+		defMinorChordVectorFull.clear();
+
+		String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
+		for (int c = 0; c < numColumns; c++)
+		{
+			//Define template vectors for Major and Minor for the Tonality[t]
+			for (int n = noteRangeStart; n < noteRangeEnd; n++)
+			{
+				defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
+				defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
+				defMajorChordVectorFull.operator()(0, n - noteRangeStart) = defMajorChordVector.operator()(0, (n - t) % 12);
+				defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
+			}
+		}
+
+		Matrix<int> resMajChord = multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
+		Matrix<int> resMinChord = multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
+		Matrix<int> resMajScale = multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
+		Matrix<int> resMinScale = multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
+
+		int sumMajChord = sumOfCellsInMatrix(resMajChord);
+		int sumMinChord = sumOfCellsInMatrix(resMinChord);
+		int sumMajScale = sumOfCellsInMatrix(resMajScale);
+		int sumMinScale = sumOfCellsInMatrix(resMinScale);
+
+		if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
+		{
+			if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
+			{
+				mostProbableRootFlavor = "maj";
+			}
+			else
+			{
+				mostProbableRootFlavor = "min";
+			}
+
+			float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
+			mostProbableRoot = t;
+			maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
+			ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
+			allPossiblieTonalities.push_back(cd);
+		}
+	}
+	allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
+
+	for (ContextDesc& ctx : allPossiblieTonalities)
+	{
+		ctx.Probability = ctx.Probability / (float)maxSum;
+	}
+
+	return allPossiblieTonalities;
+}
+
 
 int MusicMath::sumOfCellsInMatrix(const Matrix<int>& mat)
 {
 	int res = 0;
 	for (int i = 0; i < mat.getNumRows(); i++)
-	{	
+	{
 		for (int j = 0; j < mat.getNumColumns(); j++)
 		{
 			res += mat(i, j);
@@ -290,7 +394,7 @@ int MusicMath::sumOfCellsInMatrix(const Matrix<int>& mat)
 	return res;
 }
 
-void MusicMath::debugMatrix(const Matrix<int>& mat, String friendlyName)
+void MusicMath::debugMatrix(const Matrix<int>& mat, String friendlyName = "")
 {
 	DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "] ------------------------------------------------------------");
 	for (int i = 0; i < mat.getNumRows(); i++)
@@ -309,7 +413,7 @@ void MusicMath::debugMatrix(const Matrix<int>& mat, int noteRangeStart, int note
 	DBG(friendlyName + " Matrix [" + String(mat.getNumRows()) + ", " + String(mat.getNumColumns()) + "]" + " Note Range: " + String(noteRangeStart) + "-" + String(noteRangeEnd) + " ------------------------------------------------------------");
 	String row = "";
 	String row2 = "";
-	
+
 	for (int n = noteRangeStart; n < noteRangeEnd; n++)
 	{
 		String note = MusicMath::getNoteNameByMIDINoteNumber(n);
@@ -391,23 +495,27 @@ Octave	C	C#	D	D#	E	F	F#	G	G#	A	Bb	B
 	8	120	121	122	123	124	125	126	127
 */
 NoteEventDesc::NoteEventDesc()
-{}
-NoteEventDesc::NoteEventDesc(String noteName, int noteNumber)
 {
-	this->NoteName = noteName;
+	this->NoteNumber = 0;
+	this->NoteDuration = 0;
+	this->EventType = -1;
+}
+NoteEventDesc::NoteEventDesc(int noteNumber)
+{
 	this->NoteNumber = noteNumber;
+	this->NoteDuration = 0;
+	this->EventType = -1;
 }
 
-NoteEventDesc::NoteEventDesc(String noteName, int noteNumber, int noteDuration)
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration)
 {
-	this->NoteName = noteName;
 	this->NoteNumber = noteNumber;
 	this->NoteDuration = noteDuration;
+	this->EventType = -1;
 }
 
-NoteEventDesc::NoteEventDesc(String noteName, int noteNumber, int noteDuration, int eventType)
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType)
 {
-	this->NoteName = noteName;
 	this->NoteNumber = noteNumber;
 	this->NoteDuration = noteDuration;
 	this->EventType = eventType;
@@ -425,7 +533,7 @@ ContextDesc::ContextDesc(int rootMIDINote, bool isMajor)
 	this->IsMajor = isMajor;
 	this->RootMIDINote = rootMIDINote;
 	this->ContextDuration = 0;
-	
+
 }
 ContextDesc::ContextDesc(int rootMIDINote, bool isMajor, float probability)
 {

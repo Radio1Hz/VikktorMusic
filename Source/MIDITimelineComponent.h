@@ -67,7 +67,7 @@ private:
 	void MIDITimelineComponent::scanPlugins();
 
 	//Selection related
-	unique_ptr<Matrix<int>> selectionMatrix;
+	unique_ptr<Matrix<NoteEventDesc>> selectionMatrix;
 	int selectedCellStart = -1;
 	int selectedCellEnd = 0;
 	bool selectionInProgress = false;

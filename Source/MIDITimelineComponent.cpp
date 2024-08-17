@@ -499,34 +499,25 @@ void MIDITimelineComponent::processMidi()
 						int ticksPerMeasure = (int)((float)defaultTicksPerQuarterNote * (float)numQuartersPerMeasure);
 
 						double ticksPerTimeUnit = ((double)ticksPerMeasure / (double)numQuartersPerMeasure) / 4.0;
-						double totalDurationTicks = matrixWidth * ticksPerTimeUnit;
 
 						int duration = roundToInt((noteEnd - noteStart) / ticksPerTimeUnit);
-						int column = roundToInt(((noteStart / totalDurationTicks) * (double)matrixWidth));
+						int column = roundToInt(noteStart / ticksPerTimeUnit);
 
-						if (noteNumber >= noteRangeStart && noteNumber < noteRangeEnd && column < matrixWidth)
+						if (noteNumber >= noteRangeStart && noteNumber < noteRangeEnd && column < matrixWidth && duration > 0)
 						{
-							if (duration > 0)
+							NoteEventDesc nEventOff(noteNumber, duration, 0);
+
+							if (column + duration < noteEventMatrix[0].size())
 							{
-								NoteEventDesc nEventOff(MusicMath::getNoteNameByMIDINoteNumber(noteNumber), noteNumber, duration, 0);
-
-								if (column + duration < noteEventMatrix[0].size())
-								{
-									noteEventMatrix[noteNumber - noteRangeStart][column + duration] = nEventOff;
-								}
-								else
-								{
-									noteEventMatrix[noteNumber - noteRangeStart][noteEventMatrix[0].size() - 1] = nEventOff;
-								}
-
-								NoteEventDesc nEventOn(MusicMath::getNoteNameByMIDINoteNumber(noteNumber), noteNumber, duration, 1);
-								noteEventMatrix[noteNumber - noteRangeStart][column] = nEventOn;
+								noteEventMatrix[noteNumber - noteRangeStart][column + duration] = nEventOff;
 							}
 							else
 							{
-								duration = 0;
+								noteEventMatrix[noteNumber - noteRangeStart][noteEventMatrix[0].size() - 1] = nEventOff;
 							}
 
+							NoteEventDesc nEventOn(noteNumber, duration, 1);
+							noteEventMatrix[noteNumber - noteRangeStart][column] = nEventOn;
 						}
 					}
 				}
@@ -582,17 +573,18 @@ void MIDITimelineComponent::initMenu()
 
 void MIDITimelineComponent::populateSelectionMatrix()
 {
-	selectionMatrix = std::make_unique<Matrix<int>>(noteRangeSize, 1 + selectedCellEnd - selectedCellStart);
-	selectionMatrix->clear();
+	selectionMatrix.reset(new Matrix<NoteEventDesc>(noteRangeSize, 1 + selectedCellEnd - selectedCellStart));
 
-	for (int i = 0; i < noteRangeSize; i++)
+	for (int j = selectedCellStart; j <= selectedCellEnd; j++)
 	{
-		for (int j = selectedCellStart; j <= selectedCellEnd; j++)
+		for (int i = 0; i < noteRangeSize; i++)
 		{
 			// If there is note
 			if (noteEventMatrix[i][j].EventType == 1)
 			{
-				selectionMatrix->operator()(i, j - selectedCellStart) = noteEventMatrix[i][j].NoteNumber;
+				selectionMatrix->operator()(i, j - selectedCellStart).NoteNumber = noteEventMatrix[i][j].NoteNumber;
+				selectionMatrix->operator()(i, j - selectedCellStart).EventType = noteEventMatrix[i][j].EventType;
+				selectionMatrix->operator()(i, j - selectedCellStart).NoteDuration = noteEventMatrix[i][j].NoteDuration;
 			}
 		}
 	}
@@ -673,7 +665,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 
 			for (int j = 0; j < numberOfTimeUnits; j++)
 			{
-				int currentMeasureIndex = (int)floor((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
+				int currentMeasureIndex = (int)floor(j / numTimeUnitsInMeasure); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
 				currentX = (float)newImageSize.getWidth() * ((float)j / (float)numberOfTimeUnits);
 
 				textBox.setPosition(Point<float>(currentX, currentY));
@@ -713,7 +705,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 					g0.setColour(Colours::darkred);
 					g0.fillRect(textBox);
 					g0.setColour(Colours::white);
-					g0.drawText(String(noteEventMatrix[i][j].NoteName), textBox, Justification::left);
+					g0.drawText(String(MusicMath::getNoteNameByMIDINoteNumber(noteEventMatrix[i][j].NoteNumber)), textBox, Justification::left);
 				}
 			}
 		}
@@ -731,7 +723,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 			String str = "";
 			for (int j = 0; j < noteEventMatrix[i].size(); j++)
 			{
-				if (noteEventMatrix[i][j].NoteName != "")
+				if (noteEventMatrix[i][j].EventType == 1)
 				{
 					str += String(noteEventMatrix[i][j].NoteNumber) + "\t";
 				}
@@ -779,197 +771,28 @@ void MIDITimelineComponent::handleAsyncUpdate()
 
 void MIDITimelineComponent::analyzeContextInSelection()
 {
-	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
-	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
-
-	Matrix<int> defMajorChordVector(*musicMath._defaultMajorChordDefinitionVector.get());
-	Matrix<int> defMinorChordVector(*musicMath._defaultMinorChordDefinitionVector.get());
-
-	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-
-	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-
-	int mostProbableRoot = 0;
-	String mostProbableRootFlavor = "maj";
-
-	int maxSum = 0;
-
-	Matrix<int> tempMatrix(*selectionMatrix);
-	list<ContextDesc> allPossiblieTonalities;
-
-	//Normalize Matrix
-	for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
+	if (selectedCellStart > -1)
 	{
-		for (int n = noteRangeStart; n < noteRangeEnd; n++)
+		populateSelectionMatrix();
+		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd, noteRangeStart, noteRangeEnd);
+		for (ContextDesc& desc : allPossibleTonalities)
 		{
-			if (tempMatrix.operator()(n - noteRangeStart, c) != 0)
-			{
-				tempMatrix.operator()(n - noteRangeStart, c) = 1;
-			}
+			DBG(desc.debug());
 		}
-	}
-
-	//Go through all 12 tonalities
-	for (int t = 0; t < 12; t++)
-	{
-		defMajorScaleVectorFull.clear();
-		defMinorScaleVectorFull.clear();
-		defMajorChordVectorFull.clear();
-		defMinorChordVectorFull.clear();
-
-		String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
-		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
-		{
-			//Define template vectors for Major and Minor for the Tonality[t]
-			for (int n = noteRangeStart; n < noteRangeEnd; n++)
-			{
-				defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
-				defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
-				defMajorChordVectorFull.operator()(0, n - noteRangeStart) = defMajorChordVector.operator()(0, (n - t) % 12);
-				defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
-			}
-		}
-
-		Matrix<int> resMajChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
-		Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
-		Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
-		Matrix<int> resMinScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
-
-		int sumMajChord = musicMath.sumOfCellsInMatrix(resMajChord);
-		int sumMinChord = musicMath.sumOfCellsInMatrix(resMinChord);
-
-		int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
-		int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
-
-		if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
-		{
-			if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
-			{
-				mostProbableRootFlavor = "maj";
-			}
-			else
-			{
-				mostProbableRootFlavor = "min";
-			}
-
-			float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
-			mostProbableRoot = t;
-			maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
-			ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
-			allPossiblieTonalities.push_back(cd);
-		}
-	}
-
-	allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
-
-	for (ContextDesc& ctx : allPossiblieTonalities)
-	{
-		ctx.Probability = ctx.Probability / (float)maxSum;
-		DBG(ctx.debug());
 	}
 }
 
 void MIDITimelineComponent::defineAllContextsPerMeasures()
 {
-	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
-	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
-
-	Matrix<int> defMajorChordVector(*musicMath._defaultMajorChordDefinitionVector.get());
-	Matrix<int> defMinorChordVector(*musicMath._defaultMinorChordDefinitionVector.get());
-
-	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-
-	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-
-	// Martix of a size of a measure
 	contextPerMeasureVector.clear();
 	contextPerMeasureVector.resize(numMeasures);
 
 	for (int z = 0; z < numMeasures; z++)
 	{
-		int mostProbableRoot = 0;
-		String mostProbableRootFlavor = "maj";
-		int maxSum = 0;
-		list<ContextDesc> allPossiblieTonalities;
-		int timeunitStart = z * numTimeUnitsInMeasure;
-		//Copy portion of noteEventMatrix of one measure 1M
-		Matrix<int> tempMatrix(noteRangeEnd - noteRangeStart, numTimeUnitsInMeasure);
-		//Normalize Matrix
-		bool shouldNormalizeMatrix = true;
-		tempMatrix.clear();
+		int pseudoSelectedCellStart = z * numTimeUnitsInMeasure;
+		int pseudoSelectedCellEnd = (z + 1) * numTimeUnitsInMeasure - 1;
 
-		for (int c = 0; c < tempMatrix.getNumColumns(); c++)
-		{
-			for (int n = noteRangeStart; n < noteRangeEnd; n++)
-			{
-				if (noteEventMatrix[n - noteRangeStart][timeunitStart + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][timeunitStart + c].EventType == 1)
-				{
-					tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalizeMatrix ? 1 : n;
-				}
-				else
-				{
-					tempMatrix.operator()(n - noteRangeStart, c) = 0;
-				}
-			}
-		}
-
-		for (int t = 0; t < 12; t++)
-		{
-			defMajorScaleVectorFull.clear();
-			defMinorScaleVectorFull.clear();
-
-			defMajorChordVectorFull.clear();
-			defMinorChordVectorFull.clear();
-
-			String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
-			for (int c = 0; c < tempMatrix.getNumColumns(); c++)
-			{
-				//Define template vectors for Major and Minor for the Tonality[t]
-				for (int n = noteRangeStart; n < noteRangeEnd; n++)
-				{
-					defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
-					defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
-
-					defMajorChordVectorFull.operator()(0, n - noteRangeStart) = defMajorChordVector.operator()(0, (n - t) % 12);
-					defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
-				}
-			}
-
-			Matrix<int> resMajChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
-			Matrix<int> resMinChord = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
-			Matrix<int> resMajScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
-			Matrix<int> resMinScale = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
-
-			int sumMajChord = musicMath.sumOfCellsInMatrix(resMajChord);
-			int sumMinChord = musicMath.sumOfCellsInMatrix(resMinChord);
-
-			int sumMajScale = musicMath.sumOfCellsInMatrix(resMajScale);
-			int sumMinScale = musicMath.sumOfCellsInMatrix(resMinScale);
-
-			if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
-			{
-				if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
-				{
-					mostProbableRootFlavor = "maj";
-				}
-				else
-				{
-					mostProbableRootFlavor = "min";
-				}
-
-				float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
-				mostProbableRoot = t;
-				maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
-				ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
-				allPossiblieTonalities.push_back(cd);
-			}
-		}
-
-		allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
+		list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, noteRangeStart, noteRangeEnd);
 
 		if (allPossiblieTonalities.size() > 0)
 		{
@@ -980,85 +803,17 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 			}
 			for (ContextDesc& i : allPossiblieTonalities)
 			{
-				i.Probability = (float)(i.Probability) / (float)maxSum;
 				contextPerMeasureVector[z].push_back(i);
 			}
 		}
 	}
+
+
 }
 
 void MIDITimelineComponent::operationOnSelection01()
 {
-	Matrix<int>& defMajorScaleVector(*musicMath._defaultMajorScaleDefinitionVector.get());
-	Matrix<int>& defMinorScaleVector(*musicMath._defaultMinorScaleDefinitionVector.get());
 
-	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-
-	//Go through all 12 tonalities
-	for (int t = 0; t < 12; t++)
-	{
-		int tonalityMajSum = 0;
-		int tonalityMinSum = 0;
-		String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
-
-		defMajorScaleVectorFull.clear();
-		defMinorScaleVectorFull.clear();
-
-		//Define template vectors for Major and Minor for the Tonality[t]
-		for (int n = noteRangeStart; n < noteRangeEnd; n++)
-		{
-			defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
-			defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
-		}
-
-		for (int c = 0; c < selectionMatrix->getNumColumns(); c++)
-		{
-			//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName));
-			// Matrix that only have data in column c, otherwise zero
-			Matrix<int> tempMatrix(*selectionMatrix);
-
-			for (int n = noteRangeStart; n < noteRangeEnd; n++)
-			{
-				for (int c1 = 0; c1 < selectionMatrix->getNumColumns(); c1++)
-				{
-					if (c1 != c)
-					{
-						tempMatrix.operator()(n - noteRangeStart, c1) = 0;
-					}
-					else
-					{
-						if (tempMatrix.operator()(n - noteRangeStart, c1) != 0)
-						{
-							tempMatrix.operator()(n - noteRangeStart, c1) = 1;
-						}
-					}
-				}
-			}
-
-			Matrix<int> resMaj = musicMath.multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
-			Matrix<int> resMin = musicMath.multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
-			//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MAJOR ");
-			//musicMath.debugMatrix(resMaj, noteRangeStart, noteRangeEnd, "resMaj result of multiplication");
-			//DBG("Timeunit: " + String(c) + ", " + String(tonalityRootName) + " MINOR ");
-			//musicMath.debugMatrix(resMin, noteRangeStart, noteRangeEnd, "resMin result of multiplication");
-			int sumMaj = musicMath.sumOfCellsInMatrix(resMaj);
-			int sumMin = musicMath.sumOfCellsInMatrix(resMin);
-
-			tonalityMajSum += sumMaj;
-			tonalityMinSum += sumMin;
-		}
-
-		if (tonalityMajSum > 0)
-		{
-			DBG(String(tonalityRootName) + " maj, sum: " + String(tonalityMajSum));
-		}
-
-		if (tonalityMinSum > 0)
-		{
-			DBG(String(tonalityRootName) + " min, sum: " + String(tonalityMinSum));
-		}
-	}
 }
 
 void MIDITimelineComponent::saveAudioBufferToDisk()
@@ -1132,45 +887,45 @@ void MIDITimelineComponent::saveSelectionAsMIDIFile()
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-		MidiMessageSequence seq;
+		//MidiMessageSequence seq;
 
-		MidiMessage msgKeySig = MidiMessage::keySignatureMetaEvent(0, false); // Cmaj
-		MidiMessage msgTimeSig = MidiMessage::timeSignatureMetaEvent(AppProperties::getNumerator(), AppProperties::getDenominator()); // Cmaj
-		msgKeySig.setTimeStamp(0);
-		msgTimeSig.setTimeStamp(0);
-		seq.addEvent(msgKeySig);
-		seq.addEvent(msgTimeSig);
+		//MidiMessage msgKeySig = MidiMessage::keySignatureMetaEvent(0, false); // Cmaj
+		//MidiMessage msgTimeSig = MidiMessage::timeSignatureMetaEvent(AppProperties::getNumerator(), AppProperties::getDenominator()); // Cmaj
+		//msgKeySig.setTimeStamp(0);
+		//msgTimeSig.setTimeStamp(0);
+		//seq.addEvent(msgKeySig);
+		//seq.addEvent(msgTimeSig);
 
-		float totalDurationInMIDITicks = (float)selectionMatrix->getNumColumns() * (float)defaultTicksPerQuarterNote / 4.0f;
-		for (int j = selectedCellStart; j <= selectedCellEnd; j++)
-		{
-			for (int i = noteRangeStart; i < noteRangeEnd; i++)
-			{
-				double currentMIDITimestamp = ((float)(j - selectedCellStart) / (float)selectionMatrix->getNumColumns()) * totalDurationInMIDITicks;
-				NoteEventDesc noteInMatrix = noteEventMatrix[i - noteRangeStart][j];
+		//float totalDurationInMIDITicks = (float)selectionMatrix->getNumColumns() * (float)defaultTicksPerQuarterNote / 4.0f;
+		//for (int j = selectedCellStart; j <= selectedCellEnd; j++)
+		//{
+		//	for (int i = noteRangeStart; i < noteRangeEnd; i++)
+		//	{
+		//		double currentMIDITimestamp = ((float)(j - selectedCellStart) / (float)selectionMatrix->getNumColumns()) * totalDurationInMIDITicks;
+		//		NoteEventDesc noteInMatrix = noteEventMatrix[i - noteRangeStart][j];
 
-				if (noteInMatrix.EventType == 1)
-				{
-					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
-					msg.setTimeStamp(currentMIDITimestamp);
-					seq.addEvent(msg);
+		//		if (noteInMatrix.EventType == 1)
+		//		{
+		//			MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
+		//			msg.setTimeStamp(currentMIDITimestamp);
+		//			seq.addEvent(msg);
 
-					double offTimestamp = currentMIDITimestamp + ((double)defaultTicksPerQuarterNote / 4.0) * (double)noteInMatrix.NoteDuration -1;
-					MidiMessage msgOff = MidiMessage::noteOff(1, noteInMatrix.NoteNumber, (uint8)0);
-					msgOff.setTimeStamp(offTimestamp);
-					seq.addEvent(msgOff);
-				}
-			}
-		}
-		seq.updateMatchedPairs();
-		MidiFile outputFile;
-		const String outFileName = AppProperties::getProjectPath() + projectName + ".selection." + String(selectedCellStart) + "-" + String(selectedCellEnd) + "." + String(Time::currentTimeMillis()) + ".mid";
-		outputFile.addTrack(seq);
-		outputFile.setTicksPerQuarterNote(defaultTicksPerQuarterNote);
+		//			double offTimestamp = currentMIDITimestamp + ((double)defaultTicksPerQuarterNote / 4.0) * (double)noteInMatrix.NoteDuration - 1;
+		//			MidiMessage msgOff = MidiMessage::noteOff(1, noteInMatrix.NoteNumber, (uint8)0);
+		//			msgOff.setTimeStamp(offTimestamp);
+		//			seq.addEvent(msgOff);
+		//		}
+		//	}
+		//}
+		//seq.updateMatchedPairs();
+		//MidiFile outputFile;
+		//const String outFileName = AppProperties::getProjectPath() + projectName + ".selection." + String(selectedCellStart) + "-" + String(selectedCellEnd) + "." + String(Time::currentTimeMillis()) + ".mid";
+		//outputFile.addTrack(seq);
+		//outputFile.setTicksPerQuarterNote(defaultTicksPerQuarterNote);
 
-		FileOutputStream outStr(File(outFileName + ""));
-		outputFile.writeTo(outStr);
-		outStr.flush();
+		//FileOutputStream outStr(File(outFileName + ""));
+		//outputFile.writeTo(outStr);
+		//outStr.flush();
 	}
 }
 
