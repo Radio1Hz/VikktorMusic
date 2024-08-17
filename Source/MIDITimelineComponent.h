@@ -99,6 +99,7 @@ private:
 	OwnedArray<MidiMessageSequence> midiTracks;
 	unique_ptr<MidiOutput> midiOutput;
 	int defaultMIDIChannel = 1;
+	Array<int> notesOffInFuture;
 
 	//Synth
 	OwnedArray<SynthAudioSource> synths;

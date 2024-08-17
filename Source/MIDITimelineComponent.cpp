@@ -31,6 +31,8 @@ MIDITimelineComponent::MIDITimelineComponent(int nM, int sID)
 	defaultMIDIChannel = 1;
 
 	musicMath.setNoteRange(36, 92);
+	notesOffInFuture.resize(musicMath.getNoteRangeSize());
+
 	clearNoteEventMatrix();
 	initMenu();
 }
@@ -134,6 +136,7 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 			{
 				currentTimeUnit = 0;
 				samplesElapsedSincePlay = 0;
+				notesOffInFuture.fill(0);
 
 				if (produceAudio)
 				{
@@ -153,36 +156,45 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 			{
 				for (int i = 0; i < noteEventMatrix.size(); i++)
 				{
-					if (noteEventMatrix[i][currentTimeUnit].EventType != -1)
+					//Check if some notes needs to be turned off
+					for (int n = 0; n < notesOffInFuture.size(); n++)
 					{
-						if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
+						if (notesOffInFuture[n] > 0 && notesOffInFuture[n] < samplesElapsedSincePlay)
 						{
 							if (produceAudio)
 							{
-								synths[0]->synth.noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f);
+								synths[0]->synth.noteOff(defaultMIDIChannel, n + musicMath.getNoteRangeStart(), 0.0f, true);
 							}
 
 							if (midiOutput != nullptr && produceMIDI)
 							{
-								MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)127));
-								midiOutput->sendMessageNow(noteOn);
-							}
-						}
-
-						if (noteEventMatrix[i][currentTimeUnit].EventType == 0)
-						{
-							if (produceAudio)
-							{
-								synths[0]->synth.noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, 0.5f, true);
-							}
-
-							if (midiOutput != nullptr && produceMIDI)
-							{
-								MidiMessage noteOff(MidiMessage::noteOff(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber));
+								MidiMessage noteOff(MidiMessage::noteOff(defaultMIDIChannel, n + musicMath.getNoteRangeStart(), (uint8)0));
 								midiOutput->sendMessageNow(noteOff);
 							}
-
+							notesOffInFuture.set(n, 0);
 						}
+					}
+
+					if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
+					{
+						int playingNoteNumber = noteEventMatrix[i][currentTimeUnit].NoteNumber;
+
+						//Note On
+						if (produceAudio)
+						{
+							synths[0]->synth.noteOn(defaultMIDIChannel, playingNoteNumber, 0.5f);
+						}
+
+						if (midiOutput != nullptr && produceMIDI)
+						{
+							MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)127));
+							midiOutput->sendMessageNow(noteOn);
+						}
+
+						//Send Note Off into Future
+						int playingNoteDuration = noteEventMatrix[i][currentTimeUnit].NoteDuration; // In TimeUnits
+						int playingNoteDurationInSamples = playingNoteDuration * samplesPerTimeUnit;
+						notesOffInFuture.set(playingNoteNumber - musicMath.getNoteRangeStart(), samplesElapsedSincePlay + playingNoteDurationInSamples);
 					}
 				}
 				currentTimeUnit++;
@@ -508,17 +520,6 @@ void MIDITimelineComponent::processMidi()
 
 						if (noteNumber >= musicMath.getNoteRangeStart() && noteNumber < musicMath.getNoteRangeEnd() && column < matrixWidth && duration > 0)
 						{
-							NoteEventDesc nEventOff(noteNumber, duration, 0);
-
-							if (column + duration < noteEventMatrix[0].size())
-							{
-								noteEventMatrix[noteNumber - musicMath.getNoteRangeStart()][column + duration] = nEventOff;
-							}
-							else
-							{
-								noteEventMatrix[noteNumber - musicMath.getNoteRangeStart()][noteEventMatrix[0].size() - 1] = nEventOff;
-							}
-
 							NoteEventDesc nEventOn(noteNumber, duration, 1);
 							noteEventMatrix[noteNumber - musicMath.getNoteRangeStart()][column] = nEventOn;
 						}
@@ -605,11 +606,14 @@ void MIDITimelineComponent::clearTimeline()
 void MIDITimelineComponent::playMIDI()
 {
 	isPlaying = true;
+	notesOffInFuture.fill(0);
 }
 
 void MIDITimelineComponent::stopMIDI()
 {
 	isPlaying = false;
+	notesOffInFuture.fill(0);
+
 	samplesElapsedSincePlay = 0;
 	currentTimeUnit = 0;
 
@@ -710,6 +714,13 @@ void MIDITimelineComponent::repaintMatrixImage()
 					g0.fillRect(textBox);
 					g0.setColour(Colours::white);
 					g0.drawText(String(MusicMath::getNoteNameByMIDINoteNumber(noteEventMatrix[i][j].NoteNumber)), textBox, Justification::left);
+				}
+
+				if (noteEventMatrix[i][j].EventType == 0) //if note off, show white line
+				{
+					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
+					g0.setColour(Colours::white);
+					g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 0.6f);
 				}
 			}
 		}
@@ -948,8 +959,16 @@ void MIDITimelineComponent::clearSelection()
 					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteNumber = 0;
 					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteDuration = 0;
 				}
+
+				if (currentDesc.EventType == 0)
+				{
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].EventType = -1;
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteNumber = 0;
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteDuration = 0;
+				}
 			}
 		}
+
 		repaintMatrixImage();
 		repaint();
 	}
