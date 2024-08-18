@@ -106,7 +106,6 @@ void MIDITimelineComponent::mouseMoveEvent(const MouseEvent& event)
 		currentCursorPosition[0] = overRowScreen;
 		currentCursorPosition[1] = overTimeUnit;
 
-		DBG("Pos: " + String(currentCursorPosition[0]) + ":" + String(currentCursorPosition[1]));
 		repaint();
 	}
 }
@@ -341,30 +340,47 @@ void MIDITimelineComponent::paint(Graphics& g)
 
 			g.drawText(currentTimeUnitFormattedText, cursorTimeUnitInfoRect, Justification::centred, true);
 
+			//Draw Contexts probabilities per measure
 			if (measureWidthInPixels > 60)
 			{
 				g.setFont(10.0f);
+				Rectangle<int> relativeScreenRect = getScreenBounds();
+
 
 				for (int currMeasure = 0; currMeasure < contextPerMeasureVector.size(); currMeasure++)
 				{
 					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
+					int xPosition = currMeasure * (int)measureWidthInPixels + (int)timeUnitWidthInPixels;
 
-					measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
-					String text = "";
-					for (int t = 0; t < contextPerMeasureVector[currMeasure].size(); t++)
+					int screenWidth = getParentComponent()->getWidth();
+
+					int currentScreen = (int)(xPosition / screenWidth);
+					int currentOffsetWithinScreen = xPosition % screenWidth;
+
+
+					if (relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen > 0 && relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen < screenWidth)
 					{
-						if (t == 0)
+
+						measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
+						String text = "";
+						for (int t = 0; t < contextPerMeasureVector[currMeasure].size(); t++)
 						{
-							text += contextPerMeasureVector[currMeasure][t].debug();
+							if (t == 0)
+							{
+								text += contextPerMeasureVector[currMeasure][t].debug();
+							}
+							else
+							{
+								text += "\r\n" + contextPerMeasureVector[currMeasure][t].debug();
+							}
 						}
-						else
-						{
-							text += "\r\n" + contextPerMeasureVector[currMeasure][t].debug();
-						}
+
+						//DBG("Drawing context in measure: " + String(currMeasure+1));
+						g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
+
 					}
 
-					g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
-
+					
 				}
 			}
 
