@@ -35,7 +35,10 @@ public:
     virtual void shiftMouseDownEvent(const MouseEvent& event);
     virtual void mouseDoubleClickEvent(const MouseEvent& event);
     virtual void mouseMoveEvent(const MouseEvent& event);
-    
+    virtual void mouseDownEvent(const MouseEvent& event);
+    virtual void mouseUpEvent(const MouseEvent& event);
+
+
     void drawOutline (Graphics&);
     void mouseDrag(const MouseEvent& event) override;
     void mouseUp(const MouseEvent& event) override;

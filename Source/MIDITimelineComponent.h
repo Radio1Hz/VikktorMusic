@@ -36,6 +36,8 @@ public:
 	void shiftMouseDownEvent(const MouseEvent& event) override;
 	void shiftMouseUpEvent(const MouseEvent& event) override;
 	void mouseDoubleClickEvent(const MouseEvent& event) override;
+	void mouseDownEvent(const MouseEvent& event) override;
+	void mouseUpEvent(const MouseEvent& event) override;
 
 	void mouseMoveEvent(const MouseEvent& event) override;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;

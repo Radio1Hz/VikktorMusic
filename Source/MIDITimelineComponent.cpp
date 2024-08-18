@@ -108,6 +108,7 @@ void MIDITimelineComponent::mouseMoveEvent(const MouseEvent& event)
 
 		repaint();
 	}
+
 }
 
 void MIDITimelineComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -380,7 +381,7 @@ void MIDITimelineComponent::paint(Graphics& g)
 
 					}
 
-					
+
 				}
 			}
 
@@ -403,7 +404,7 @@ void MIDITimelineComponent::paint(Graphics& g)
 				float cWidth = parentBounds.getWidth() / numberOfTimeUnits;
 				float cHeight = parentBounds.getHeight() / musicMath.getNoteRangeSize();
 				Rectangle<float> currentScreenCursorPositionRect(cWidth, cHeight);
-				currentScreenCursorPositionRect.setPosition(currentCursorPosition[1]* cWidth + 1, currentCursorPosition[0] * cHeight + headerHeight + 1);
+				currentScreenCursorPositionRect.setPosition(currentCursorPosition[1] * cWidth + 1, currentCursorPosition[0] * cHeight + headerHeight + 1);
 				g.setColour(Colour::fromRGBA(192, 192, 192, 128));
 				g.fillRect(currentScreenCursorPositionRect);
 
@@ -419,15 +420,15 @@ void MIDITimelineComponent::paint(Graphics& g)
 				}
 
 				Rectangle<float> currentScreenCursorInfoRect(cursorInfoWidth, cursorInfoHeight);
-				currentScreenCursorInfoRect.setPosition(((currentCursorPosition[1]+2) * cWidth) + 1, ((currentCursorPosition[0]+2) * cHeight) + headerHeight + 1);
+				currentScreenCursorInfoRect.setPosition(((currentCursorPosition[1] + 2) * cWidth) + 1, ((currentCursorPosition[0] + 2) * cHeight) + headerHeight + 1);
 				g.setColour(Colour::fromRGBA(20, 20, 20, 255));
 				g.fillRect(currentScreenCursorInfoRect);
 				g.setColour(Colours::white);
 				g.setFont(12.0f);
-				g.drawMultiLineText(String(musicMath.getNoteRangeEnd() - currentCursorPosition[0]) + " (" +  musicMath.getNoteNameByMIDINoteNumber(musicMath.getNoteRangeEnd() - currentCursorPosition[0]) + ")\r\n" + cTimeUnitFormattedText, (int)currentScreenCursorInfoRect.getTopLeft().x, (int)currentScreenCursorInfoRect.getCentreY(), (int)currentScreenCursorInfoRect.getWidth(), Justification::centred);
+				g.drawMultiLineText(String(musicMath.getNoteRangeEnd() - currentCursorPosition[0]) + " (" + musicMath.getNoteNameByMIDINoteNumber(musicMath.getNoteRangeEnd() - currentCursorPosition[0]) + ")\r\n" + cTimeUnitFormattedText, (int)currentScreenCursorInfoRect.getTopLeft().x, (int)currentScreenCursorInfoRect.getCentreY(), (int)currentScreenCursorInfoRect.getWidth(), Justification::centred);
 			}
 
-			
+
 		}
 	}
 }
@@ -1166,6 +1167,16 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const MouseEvent& event)
 		synths[0]->synth.allNotesOff(defaultMIDIChannel, true);
 	}
 	repaint();
+}
+
+void MIDITimelineComponent::mouseDownEvent(const MouseEvent& /*event*/)
+{
+	midiOutput->sendMessageNow(MidiMessage::noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
+}
+
+void MIDITimelineComponent::mouseUpEvent(const MouseEvent& /*event*/)
+{
+	midiOutput->sendMessageNow(MidiMessage::noteOff(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
 }
 
 void MIDITimelineComponent::triggerRepaint()

@@ -314,7 +314,6 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
 	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
 	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-
 	int mostProbableRoot = 0;
 	String mostProbableRootFlavor = "maj";
 

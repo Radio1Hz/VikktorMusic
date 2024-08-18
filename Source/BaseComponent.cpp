@@ -90,6 +90,8 @@ void BaseComponent::controlMouseUpEvent(const MouseEvent& /*event*/) {}
 void BaseComponent::shiftMouseDownEvent(const MouseEvent& /*event*/) {}
 void BaseComponent::mouseDoubleClickEvent(const MouseEvent& /*event*/){}
 void BaseComponent::mouseMoveEvent(const MouseEvent& /*event*/) {}
+void BaseComponent::mouseDownEvent(const MouseEvent& /*event*/){}
+void BaseComponent::mouseUpEvent(const MouseEvent& /*event*/){}
 
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
@@ -197,10 +199,16 @@ void BaseComponent::mouseUp(const MouseEvent& event)
     {
         controlMouseUpEvent(event);
     }
+
     if (event.mods.isShiftDown())
     {
         shiftMouseUpEvent(event);
     }
+    else
+    {
+        mouseUpEvent(event);
+    }
+    
 }
 
 void BaseComponent::mouseDown(const MouseEvent& event)
@@ -230,6 +238,7 @@ void BaseComponent::mouseDown(const MouseEvent& event)
             mouseDoubleClickEvent(event);
         }
         myDragger.startDraggingComponent(this, event);
+        mouseDownEvent(event);
     }
 
     if (menu.getNumItems() > 0)
