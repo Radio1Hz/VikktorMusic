@@ -49,6 +49,7 @@ void BaseComponent::drawOutline (Graphics& g)
 {
     if (!this->embeddedMode)
     {
+        Rectangle<int> screenPortionRect = getScreenBounds();
         Rectangle<int> rect = getLocalBounds();
         //g.setColour(Colours::black);
         g.drawRect(rect);
@@ -65,6 +66,10 @@ void BaseComponent::drawOutline (Graphics& g)
         state.append(String(" S:"), 7);
         state.append(String(component_state), 6);
 
+        if (screenPortionRect.getX() < 0)
+        {
+            rect.translate(-screenPortionRect.getX(), 0);
+        }
         g.drawText(state, rect, Justification::centredLeft, true);
     }
 }
