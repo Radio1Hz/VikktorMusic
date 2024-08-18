@@ -34,11 +34,14 @@ public:
     virtual void controlMouseUpEvent(const MouseEvent& event);
     virtual void shiftMouseDownEvent(const MouseEvent& event);
     virtual void mouseDoubleClickEvent(const MouseEvent& event);
+    virtual void mouseMoveEvent(const MouseEvent& event);
     
     void drawOutline (Graphics&);
     void mouseDrag(const MouseEvent& event) override;
     void mouseUp(const MouseEvent& event) override;
     void mouseDown(const MouseEvent& event) override;
+    void mouseMove(const MouseEvent& event) override;
+
     Rectangle<int> getReducedLocalBounds();
     Rectangle<int> getReducedBounds();
     

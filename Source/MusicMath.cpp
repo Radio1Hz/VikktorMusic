@@ -247,7 +247,7 @@ void MusicMath::setNoteRange(int nRS, int nRE)
 
 int MusicMath::getNoteRangeSize()
 {
-	return noteRangeEnd - noteRangeStart;
+	return noteRangeEnd - noteRangeStart + 1;
 }
 
 int MusicMath::getNoteRangeStart()

@@ -36,6 +36,8 @@ public:
 	void shiftMouseDownEvent(const MouseEvent& event) override;
 	void shiftMouseUpEvent(const MouseEvent& event) override;
 	void mouseDoubleClickEvent(const MouseEvent& event) override;
+
+	void mouseMoveEvent(const MouseEvent& event) override;
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
 	void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
 	void releaseResources() override;
@@ -88,6 +90,7 @@ private:
 	Image matrixImage;
 	int viewMode = 1; // 0 - MIDI, 1 - Matrix
 	float timelineHeightRatio = 0.075f;
+	vector<int> currentCursorPosition;
 
 	//MusicMath
 	MusicMath musicMath;

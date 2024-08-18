@@ -84,6 +84,7 @@ void BaseComponent::controlMouseDownEvent(const MouseEvent& /*event*/) {}
 void BaseComponent::controlMouseUpEvent(const MouseEvent& /*event*/) {}
 void BaseComponent::shiftMouseDownEvent(const MouseEvent& /*event*/) {}
 void BaseComponent::mouseDoubleClickEvent(const MouseEvent& /*event*/){}
+void BaseComponent::mouseMoveEvent(const MouseEvent& /*event*/) {}
 
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
@@ -156,6 +157,10 @@ void BaseComponent::mouseWheelMove(const MouseEvent& event, const MouseWheelDeta
     }
      
 }
+void BaseComponent::mouseMove(const MouseEvent& event)
+{
+    mouseMoveEvent(event);
+}
 
 void BaseComponent::mouseDrag(const MouseEvent& event)
 {
@@ -179,9 +184,6 @@ void BaseComponent::mouseDrag(const MouseEvent& event)
         }
         
     }
-
-    
-    
 }
 
 void BaseComponent::mouseUp(const MouseEvent& event)
@@ -249,3 +251,5 @@ void BaseComponent::mouseDown(const MouseEvent& event)
         }
     }
 }
+
+

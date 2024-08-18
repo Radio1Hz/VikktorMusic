@@ -29,7 +29,9 @@ MIDITimelineComponent::MIDITimelineComponent(int nM, int sID)
 	name = "MIDI Timeline (" + String(numMeasures) + " measures)";
 	synthID = sID;
 	defaultMIDIChannel = 1;
-
+	currentCursorPosition.resize(2);
+	currentCursorPosition[0] = -1;
+	currentCursorPosition[1] = -1;
 	musicMath.setNoteRange(32, 92);
 	notesOffInFuture.resize(musicMath.getNoteRangeSize());
 
@@ -91,6 +93,22 @@ MIDITimelineComponent::~MIDITimelineComponent()
 	if (midiOutput != nullptr)
 		midiOutput->stopBackgroundThread();
 	shutdownAudio();
+}
+
+void MIDITimelineComponent::mouseMoveEvent(const MouseEvent& event)
+{
+	//If cursor is within reduced region
+	if (event.y > headerHeight + 1)
+	{
+		int overRowScreen = (int)((double)(musicMath.getNoteRangeSize()) * ((double)(event.y - headerHeight - 1) / ((double)getReducedLocalBounds().getHeight())));
+		int overTimeUnit = (int)((double)(numTimeUnitsInMeasure * numMeasures) * (((double)event.x - 1.0) / (double)getReducedLocalBounds().getWidth()));
+
+		currentCursorPosition[0] = overRowScreen;
+		currentCursorPosition[1] = overTimeUnit;
+
+		DBG("Pos: " + String(currentCursorPosition[0]) + ":" + String(currentCursorPosition[1]));
+		repaint();
+	}
 }
 
 void MIDITimelineComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -311,17 +329,17 @@ void MIDITimelineComponent::paint(Graphics& g)
 			g.drawImage(matrixImage, parentBounds);
 			float cursorWidth = parentBounds.getWidth() / numberOfTimeUnits;
 			float currentX = ((float)currentTimeUnit / (float)numberOfTimeUnits) * parentBounds.getWidth();
-			Rectangle<float> cursorInfoRect(currentX + cursorWidth, parentBounds.getTopRight().y + 15.0f, 40.0f, 15.0f);
+			Rectangle<float> cursorTimeUnitInfoRect(currentX + cursorWidth, parentBounds.getTopRight().y + 15.0f, 40.0f, 15.0f);
 			g.setColour(Colour::fromRGBA(128, 128, 128, 128));
 			g.fillRect(currentX, parentBounds.getTopLeft().y, cursorWidth, parentBounds.getHeight());
-			g.fillRect(cursorInfoRect);
+			g.fillRect(cursorTimeUnitInfoRect);
 			int currentMeasureIndex = (int)floor((float)numMeasures * ((float)currentTimeUnit / (float)numberOfTimeUnits));
 			int currentTimeUnitWithinMeasureIndex = (currentMeasureIndex * numTimeUnitsInMeasure + currentTimeUnit) % (numTimeUnitsInMeasure);
 			g.setColour(Colours::white);
 			g.setFont(12.0f);
-			String cursorText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
+			String currentTimeUnitFormattedText = String::formatted("%02d", currentMeasureIndex + 1) + "|" + String::formatted("%02d", currentTimeUnitWithinMeasureIndex + 1);
 
-			g.drawText(cursorText, cursorInfoRect, Justification::centred, true);
+			g.drawText(currentTimeUnitFormattedText, cursorTimeUnitInfoRect, Justification::centred, true);
 
 			if (measureWidthInPixels > 60)
 			{
@@ -358,6 +376,42 @@ void MIDITimelineComponent::paint(Graphics& g)
 				g.setColour(Colour::fromRGBA(192, 192, 192, 128));
 				g.fillRect(selectionRect);
 			}
+
+			//Draw Cursor Info Position
+			if (currentCursorPosition[0] > -1 && currentCursorPosition[1] > -1)
+			{
+				int cMeasureIndex = (int)floor((float)numMeasures * ((float)currentCursorPosition[1] / (float)numberOfTimeUnits));
+				int cTimeUnitWithinMeasureIndex = currentCursorPosition[1] % numTimeUnitsInMeasure;
+				String cTimeUnitFormattedText = String::formatted("%02d", cMeasureIndex + 1) + "|" + String::formatted("%02d", cTimeUnitWithinMeasureIndex + 1);
+
+				float cWidth = parentBounds.getWidth() / numberOfTimeUnits;
+				float cHeight = parentBounds.getHeight() / musicMath.getNoteRangeSize();
+				Rectangle<float> currentScreenCursorPositionRect(cWidth, cHeight);
+				currentScreenCursorPositionRect.setPosition(currentCursorPosition[1]* cWidth + 1, currentCursorPosition[0] * cHeight + headerHeight + 1);
+				g.setColour(Colour::fromRGBA(192, 192, 192, 128));
+				g.fillRect(currentScreenCursorPositionRect);
+
+				float minWidth = 50.0f;
+				float cursorInfoWidth = cWidth * 4;
+				float cursorInfoHeight = cWidth * 3;
+
+				float aspectRatio = cursorInfoWidth / cursorInfoHeight;
+				if (cursorInfoWidth < minWidth)
+				{
+					cursorInfoWidth = minWidth;
+					cursorInfoHeight = minWidth / aspectRatio;
+				}
+
+				Rectangle<float> currentScreenCursorInfoRect(cursorInfoWidth, cursorInfoHeight);
+				currentScreenCursorInfoRect.setPosition(((currentCursorPosition[1]+2) * cWidth) + 1, ((currentCursorPosition[0]+2) * cHeight) + headerHeight + 1);
+				g.setColour(Colour::fromRGBA(20, 20, 20, 255));
+				g.fillRect(currentScreenCursorInfoRect);
+				g.setColour(Colours::white);
+				g.setFont(12.0f);
+				g.drawMultiLineText(String(musicMath.getNoteRangeEnd() - currentCursorPosition[0]) + " (" +  musicMath.getNoteNameByMIDINoteNumber(musicMath.getNoteRangeEnd() - currentCursorPosition[0]) + ")\r\n" + cTimeUnitFormattedText, (int)currentScreenCursorInfoRect.getTopLeft().x, (int)currentScreenCursorInfoRect.getCentreY(), (int)currentScreenCursorInfoRect.getWidth(), Justification::centred);
+			}
+
+			
 		}
 	}
 }
