@@ -85,8 +85,7 @@ private:
 	//Matrix 
 	vector<vector<NoteEventDesc>> noteEventMatrix;
 	vector<float> noteProbabilities;
-	vector<vector<ContextDesc>> contextPerMeasureVector;
-
+	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector;
 	//Graphics
 	float minCellWidth = 10.0f;
 	Image matrixImage;
@@ -102,6 +101,7 @@ private:
 	int numMeasures = 0;
 	int numTimeUnitsInMeasure = 0;
 	float numQuartersPerMeasure = 0;
+	int defaultContextAnalysisMethodID = 1;
 
 	//MIDI
 	unique_ptr<FileChooser> fileChooser;

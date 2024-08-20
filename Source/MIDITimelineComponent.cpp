@@ -43,18 +43,21 @@ MIDITimelineComponent::MIDITimelineComponent(int nM, int sID)
 void MIDITimelineComponent::init()
 {
 	setAudioChannels(0, 2);
-	int selectedAvailableMIDIDeviceId = 0;
 	MidiDeviceInfo defaultDevice = MidiOutput::getDefaultDevice();
 	Array<MidiDeviceInfo> availableDevices = MidiOutput::getAvailableDevices();
 
 	for (MidiDeviceInfo di : availableDevices)
 	{
-		String diid = di.identifier;
-		String diname = di.name;
-		selectedAvailableMIDIDeviceId++;
+		if (di.name == "loopMIDI Port")
+		{
+			midiOutput = MidiOutput::openDevice(di.identifier);
+		}
 	}
 
-	midiOutput = MidiOutput::openDevice(defaultDevice.identifier);
+	if (midiOutput == nullptr)
+	{
+		midiOutput = MidiOutput::openDevice(defaultDevice.identifier);
+	}
 
 	// Init audioBuffer to 20sec
 	audioBuffer.setSize(2, 20 * (int)sampleRateInt, false);
@@ -204,7 +207,7 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 
 						if (midiOutput != nullptr && produceMIDI)
 						{
-							MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)255));
+							MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)128));
 							midiOutput->sendMessageNow(noteOn);
 						}
 
@@ -342,15 +345,14 @@ void MIDITimelineComponent::paint(Graphics& g)
 			g.drawText(currentTimeUnitFormattedText, cursorTimeUnitInfoRect, Justification::centred, true);
 
 			//Draw Contexts probabilities per measure
-			if (measureWidthInPixels > 60)
+			if (measureWidthInPixels > 150)
 			{
 				g.setFont(10.0f);
 				Rectangle<int> relativeScreenRect = getScreenBounds();
 
-
-				for (int currMeasure = 0; currMeasure < contextPerMeasureVector.size(); currMeasure++)
+				for (int currMeasure = 0; currMeasure < contextPerMeasureAndQuarterVector.size(); currMeasure++)
 				{
-					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
+					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureAndQuarterVector[currMeasure][0].size() * 10.0f);
 					int xPosition = currMeasure * (int)measureWidthInPixels + (int)timeUnitWidthInPixels;
 
 					int screenWidth = getParentComponent()->getWidth();
@@ -358,30 +360,26 @@ void MIDITimelineComponent::paint(Graphics& g)
 					int currentScreen = (int)(xPosition / screenWidth);
 					int currentOffsetWithinScreen = xPosition % screenWidth;
 
-
 					if (relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen > 0 && relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen < screenWidth)
 					{
-
-						measureTonalityRect.setPosition(currMeasure * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
-						String text = "";
-						for (int t = 0; t < contextPerMeasureVector[currMeasure].size(); t++)
+						for (float q = 0; q < numQuartersPerMeasure; q += 1.0f)
 						{
-							if (t == 0)
+							measureTonalityRect.setPosition(((float)currMeasure + q / numQuartersPerMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
+							String text = "";
+							for (int t = 0; t < contextPerMeasureAndQuarterVector[currMeasure][(int)q].size(); t++)
 							{
-								text += contextPerMeasureVector[currMeasure][t].debug();
+								if (t == 0)
+								{
+									text += contextPerMeasureAndQuarterVector[currMeasure][(int)q][t].debug();
+								}
+								else
+								{
+									text += "\r\n" + contextPerMeasureAndQuarterVector[currMeasure][(int)q][t].debug();
+								}
 							}
-							else
-							{
-								text += "\r\n" + contextPerMeasureVector[currMeasure][t].debug();
-							}
+							g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
 						}
-
-						//DBG("Drawing context in measure: " + String(currMeasure+1));
-						g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
-
 					}
-
-
 				}
 			}
 
@@ -891,7 +889,7 @@ void MIDITimelineComponent::analyzeContextInSelection()
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd, true);
+		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd, defaultContextAnalysisMethodID);
 		for (ContextDesc& desc : allPossibleTonalities)
 		{
 			DBG(desc.debug());
@@ -920,26 +918,36 @@ void MIDITimelineComponent::loopSelection()
 
 void MIDITimelineComponent::defineAllContextsPerMeasures()
 {
-	contextPerMeasureVector.clear();
-	contextPerMeasureVector.resize(numMeasures);
+	contextPerMeasureAndQuarterVector.clear();
+	contextPerMeasureAndQuarterVector.resize(numMeasures);
 
 	for (int z = 0; z < numMeasures; z++)
 	{
-		int pseudoSelectedCellStart = z * numTimeUnitsInMeasure;
-		int pseudoSelectedCellEnd = (z + 1) * numTimeUnitsInMeasure - 1;
-
-		list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, true);
-
-		if (allPossiblieTonalities.size() > 0)
+		if (contextPerMeasureAndQuarterVector[z].empty())
 		{
-			if (contextPerMeasureVector[z].empty())
+			contextPerMeasureAndQuarterVector[z] = vector<vector<ContextDesc>>(4);
+		}
+
+		for (float q = 0; q < numQuartersPerMeasure; q += 1.0f)
+		{
+			//int pseudoSelectedCellStart = ((float)z + q / numQuartersPerMeasure) * numTimeUnitsInMeasure;
+			//int pseudoSelectedCellEnd = ((float)z + q / numQuartersPerMeasure + 1.0f) * numTimeUnitsInMeasure - 1;
+			int pseudoSelectedCellStart = z * numTimeUnitsInMeasure + (int)(q * ((float)numTimeUnitsInMeasure / (float)numQuartersPerMeasure));
+			int pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (int)((q + 1.0f) * ((float)numTimeUnitsInMeasure / (float)numQuartersPerMeasure)) - 1;
+
+			list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
+
+			if (allPossiblieTonalities.size() > 0)
 			{
-				std::vector<ContextDesc> vec;
-				contextPerMeasureVector[z] = vec;
-			}
-			for (ContextDesc& i : allPossiblieTonalities)
-			{
-				contextPerMeasureVector[z].push_back(i);
+				if (contextPerMeasureAndQuarterVector[z][q].empty())
+				{
+					std::vector<ContextDesc> vec;
+					contextPerMeasureAndQuarterVector[z][q] = vec;
+				}
+				for (ContextDesc& i : allPossiblieTonalities)
+				{
+					contextPerMeasureAndQuarterVector[z][q].push_back(i);
+				}
 			}
 		}
 	}
@@ -997,7 +1005,7 @@ void MIDITimelineComponent::saveMIDIFileToDisk()
 			//No need for defaultMIDIChannel because we save it to disk.
 			if (noteInMatrix.EventType == 1)
 			{
-				MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)255);
+				MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
 				msg.setTimeStamp(currentMIDITimestamp);
 				seq.addEvent(msg);
 
@@ -1042,7 +1050,7 @@ void MIDITimelineComponent::saveSelectionAsMIDIFile()
 
 				if (noteInMatrix.EventType == 1)
 				{
-					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)255);
+					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
 					msg.setTimeStamp(currentMIDITimestamp);
 					seq.addEvent(msg);
 
@@ -1171,12 +1179,12 @@ void MIDITimelineComponent::mouseDoubleClickEvent(const MouseEvent& event)
 
 void MIDITimelineComponent::mouseDownEvent(const MouseEvent& /*event*/)
 {
-	midiOutput->sendMessageNow(MidiMessage::noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
+	//midiOutput->sendMessageNow(MidiMessage::noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
 }
 
 void MIDITimelineComponent::mouseUpEvent(const MouseEvent& /*event*/)
 {
-	midiOutput->sendMessageNow(MidiMessage::noteOff(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
+	//midiOutput->sendMessageNow(MidiMessage::noteOff(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
 }
 
 void MIDITimelineComponent::triggerRepaint()

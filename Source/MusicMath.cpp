@@ -13,58 +13,6 @@
 
 MusicMath::MusicMath()
 {
-	_keysDefinitions = make_unique<Matrix<int>>(12, 12);
-	_defaultMajorScaleDefinitionVector = make_unique<Matrix<int>>(1, 12);
-	_defaultMinorScaleDefinitionVector = make_unique<Matrix<int>>(1, 12);
-	_defaultMajorChordDefinitionVector = make_unique<Matrix<int>>(1, 12);
-	_defaultMinorChordDefinitionVector = make_unique<Matrix<int>>(1, 12);
-
-	_defaultMajorScaleDefinitionVector->clear();
-	_defaultMinorScaleDefinitionVector->clear();
-	_defaultMajorChordDefinitionVector->clear();
-	_defaultMinorChordDefinitionVector->clear();
-	/* Default Major = Ionian
-		1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0
-	}*/
-
-	_defaultMajorScaleDefinitionVector->operator()(0, 0) = 1;
-	_defaultMajorScaleDefinitionVector->operator()(0, 1) = 0;
-	_defaultMajorScaleDefinitionVector->operator()(0, 2) = 1;
-	_defaultMajorScaleDefinitionVector->operator()(0, 3) = 0;
-	_defaultMajorScaleDefinitionVector->operator()(0, 4) = 1;
-	_defaultMajorScaleDefinitionVector->operator()(0, 5) = 1;
-	_defaultMajorScaleDefinitionVector->operator()(0, 6) = 0;
-	_defaultMajorScaleDefinitionVector->operator()(0, 7) = 1;
-	_defaultMajorScaleDefinitionVector->operator()(0, 8) = 0;
-	_defaultMajorScaleDefinitionVector->operator()(0, 9) = 1;
-	_defaultMajorScaleDefinitionVector->operator()(0, 10) = 0;
-	_defaultMajorScaleDefinitionVector->operator()(0, 11) = 1;
-
-	/* Default Minor = Aeolian
-		1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0
-	}*/
-
-	_defaultMinorScaleDefinitionVector->operator()(0, 0) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 1) = 0;
-	_defaultMinorScaleDefinitionVector->operator()(0, 2) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 3) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 4) = 0;
-	_defaultMinorScaleDefinitionVector->operator()(0, 5) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 6) = 0;
-	_defaultMinorScaleDefinitionVector->operator()(0, 7) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 8) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 9) = 0;
-	_defaultMinorScaleDefinitionVector->operator()(0, 10) = 1;
-	_defaultMinorScaleDefinitionVector->operator()(0, 11) = 0;
-
-
-	_defaultMajorChordDefinitionVector->operator()(0, 0) = 1;
-	_defaultMajorChordDefinitionVector->operator()(0, 4) = 1;
-	_defaultMajorChordDefinitionVector->operator()(0, 7) = 1;
-
-	_defaultMinorChordDefinitionVector->operator()(0, 0) = 1;
-	_defaultMinorChordDefinitionVector->operator()(0, 3) = 1;
-	_defaultMinorChordDefinitionVector->operator()(0, 7) = 1;
 
 }
 
@@ -302,20 +250,128 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 	return -1;
 }
 
-list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, bool shouldWeightByDuration)
+list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, int methodID)
+{
+	list<ContextDesc> allPossiblieTonalities;
+	switch (methodID)
+	{
+	case 0:
+		return getContextDescriptionsBasicMethod(noteEventMatrix, sCS, sCE);
+	case 1:
+		return getContextDescriptionsWeightedPitchMethod(noteEventMatrix, sCS, sCE);
+	default:
+		break;
+	}
+	return allPossiblieTonalities;
+}
+
+list<ContextDesc> MusicMath::getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE)
 {
 	list<ContextDesc> allPossiblieTonalities;
 
-	Matrix<int>& defMajorScaleVector(*_defaultMajorScaleDefinitionVector.get());
-	Matrix<int>& defMinorScaleVector(*_defaultMinorScaleDefinitionVector.get());
-	Matrix<int> defMajorChordVector(*_defaultMajorChordDefinitionVector.get());
-	Matrix<int> defMinorChordVector(*_defaultMinorChordDefinitionVector.get());
-	Matrix<int> defMajorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorScaleVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMajorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-	Matrix<int> defMinorChordVectorFull(1, noteRangeEnd - noteRangeStart);
-	int mostProbableRoot = 0;
-	String mostProbableRootFlavor = "maj";
+	//vector<int> defMajorScaleVectorFull(noteRangeEnd - noteRangeStart);
+	//vector<int> defMinorScaleVectorFull(noteRangeEnd - noteRangeStart);
+	//vector<int> defMajorChordVectorFull(noteRangeEnd - noteRangeStart);
+	//vector<int> defMinorChordVectorFull(noteRangeEnd - noteRangeStart);
+
+	//int mostProbableRoot = 0;
+	//String mostProbableRootFlavor = "maj";
+
+	//int maxSum = 0;
+	//int numColumns = sCE - sCS + 1;
+	//Matrix<int> tempMatrix(noteRangeEnd - noteRangeStart, numColumns);
+	//tempMatrix.clear();
+
+	//int startTonality = -1;
+	////Normalize Matrix
+	//bool shouldNormalize = true;
+
+	////Copy portion of noteEventMatrix into tempMatrix
+	//for (int c = 0; c < tempMatrix.getNumColumns(); c++)
+	//{
+	//	for (int n = noteRangeStart; n < noteRangeEnd; n++)
+	//	{
+	//		if (noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][sCS + c].EventType == 1)
+	//		{
+	//			if (startTonality < 0)
+	//			{
+	//				startTonality = noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber % 12;
+	//			}
+	//			tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 : n;
+	//		}
+	//		else
+	//		{
+	//			tempMatrix.operator()(n - noteRangeStart, c) = 0;
+	//		}
+	//	}
+	//}
+
+	////Go through all 12 tonalities
+	//for (int tIndex = 0; tIndex < 12; tIndex++)
+	//{
+	//	int t = (startTonality + tIndex) % 12;
+
+	//	String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
+	//	for (int c = 0; c < numColumns; c++)
+	//	{
+	//		//Define template vectors for Major and Minor for the Tonality[t]
+	//		for (int n = noteRangeStart; n < noteRangeEnd; n++)
+	//		{
+	//			defMajorScaleVectorFull[n - noteRangeStart] = _defaultMajorScaleDefinitionVector[(n - t) % 12];
+	//			defMinorScaleVectorFull[n - noteRangeStart] = _defaultMinorScaleDefinitionVector[(n - t) % 12];
+	//			defMajorChordVectorFull[n - noteRangeStart] = _defaultMajorChordDefinitionVector[(n - t) % 12];
+	//			defMinorChordVectorFull[n - noteRangeStart] = _defaultMinorChordDefinitionVector[(n - t) % 12];
+	//		}
+	//	}
+
+	//	vector<int> resMajChord = multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
+	//	vector<int> resMinChord = multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
+	//	vector<int> resMajScale = multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
+	//	vector<int> resMinScale = multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
+
+	//	debugVector(resMajChord, "resMajChord", true);
+	//	debugVector(resMinChord, "resMinChord", true);
+	//	debugVector(resMajScale, "resMajScale", true);
+	//	debugVector(resMinScale, "resMinScale", true);
+
+	//	int sumMajChord = sumOfCellsInVector(resMajChord);
+	//	int sumMinChord = sumOfCellsInVector(resMinChord);
+	//	int sumMajScale = sumOfCellsInVector(resMajScale);
+	//	int sumMinScale = sumOfCellsInVector(resMinScale);
+
+	//	if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
+	//	{
+	//		if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
+	//		{
+	//			mostProbableRootFlavor = "maj";
+	//		}
+	//		else
+	//		{
+	//			mostProbableRootFlavor = "min";
+	//		}
+
+	//		float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
+	//		mostProbableRoot = t;
+	//		maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
+	//		ContextDesc cd(mostProbableRoot, "", p);
+	//		allPossiblieTonalities.push_back(cd);
+	//	}
+	//}
+	//allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
+
+	//for (ContextDesc& ctx : allPossiblieTonalities)
+	//{
+	//	ctx.Probability = ctx.Probability / (float)maxSum;
+	//}
+
+	return allPossiblieTonalities;
+}
+
+list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE)
+{
+	list<ContextDesc> allPossiblieTonalities;
+
+	vector<vector<int>> _modesWeightVectorsFull(noteRangeEnd - noteRangeStart);
 
 	int maxSum = 0;
 	int numColumns = sCE - sCS + 1;
@@ -325,6 +381,8 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 	int startTonality = -1;
 	//Normalize Matrix
 	bool shouldNormalize = true;
+	bool isAreaEmpty = true;
+	//Copy portion of noteEventMatrix into tempMatrix
 
 	for (int c = 0; c < tempMatrix.getNumColumns(); c++)
 	{
@@ -332,13 +390,12 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 		{
 			if (noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber == n && noteEventMatrix[n - noteRangeStart][sCS + c].EventType == 1)
 			{
-				int duration = noteEventMatrix[n - noteRangeStart][sCS + c].NoteDuration;
 				if (startTonality < 0)
 				{
 					startTonality = noteEventMatrix[n - noteRangeStart][sCS + c].NoteNumber % 12;
 				}
-				int weight = 1 * (shouldWeightByDuration ? duration : 1);
-				tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 * weight : n * weight;
+				tempMatrix.operator()(n - noteRangeStart, c) = shouldNormalize ? 1 : n;
+				isAreaEmpty = false;
 			}
 			else
 			{
@@ -347,62 +404,59 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 		}
 	}
 
-	//Go through all 12 tonalities
-	for (int tIndex = 0; tIndex < 12; tIndex++)
+	if (!isAreaEmpty)
 	{
-		int t = (startTonality + tIndex) % 12;
+		//Go through all 12 tonalities
+		maxSum = 0;
 
-		defMajorScaleVectorFull.clear();
-		defMinorScaleVectorFull.clear();
-		defMajorChordVectorFull.clear();
-		defMinorChordVectorFull.clear();
-
-		String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
-		for (int c = 0; c < numColumns; c++)
+		for (int tIndex = 0; tIndex < 12; tIndex++)
 		{
-			//Define template vectors for Major and Minor for the Tonality[t]
-			for (int n = noteRangeStart; n < noteRangeEnd; n++)
+			int t = (startTonality + tIndex) % 12;
+			DBG("Tonality: " + MusicMath::getNoteNameByMIDINoteNumber(t) + "-----------------------------------------------");
+
+			String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
+			for (int c = 0; c < numColumns; c++)
 			{
-				defMajorScaleVectorFull.operator()(0, n - noteRangeStart) = defMajorScaleVector.operator()(0, (n - t) % 12);
-				defMinorScaleVectorFull.operator()(0, n - noteRangeStart) = defMinorScaleVector.operator()(0, (n - t) % 12);
-				defMajorChordVectorFull.operator()(0, n - noteRangeStart) = defMajorChordVector.operator()(0, (n - t) % 12);
-				defMinorChordVectorFull.operator()(0, n - noteRangeStart) = defMinorChordVector.operator()(0, (n - t) % 12);
+				//Define template vectors for Major and Minor for the Tonality[t]
+				for (int n = noteRangeStart; n < noteRangeEnd; n++)
+				{
+					for (int m = 0; m < 7; m++)
+					{
+						if (_modesWeightVectorsFull[n - noteRangeStart].empty())
+						{
+							_modesWeightVectorsFull[n - noteRangeStart] = vector<int>(7);
+						}
+						_modesWeightVectorsFull[n - noteRangeStart][m] = _modesWeightVectors[m][(n - t) % 12];
+					}
+				}
 			}
+			for (int m = 0; m < 7; m++)
+			{
+				int resultingSum = 0;
+				vector<vector<int>> resultingVector = multiplyMatrixWithModes(tempMatrix, _modesWeightVectorsFull);
+
+				for (int n = noteRangeStart; n < noteRangeEnd; n++)
+				{
+					resultingSum += resultingVector[n - noteRangeStart][m];
+				}
+
+				if (maxSum < resultingSum)
+				{
+					ContextDesc cd(t, m, resultingSum);
+					allPossiblieTonalities.push_back(cd);
+					maxSum = resultingSum;
+				}
+				DBG("Mode: " + String(m) + "\tSum: \t" + String(resultingSum));
+
+			}
+			DBG("Total: " + String(maxSum));
 		}
+		allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
 
-		Matrix<int> resMajChord = multiplyMatrixAndVector(tempMatrix, defMajorChordVectorFull);
-		Matrix<int> resMinChord = multiplyMatrixAndVector(tempMatrix, defMinorChordVectorFull);
-		Matrix<int> resMajScale = multiplyMatrixAndVector(tempMatrix, defMajorScaleVectorFull);
-		Matrix<int> resMinScale = multiplyMatrixAndVector(tempMatrix, defMinorScaleVectorFull);
-
-		int sumMajChord = sumOfCellsInMatrix(resMajChord);
-		int sumMinChord = sumOfCellsInMatrix(resMinChord);
-		int sumMajScale = sumOfCellsInMatrix(resMajScale);
-		int sumMinScale = sumOfCellsInMatrix(resMinScale);
-
-		if (maxSum < sumMajChord + sumMinChord + sumMajScale + sumMinScale)
+		for (ContextDesc& ctx : allPossiblieTonalities)
 		{
-			if (sumMajChord + sumMajScale >= sumMinChord + sumMinScale)
-			{
-				mostProbableRootFlavor = "maj";
-			}
-			else
-			{
-				mostProbableRootFlavor = "min";
-			}
-
-			float p = (float)(sumMajChord + sumMinChord + sumMajScale + sumMinScale);
-			mostProbableRoot = t;
-			maxSum = sumMajChord + sumMinChord + sumMajScale + sumMinScale;
-			ContextDesc cd(mostProbableRoot, mostProbableRootFlavor == "maj", p);
-			allPossiblieTonalities.push_back(cd);
+			ctx.Probability = ctx.Probability / (float)maxSum;
 		}
-	}
-	allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
-
-	for (ContextDesc& ctx : allPossiblieTonalities)
-	{
-		ctx.Probability = ctx.Probability / (float)maxSum;
 	}
 
 	return allPossiblieTonalities;
@@ -418,6 +472,16 @@ int MusicMath::sumOfCellsInMatrix(const Matrix<int>& mat)
 		{
 			res += mat(i, j);
 		}
+	}
+	return res;
+}
+
+int MusicMath::sumOfCellsInVector(const vector<int>& vec)
+{
+	int res = 0;
+	for (int i = 0; i < vec.size(); i++)
+	{
+		res += vec[i];
 	}
 	return res;
 }
@@ -454,6 +518,36 @@ void MusicMath::debugMatrix(const Matrix<int>& mat, String friendlyName, bool sh
 		DBG(row);
 	}
 }
+void MusicMath::debugVector(const vector<int>& vec, String friendlyName, bool showNoteRange)
+{
+	if (showNoteRange)
+	{
+		DBG(friendlyName + " Vector [" + String(vec.size()) + "], Note Range: " + String(noteRangeStart) + "-" + String(noteRangeEnd) + " ------------------------------------------------------------");
+	}
+	else
+	{
+		DBG(friendlyName + " Vector [" + String(vec.size()) + "] ------------------------------------------------------------");
+	}
+	String row = "";
+	String row2 = "";
+
+	for (int n = noteRangeStart; n < noteRangeEnd; n++)
+	{
+		String note = MusicMath::getNoteNameByMIDINoteNumber(n);
+		row += String(n) + "\t";
+		row2 += String(note) + "\t";
+	}
+	DBG(row);
+	DBG(row2);
+
+	row = "";
+	for (int i = 0; i < vec.size(); i++)
+	{
+		row += String(vec[i]) + "\t";
+	}
+	DBG(row);
+
+}
 // Input Matrix selectionMatrix[60, 5] x defMajorMatrix[5, 60]
 Matrix<int> MusicMath::multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2)
 {
@@ -482,22 +576,46 @@ Matrix<int> MusicMath::multiplyMatrices(const Matrix<int>& mat1, const Matrix<in
 }
 
 //Input Mat1[60, 5] Mat2[1, 60] Output Result[1, 60]
-Matrix<int> MusicMath::multiplyMatrixAndVector(const Matrix<int>& mat1, const Matrix<int>& mat2)
+vector<int> MusicMath::multiplyMatrixAndVector(const Matrix<int>& mat, const vector<int>& vec)
 {
 	// Check if the matrices can be multiplied
-	if (mat2.getNumColumns() != mat1.getNumRows())
-		throw std::invalid_argument("Matrix dimensions do not match for multiplication.");
-	Matrix<int> result(1, mat1.getNumRows());
-	result.clear();
+	if (vec.size() != mat.getNumRows())
+		throw std::invalid_argument("Matrix and Vector dimensions do not match for multiplication.");
+	vector<int> result(vec.size());
 
-	for (int i = 0; i < mat1.getNumColumns(); i++)
+	for (int i = 0; i < mat.getNumColumns(); i++)
 	{
-		for (int j = 0; j < mat1.getNumRows(); j++)
+		for (int j = 0; j < mat.getNumRows(); j++)
 		{
-			result(0, j) += mat1(j, i) * mat2(0, j);
+			result[j] += mat(j, i) * vec[j];
 		}
 	}
 	return result;
+}
+
+vector<vector<int>> MusicMath::multiplyMatrixWithModes(const Matrix<int>& mat, const vector<vector<int>>& modes)
+{
+	vector<vector<int>> resultingMultiplication(mat.getNumRows());
+	if (modes.size() != mat.getNumRows())
+		throw std::invalid_argument("Matrix and Vectors dimensions do not match for multiplication.");
+
+	for (int i = 0; i < mat.getNumColumns(); i++)
+	{
+		for (int j = 0; j < mat.getNumRows(); j++)
+		{
+			if (resultingMultiplication[j].empty())
+			{
+				resultingMultiplication[j] = vector<int>(7);
+			}
+
+			for (int m = 0; m < 7; m++)
+			{
+				resultingMultiplication[j][m] += mat(j, i) * modes[j][m];
+			}
+
+		}
+	}
+	return resultingMultiplication;
 }
 
 
@@ -549,16 +667,16 @@ NoteEventDesc::~NoteEventDesc()
 ContextDesc::ContextDesc()
 {}
 
-ContextDesc::ContextDesc(int rootMIDINote, bool isMajor)
+ContextDesc::ContextDesc(int rootMIDINote, int mode)
 {
-	this->IsMajor = isMajor;
+	this->Mode = mode;
 	this->RootMIDINote = rootMIDINote;
 	this->ContextDuration = 0;
 
 }
-ContextDesc::ContextDesc(int rootMIDINote, bool isMajor, float probability)
+ContextDesc::ContextDesc(int rootMIDINote, int mode, float probability)
 {
-	this->IsMajor = isMajor;
+	this->Mode = mode;
 	this->RootMIDINote = rootMIDINote;
 	this->ContextDuration = 0;
 	this->Probability = probability;
@@ -570,5 +688,6 @@ ContextDesc::~ContextDesc()
 
 String ContextDesc::debug()
 {
-	return MusicMath::getNoteNameByMIDINoteNumber(RootMIDINote) + (IsMajor ? "maj" : "min") + " p: " + String::formatted("%1.1f", this->Probability);
+	MusicMath math;
+	return MusicMath::getNoteNameByMIDINoteNumber(RootMIDINote) + (Mode > -1 ? math.getModeDegree(Mode) : "") + " p: " + String::formatted("%1.1f", this->Probability);
 }

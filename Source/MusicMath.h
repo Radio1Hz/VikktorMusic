@@ -31,15 +31,15 @@ public:
 class ContextDesc
 {
 public:
-	bool	IsMajor = true;
+	int		Mode = -1;
 	int		RootMIDINote = -1;
 	int		ContextDuration = 0;
 	int		EventType = -1;
 	float	Probability = 0.0;
 	String debug();
 	ContextDesc();
-	ContextDesc(int rootMIDINote, bool isMajor);
-	ContextDesc(int rootMIDINote, bool isMajor, float probability);
+	ContextDesc(int rootMIDINote, int mode);
+	ContextDesc(int rootMIDINote, int mode, float probability);
 	~ContextDesc();
 };
 
@@ -78,15 +78,19 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, bool shouldWeightByDuration);
+	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID);
+	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
+	list<ContextDesc>			getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
 	int sumOfCellsInMatrix(const Matrix<int>& mat);
+	int sumOfCellsInVector(const vector<int>& vec);
 	void debugMatrix(const Matrix<int>& mat, String friendlyName, bool showNoteRange);
+	void debugVector(const vector<int>& vec, String friendlyName, bool showNoteRange);
 	Matrix<int> multiplyMatrices(const Matrix<int>& mat1, const Matrix<int>& mat2);
-	Matrix<int> multiplyMatrixAndVector(const Matrix<int>& mat1, const Matrix<int>& mat2);
-	unique_ptr<Matrix<int>> _defaultMajorScaleDefinitionVector;
-	unique_ptr<Matrix<int>> _defaultMinorScaleDefinitionVector;
-	unique_ptr<Matrix<int>> _defaultMajorChordDefinitionVector;
-	unique_ptr<Matrix<int>> _defaultMinorChordDefinitionVector;
+	vector<int> multiplyMatrixAndVector(const Matrix<int>& mat, const vector<int>& vec);
+	vector<vector<int>> multiplyMatrixWithModes(const Matrix<int>& mat, const vector<vector<int>>& modes);
+	vector<int> _defMajorScaleIonianVector{ 2, -1, 1, -1,  2, 1, -1, 2, -1,  1, -1,  1 };
+	vector<int> _defMinorScaleAeolianVector{ 2, -1, 1,  2, -1, 1, -1, 2,  1, -1,  1, -1 };
+
 private:
 
 	int noteRangeStart = 36;
@@ -151,9 +155,18 @@ private:
 		{0, 1, 3, 5, 6, 8, 10}
 	};
 
-	unique_ptr<Matrix<int>> _keysDefinitions;
+	vector<vector<int>> _modesWeightVectors
+	{
+		{ 2, -1, 1, -1,  2,  1, -1, 2, -1,  1, -1,  1 }, //Ionian
+		{ 2, -1, 1,  2, -1,  1, -1, 2, -1,  1,  1, -1 }, //Dorian
+		{ 2,  1, -1, 2, -1,  1, -1, 2,  1, -1,  1, -1 }, //Phrygian
+		{ 2, -1, 1, -1,  2, -1,  1, 2, -1,  1, -1,  1 }, //Lydian
+		{ 2, -1, 1, -1,  2,  1, -1, 2, -1,  1,  1, -1 }, //Mixolydian
+		{ 2, -1, 1,  2, -1,  1, -1, 2,  1, -1,  1,  1 }, //Aeolian
+		{ 2,  1, -1, 2, -1,  1,  2,-1,  1, -1,  1, -1 }  //Locrian
+	};
 
-	vector<String>	_modes_display =
+	vector<String> _modes_display =
 	{
 		"Ionian",
 		"Dorian",
@@ -162,6 +175,17 @@ private:
 		"Mixolydian",
 		"Aeolian",
 		"Locrian"
+	};
+
+	vector<String>_modes_display_degrees =
+	{
+		"I",
+		"II",
+		"III",
+		"IV",
+		"V",
+		"VI",
+		"VII"
 	};
 
 	//Ionian selected as default
@@ -176,16 +200,7 @@ private:
 		1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0
 	};
 
-	vector<String>	_modes_display_degrees =
-	{
-		"I",
-		"II",
-		"III",
-		"IV",
-		"V",
-		"VI",
-		"VII"
-	};
+	
 };
 
 
