@@ -362,7 +362,7 @@ void MIDITimelineComponent::paint(Graphics& g)
 
 					if (relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen > 0 && relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen < screenWidth)
 					{
-						for (float q = 0; q < numQuartersPerMeasure; q += 1.0f)
+						for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
 						{
 							measureTonalityRect.setPosition(((float)currMeasure + q / numQuartersPerMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
 							String text = "";
@@ -418,7 +418,7 @@ void MIDITimelineComponent::paint(Graphics& g)
 				}
 
 				Rectangle<float> currentScreenCursorInfoRect(cursorInfoWidth, cursorInfoHeight);
-				currentScreenCursorInfoRect.setPosition(((currentCursorPosition[1] + 2) * cWidth) + 1, ((currentCursorPosition[0] + 2) * cHeight) + headerHeight + 1);
+				currentScreenCursorInfoRect.setPosition(((currentCursorPosition[1] + 2) * cWidth) + 1, ((currentCursorPosition[0] + 2) * cHeight) + headerHeight);
 				g.setColour(Colour::fromRGBA(20, 20, 20, 255));
 				g.fillRect(currentScreenCursorInfoRect);
 				g.setColour(Colours::white);
@@ -774,6 +774,15 @@ void MIDITimelineComponent::repaintMatrixImage()
 			for (int j = 0; j < numberOfTimeUnits; j++)
 			{
 				int currentMeasureIndex = (int)floor(j / numTimeUnitsInMeasure); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
+				int currentQuarterIndex = (int)((j % (int)((float)numTimeUnitsInMeasure / numQuartersPerMeasure))); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
+				if (contextPerMeasureAndQuarterVector.size() > 0)
+				{
+					if (contextPerMeasureAndQuarterVector[currentMeasureIndex][currentQuarterIndex].size() > 0)
+					{
+						ContextDesc cDesc = contextPerMeasureAndQuarterVector[currentMeasureIndex][currentQuarterIndex][0];
+					}
+				}
+				
 				currentX = (float)newImageSize.getWidth() * ((float)j / (float)numberOfTimeUnits);
 
 				textBox.setPosition(Point<float>(currentX, currentY));
@@ -928,25 +937,32 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 			contextPerMeasureAndQuarterVector[z] = vector<vector<ContextDesc>>(4);
 		}
 
-		for (float q = 0; q < numQuartersPerMeasure; q += 1.0f)
+		for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
 		{
-			//int pseudoSelectedCellStart = ((float)z + q / numQuartersPerMeasure) * numTimeUnitsInMeasure;
-			//int pseudoSelectedCellEnd = ((float)z + q / numQuartersPerMeasure + 1.0f) * numTimeUnitsInMeasure - 1;
-			int pseudoSelectedCellStart = z * numTimeUnitsInMeasure + (int)(q * ((float)numTimeUnitsInMeasure / (float)numQuartersPerMeasure));
-			int pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (int)((q + 1.0f) * ((float)numTimeUnitsInMeasure / (float)numQuartersPerMeasure)) - 1;
+
+			int pseudoSelectedCellStart = z * numTimeUnitsInMeasure + (int)(q * ((float)numTimeUnitsInMeasure / (float)ceil(numQuartersPerMeasure)));
+			int pseudoSelectedCellEnd = 0;
+			if (q > floor(numQuartersPerMeasure) - 1)
+			{
+				pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (numTimeUnitsInMeasure - (int)((float)ceil(numQuartersPerMeasure)/4.0f));
+			}
+			else
+			{
+				pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (int)((q + 1.0f) * ((float)numTimeUnitsInMeasure / (float)ceil(numQuartersPerMeasure))) - 1;
+			}
 
 			list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
 
 			if (allPossiblieTonalities.size() > 0)
 			{
-				if (contextPerMeasureAndQuarterVector[z][q].empty())
+				if (contextPerMeasureAndQuarterVector[z][(int)q].empty())
 				{
 					std::vector<ContextDesc> vec;
-					contextPerMeasureAndQuarterVector[z][q] = vec;
+					contextPerMeasureAndQuarterVector[z][(int)q] = vec;
 				}
 				for (ContextDesc& i : allPossiblieTonalities)
 				{
-					contextPerMeasureAndQuarterVector[z][q].push_back(i);
+					contextPerMeasureAndQuarterVector[z][(int)q].push_back(i);
 				}
 			}
 		}

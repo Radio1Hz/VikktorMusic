@@ -446,10 +446,10 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 					allPossiblieTonalities.push_back(cd);
 					maxSum = resultingSum;
 				}
-				DBG("Mode: " + String(m) + "\tSum: \t" + String(resultingSum));
+				//DBG("Mode: " + String(m) + "\tSum: \t" + String(resultingSum));
 
 			}
-			DBG("Total: " + String(maxSum));
+			//DBG("Total: " + String(maxSum));
 		}
 		allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
 
