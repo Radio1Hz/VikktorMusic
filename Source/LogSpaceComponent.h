@@ -84,6 +84,21 @@ public:
 		t0->init();
 	}
 
+	void LogSpaceComponent::deleteMIDITimelineComponent(MIDITimelineComponent* midiTC)
+	{
+		int index = 0;
+		for (MIDITimelineComponent* tl : MIDITimelineObjects)
+		{
+			if (midiTC == tl)
+			{
+				removeChildComponent(tl);
+				MIDITimelineObjects.remove(index);
+				repaint();
+			}
+			index++;
+		}
+	}
+
 	void LogSpaceComponent::addNewTimeObjectComponent()
 	{
 		TimeObjectComponent* tO = new TimeObjectComponent();

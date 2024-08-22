@@ -51,6 +51,7 @@ public:
 	void numMeasuresChanged();
 	void init();
 	void triggerRepaint();
+	void deleteTimeline();
 
 private:
 	//Methods
@@ -86,8 +87,7 @@ private:
 	//Matrix 
 	vector<vector<NoteEventDesc>> noteEventMatrix;
 	vector<float> noteProbabilities;
-	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector;
-	vector<vector<ContextDesc>> contextPerMeasure;
+
 	//Graphics
 	float minCellWidth = 10.0f;
 	Image matrixImage;

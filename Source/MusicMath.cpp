@@ -265,7 +265,7 @@ list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>
 	return allPossiblieTonalities;
 }
 
-list<ContextDesc> MusicMath::getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE)
+list<ContextDesc> MusicMath::getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& /*noteEventMatrix*/, int /*sCS*/, int /*sCE*/)
 {
 	list<ContextDesc> allPossiblieTonalities;
 
@@ -442,14 +442,11 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 
 				if (maxSum < resultingSum)
 				{
-					ContextDesc cd(t, m, resultingSum);
+					ContextDesc cd(t, m, (float)resultingSum);
 					allPossiblieTonalities.push_back(cd);
 					maxSum = resultingSum;
 				}
-				//DBG("Mode: " + String(m) + "\tSum: \t" + String(resultingSum));
-
 			}
-			//DBG("Total: " + String(maxSum));
 		}
 		allPossiblieTonalities.sort([](const ContextDesc& f, const ContextDesc& s) { return f.Probability > s.Probability; });
 

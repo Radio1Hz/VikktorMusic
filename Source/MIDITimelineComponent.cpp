@@ -326,6 +326,8 @@ void MIDITimelineComponent::paint(Graphics& g)
 	{
 		if (noteEventMatrix.size() > 0)
 		{
+			vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
+			vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
 			float measureWidthInPixels = parentBounds.getWidth() / (float)numMeasures;
 			float timeUnitWidthInPixels = parentBounds.getWidth() / ((float)numMeasures * (float)numTimeUnitsInMeasure);
 			int numberOfTimeUnits = (int)noteEventMatrix[0].size();
@@ -353,7 +355,7 @@ void MIDITimelineComponent::paint(Graphics& g)
 				for (int currMeasure = 0; currMeasure < contextPerMeasureAndQuarterVector.size(); currMeasure++)
 				{
 					Rectangle<float> measureQuarterTonalityRect(measureWidthInPixels, contextPerMeasureAndQuarterVector[currMeasure][0].size() * 10.0f);
-					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasure[currMeasure].size() * 10.0f);
+					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
 					int xPosition = currMeasure * (int)measureWidthInPixels + (int)timeUnitWidthInPixels;
 
 					int screenWidth = getParentComponent()->getWidth();
@@ -381,9 +383,9 @@ void MIDITimelineComponent::paint(Graphics& g)
 							}
 							if (q == 0)
 							{
-								if (contextPerMeasure[currMeasure].size() > 0)
+								if (contextPerMeasureVector[currMeasure].size() > 0)
 								{
-									text += "\r\n*" + contextPerMeasure[currMeasure][0].debug() + "*";
+									text += "\r\n*" + contextPerMeasureVector[currMeasure][0].debug() + "*";
 								}
 							}
 							g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
@@ -686,6 +688,7 @@ void MIDITimelineComponent::initMenu()
 		menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
 		menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
+		menu.addItem("Delete", std::bind(&MIDITimelineComponent::deleteTimeline, this));
 	}
 }
 
@@ -753,6 +756,9 @@ void MIDITimelineComponent::repaintMatrixImage()
 {
 	if (noteEventMatrix.size() > 0)
 	{
+		vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
+		vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
+
 		Rectangle<int> parentBounds = getReducedLocalBounds();
 		Rectangle<int> newImageSize(200, 200);
 		float timeUnitWidthPixels = minCellWidth;
@@ -802,11 +808,11 @@ void MIDITimelineComponent::repaintMatrixImage()
 						ContextDesc cDesc = contextPerMeasureAndQuarterVector[currentMeasureIndex][currentQuarterIndex][0];
 					}
 				}
-				if (contextPerMeasure.size() > 0)
+				if (contextPerMeasureVector.size() > 0)
 				{
-					if (contextPerMeasure[currentMeasureIndex].size() > 0)
+					if (contextPerMeasureVector[currentMeasureIndex].size() > 0)
 					{
-						ContextDesc cDesc = contextPerMeasure[currentMeasureIndex][0];
+						ContextDesc cDesc = contextPerMeasureVector[currentMeasureIndex][0];
 					}
 				}
 
@@ -954,10 +960,12 @@ void MIDITimelineComponent::loopSelection()
 
 void MIDITimelineComponent::defineAllContextsPerMeasures()
 {
+	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
+	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
 	contextPerMeasureAndQuarterVector.clear();
 	contextPerMeasureAndQuarterVector.resize(numMeasures);
-	contextPerMeasure.clear();
-	contextPerMeasure.resize(numMeasures);
+	contextPerMeasureVector.clear();
+	contextPerMeasureVector.resize(numMeasures);
 
 	bool shouldDefinePerQuarters = false;
 	for (int z = 0; z < numMeasures; z++)
@@ -1003,21 +1011,21 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
 				if (allPossiblieTonalitiesMeasure.size() > 0)
 				{
-					if (contextPerMeasure[z].empty())
+					if (contextPerMeasureVector[z].empty())
 					{
 						std::vector<ContextDesc> vec;
-						contextPerMeasure[z] = vec;
+						contextPerMeasureVector[z] = vec;
 					}
 					for (ContextDesc& i : allPossiblieTonalitiesMeasure)
 					{
-						contextPerMeasure[z].push_back(i);
+						contextPerMeasureVector[z].push_back(i);
 					}
 				}
 			}
 		}
 	}
-
-
+	AppProperties::setContextPerMeasureAndQuarterVector(contextPerMeasureAndQuarterVector);
+	AppProperties::setContextPerMeasureVector(contextPerMeasureVector);
 }
 
 void MIDITimelineComponent::operationOnSelection01()
@@ -1255,4 +1263,9 @@ void MIDITimelineComponent::mouseUpEvent(const MouseEvent& /*event*/)
 void MIDITimelineComponent::triggerRepaint()
 {
 	triggerAsyncUpdate();
+}
+
+void MIDITimelineComponent::deleteTimeline()
+{
+	((LogSpaceComponent*)getParentComponent())->deleteMIDITimelineComponent(this);
 }

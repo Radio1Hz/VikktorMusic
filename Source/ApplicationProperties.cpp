@@ -9,6 +9,7 @@
 */
 #include <JuceHeader.h>
 #include "ApplicationProperties.h"
+#include "MusicMath.h"
 
 using namespace juce;
 
@@ -95,5 +96,25 @@ String AppProperties::getProjectPath()
 void AppProperties::setProjectPath(String path)
 {
 	AppProperties::projectPath = path;
+}
+
+vector<vector<vector<ContextDesc>>> AppProperties::getContextPerMeasureAndQuarterVector()
+{
+	return AppProperties::contextPerMeasureAndQuarterVector;
+}
+
+vector<vector<ContextDesc>> AppProperties::getContextPerMeasureVector()
+{
+	return AppProperties::contextPerMeasureVector;
+}
+
+void AppProperties::setContextPerMeasureAndQuarterVector(vector<vector<vector<ContextDesc>>> vec)
+{
+	AppProperties::contextPerMeasureAndQuarterVector = vec;
+}
+
+void AppProperties::setContextPerMeasureVector(vector<vector<ContextDesc>> vec)
+{
+	AppProperties::contextPerMeasureVector = vec;
 }
 
