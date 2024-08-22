@@ -25,6 +25,9 @@ public:
     static int getDenominator();
     static void setDenominator(int den);
     
+    static int getNumMeasures();
+    static void setNumMeasures(int numMes);
+
     static bool getShouldSaveAudio();
     static void setShouldSaveAudio(bool ssa); 
 
@@ -51,5 +54,6 @@ private:
     inline static bool MIDIOut = false;
     inline static int numerator;
     inline static int denominator;
+    inline static int numMeasures = 0;
     inline static String projectPath;
 };

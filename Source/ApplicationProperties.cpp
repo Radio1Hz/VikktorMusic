@@ -47,6 +47,16 @@ void AppProperties::setDenominator(int den)
 	AppProperties::denominator = den;
 }
 
+int AppProperties::getNumMeasures()
+{
+	return AppProperties::numMeasures;
+}
+
+void AppProperties::setNumMeasures(int numMes)
+{
+	AppProperties::numMeasures = numMes;
+}
+
 bool AppProperties::getShouldSaveAudio()
 {
 	return AppProperties::shouldSaveAudio;

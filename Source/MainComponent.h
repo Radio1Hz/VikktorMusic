@@ -26,7 +26,7 @@ public:
 	void newButtonClicked();
 	void setNewProject(int bpm, int measures);
 	void ReadSamplesToImage();
-	void tempoTextChanged();
+	void numMeasuresTextChanged();
 	void tempoChanged();
 	void timeSignatureChanged();
 	void ReadSamplesToAudioSampleBufferImage();
@@ -94,6 +94,8 @@ private:
 	TextEditor keySignatureNumeratorText;
 	Label keySignatureSeparatorLabel;
 	TextEditor keySignatureDenominatorText;
+	Label numMeasuresLabel;
+	TextEditor numMeasuresText;
 	Label timeLabel;
 	ToggleButton audioOnToggleButton;
 	ToggleButton audioSettingsToggleButton;

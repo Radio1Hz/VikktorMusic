@@ -344,15 +344,16 @@ void MIDITimelineComponent::paint(Graphics& g)
 
 			g.drawText(currentTimeUnitFormattedText, cursorTimeUnitInfoRect, Justification::centred, true);
 
-			//Draw Contexts probabilities per measure
-			if (measureWidthInPixels > 150)
+			//Draw Contexts probabilities per measure and quarters
+			if (measureWidthInPixels > 80)
 			{
 				g.setFont(10.0f);
 				Rectangle<int> relativeScreenRect = getScreenBounds();
 
 				for (int currMeasure = 0; currMeasure < contextPerMeasureAndQuarterVector.size(); currMeasure++)
 				{
-					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureAndQuarterVector[currMeasure][0].size() * 10.0f);
+					Rectangle<float> measureQuarterTonalityRect(measureWidthInPixels, contextPerMeasureAndQuarterVector[currMeasure][0].size() * 10.0f);
+					Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasure[currMeasure].size() * 10.0f);
 					int xPosition = currMeasure * (int)measureWidthInPixels + (int)timeUnitWidthInPixels;
 
 					int screenWidth = getParentComponent()->getWidth();
@@ -364,7 +365,8 @@ void MIDITimelineComponent::paint(Graphics& g)
 					{
 						for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
 						{
-							measureTonalityRect.setPosition(((float)currMeasure + q / numQuartersPerMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
+							measureQuarterTonalityRect.setPosition(((float)currMeasure + q / numQuartersPerMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
+							measureTonalityRect.setPosition(((float)currMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
 							String text = "";
 							for (int t = 0; t < contextPerMeasureAndQuarterVector[currMeasure][(int)q].size(); t++)
 							{
@@ -375,6 +377,13 @@ void MIDITimelineComponent::paint(Graphics& g)
 								else
 								{
 									text += "\r\n" + contextPerMeasureAndQuarterVector[currMeasure][(int)q][t].debug();
+								}
+							}
+							if (q == 0)
+							{
+								if (contextPerMeasure[currMeasure].size() > 0)
+								{
+									text += "\r\n*" + contextPerMeasure[currMeasure][0].debug() + "*";
 								}
 							}
 							g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
@@ -516,6 +525,17 @@ void MIDITimelineComponent::allNotesOff()
 	{
 		MidiMessage noteOff(MidiMessage::allNotesOff(defaultMIDIChannel));
 		midiOutput->sendMessageNow(noteOff);
+	}
+}
+
+void MIDITimelineComponent::numMeasuresChanged()
+{
+	if (this->numMeasures != AppProperties::getNumMeasures())
+	{
+		this->numMeasures = AppProperties::getNumMeasures();
+		clearNoteEventMatrix();
+		repaintMatrixImage();
+		setComponentSize();
 	}
 }
 
@@ -782,7 +802,14 @@ void MIDITimelineComponent::repaintMatrixImage()
 						ContextDesc cDesc = contextPerMeasureAndQuarterVector[currentMeasureIndex][currentQuarterIndex][0];
 					}
 				}
-				
+				if (contextPerMeasure.size() > 0)
+				{
+					if (contextPerMeasure[currentMeasureIndex].size() > 0)
+					{
+						ContextDesc cDesc = contextPerMeasure[currentMeasureIndex][0];
+					}
+				}
+
 				currentX = (float)newImageSize.getWidth() * ((float)j / (float)numberOfTimeUnits);
 
 				textBox.setPosition(Point<float>(currentX, currentY));
@@ -929,7 +956,10 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 {
 	contextPerMeasureAndQuarterVector.clear();
 	contextPerMeasureAndQuarterVector.resize(numMeasures);
+	contextPerMeasure.clear();
+	contextPerMeasure.resize(numMeasures);
 
+	bool shouldDefinePerQuarters = false;
 	for (int z = 0; z < numMeasures; z++)
 	{
 		if (contextPerMeasureAndQuarterVector[z].empty())
@@ -939,30 +969,49 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 
 		for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
 		{
-
 			int pseudoSelectedCellStart = z * numTimeUnitsInMeasure + (int)(q * ((float)numTimeUnitsInMeasure / (float)ceil(numQuartersPerMeasure)));
 			int pseudoSelectedCellEnd = 0;
 			if (q > floor(numQuartersPerMeasure) - 1)
 			{
-				pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (numTimeUnitsInMeasure - (int)((float)ceil(numQuartersPerMeasure)/4.0f));
+				pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (numTimeUnitsInMeasure - (int)((float)ceil(numQuartersPerMeasure) / 4.0f));
 			}
 			else
 			{
 				pseudoSelectedCellEnd = z * numTimeUnitsInMeasure + (int)((q + 1.0f) * ((float)numTimeUnitsInMeasure / (float)ceil(numQuartersPerMeasure))) - 1;
 			}
 
-			list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
-
-			if (allPossiblieTonalities.size() > 0)
+			if (shouldDefinePerQuarters)
 			{
-				if (contextPerMeasureAndQuarterVector[z][(int)q].empty())
+				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
+				if (allPossiblieTonalities.size() > 0)
 				{
-					std::vector<ContextDesc> vec;
-					contextPerMeasureAndQuarterVector[z][(int)q] = vec;
+					if (contextPerMeasureAndQuarterVector[z][(int)q].empty())
+					{
+						std::vector<ContextDesc> vec;
+						contextPerMeasureAndQuarterVector[z][(int)q] = vec;
+					}
+					for (ContextDesc& i : allPossiblieTonalities)
+					{
+						contextPerMeasureAndQuarterVector[z][(int)q].push_back(i);
+					}
 				}
-				for (ContextDesc& i : allPossiblieTonalities)
+			}
+
+			if (q == 0)
+			{
+				pseudoSelectedCellEnd = (z + 1) * numTimeUnitsInMeasure - 1;
+				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
+				if (allPossiblieTonalitiesMeasure.size() > 0)
 				{
-					contextPerMeasureAndQuarterVector[z][(int)q].push_back(i);
+					if (contextPerMeasure[z].empty())
+					{
+						std::vector<ContextDesc> vec;
+						contextPerMeasure[z] = vec;
+					}
+					for (ContextDesc& i : allPossiblieTonalitiesMeasure)
+					{
+						contextPerMeasure[z].push_back(i);
+					}
 				}
 			}
 		}

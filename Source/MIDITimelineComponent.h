@@ -48,6 +48,7 @@ public:
 	void stopMIDI();
 	void processMidi();
 	void allNotesOff();
+	void numMeasuresChanged();
 	void init();
 	void triggerRepaint();
 
@@ -86,6 +87,7 @@ private:
 	vector<vector<NoteEventDesc>> noteEventMatrix;
 	vector<float> noteProbabilities;
 	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector;
+	vector<vector<ContextDesc>> contextPerMeasure;
 	//Graphics
 	float minCellWidth = 10.0f;
 	Image matrixImage;

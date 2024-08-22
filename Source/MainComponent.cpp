@@ -71,7 +71,6 @@ audioSetupComp(
 
 	tempoText.setText(String(AppProperties::getTempo()));
 	tempoText.setJustification(Justification::centred);
-	tempoText.onTextChange = [this] { tempoTextChanged(); };
 	tempoText.onFocusLost = [this] { tempoChanged(); };
 	tempoLabel.setJustificationType(Justification::centredRight);
 	tempoLabel.setText("T:", NotificationType::dontSendNotification);
@@ -82,11 +81,16 @@ audioSetupComp(
 	keySignatureNumeratorText.setJustification(Justification::centred);
 	keySignatureSeparatorLabel.setText(" / ", NotificationType::dontSendNotification);
 	keySignatureSeparatorLabel.setJustificationType(Justification::centred);
+	numMeasuresLabel.setText("# Measures:", NotificationType::dontSendNotification);
+	numMeasuresLabel.setJustificationType(Justification::centred);
+	numMeasuresText.setText(String(AppProperties::getNumMeasures()));
+	numMeasuresText.setJustification(Justification::centred);
 	keySignatureDenominatorText.setText(String(AppProperties::getDenominator()));
 	keySignatureDenominatorText.setJustification(Justification::centred);
 
 	keySignatureNumeratorText.onFocusLost = [this] { timeSignatureChanged(); };
 	keySignatureDenominatorText.onFocusLost = [this] { timeSignatureChanged(); };
+	numMeasuresText.onFocusLost = [this] { numMeasuresTextChanged(); };
 
 	timeLabel.setText(displayProgress(0.0, 0.0), NotificationType::dontSendNotification);
 	timeLabel.setJustificationType(Justification::centredRight);
@@ -113,6 +117,8 @@ audioSetupComp(
 	addAndMakeVisible(keySignatureNumeratorText);
 	addAndMakeVisible(keySignatureSeparatorLabel);
 	addAndMakeVisible(keySignatureDenominatorText);
+	addAndMakeVisible(numMeasuresLabel);
+	addAndMakeVisible(numMeasuresText);
 
 	audioSetupComp.setVisible(false);
 	audioSampleBlockImage = Image(Image::RGB, 240, 30, true);
@@ -128,9 +134,18 @@ audioSetupComp(
 	startTimer(TimerType::TimePositionTimer, 100);
 }
 
-void MainComponent::tempoTextChanged()
+void MainComponent::numMeasuresTextChanged()
 {
-
+	AppProperties::setNumMeasures(numMeasuresText.getText().getIntValue());
+	for (auto child : logSpaceComponent.getChildren())
+	{
+		if (MIDITimelineComponent* b1 = dynamic_cast<MIDITimelineComponent*>(child))
+		{
+			b1->allNotesOff();
+			b1->numMeasuresChanged();
+		}
+	}
+	logSpaceComponent.repaint();
 }
 
 void MainComponent::tempoChanged()
@@ -682,9 +697,11 @@ void MainComponent::resized()
 	keySignatureNumeratorText.setBounds(480, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	keySignatureSeparatorLabel.setBounds(540, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 	keySignatureDenominatorText.setBounds(600, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-	savePlayedAudioSamplesToggleButton.setBounds(660, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-	produceAudioToggleButton.setBounds(720, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
-	produceMIDIToggleButton.setBounds(780, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	numMeasuresLabel.setBounds(660, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	numMeasuresText.setBounds(720, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	savePlayedAudioSamplesToggleButton.setBounds(780, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	produceAudioToggleButton.setBounds(840, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
+	produceMIDIToggleButton.setBounds(900, getHeight() - controlsAreaOffsetFromBottom, 60, 30);
 
 	internalBufferSamplesImage0 = Image(Image::RGB, getWidth(), 30, true);
 	internalBufferSamplesImage1 = Image(Image::RGB, getWidth(), 30, true);

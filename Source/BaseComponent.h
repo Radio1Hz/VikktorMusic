@@ -38,7 +38,6 @@ public:
     virtual void mouseDownEvent(const MouseEvent& event);
     virtual void mouseUpEvent(const MouseEvent& event);
 
-
     void drawOutline (Graphics&);
     void mouseDrag(const MouseEvent& event) override;
     void mouseUp(const MouseEvent& event) override;
@@ -55,6 +54,7 @@ public:
     int headerHeight = 20;
     bool embeddedMode = false;
     bool readOnlyMode = false;
+    bool isMinSize = false;
 
 protected: 
     float getFontSize();
