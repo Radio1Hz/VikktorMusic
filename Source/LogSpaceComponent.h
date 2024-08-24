@@ -20,6 +20,7 @@
 #include "AudioComponent.h"
 #include "MIDISynthComponent.h"
 #include "MIDITimelineComponent.h"
+#include "MIDITimelineRhythmComponent.h"
 #include "EuclidianRythmTimerComponent.h"
 #include "ComponentStateController.h"
 #include "ApplicationProperties.h"
@@ -74,11 +75,20 @@ public:
 		//menu.addItem("Add new Time Object Componet", std::bind(&LogSpaceComponent::addNewTimeObjectComponent, this));
 		menu.addItem("Add new Markov Matrix", std::bind(&LogSpaceComponent::addMarkovMatrix, this));
 		menu.addItem("Add new MIDI Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineComponent, this));
+		menu.addItem("Add new MIDI Rhythm Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineRhythmComponent, this));
 	}
 
 	void LogSpaceComponent::addNewMIDITimelineComponent()
 	{
-		MIDITimelineComponent* t0 = new MIDITimelineComponent(AppProperties::getNumMeasures(), 0);
+		MIDITimelineComponent* t0 = new MIDITimelineComponent(AppProperties::getNumMeasures());
+		MIDITimelineObjects.add(t0);
+		addAndMakeVisible(t0);
+		t0->init();
+	}
+	
+	void LogSpaceComponent::addNewMIDITimelineRhythmComponent()
+	{
+		MIDITimelineRhythmComponent* t0 = new MIDITimelineRhythmComponent(AppProperties::getNumMeasures());
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
 		t0->init();
@@ -169,18 +179,8 @@ public:
 
 	~LogSpaceComponent() override
 	{
-		DBG("destructing LogSpaceComponent"); //add the breakpoint on this line
 		removeAllChildren();
 		deleteAllChildren();
-
-		/* OwnedArray<TimeObjectComponent> timeObjects;
-		 OwnedArray<MarkovMatrixComponent> markovObjects;
-		 OwnedArray<TimerComponent> timerObjects;
-		 OwnedArray<PlotComponent> plotObjects;
-		 OwnedArray<AudioComponent> audioObjects;
-		 OwnedArray<MIDISynthComponent> midiObjects;
-		 OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;*/
-
 	}
 
 	void LogSpaceComponent::shiftMouseUpEvent(const MouseEvent& event)

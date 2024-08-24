@@ -59,7 +59,7 @@ public:
 protected: 
     float getFontSize();
     ComponentDragger myDragger;
-    
+    Colour outlineColour = Colours::darkred;
     int defaultSize = 200;
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;

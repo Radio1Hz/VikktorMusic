@@ -26,7 +26,7 @@ class MIDITimelineComponent : public BaseComponent, public CommunicationAgent, p
 {
 public:
 	MIDITimelineComponent();
-	MIDITimelineComponent(int numMeasures, int synthID);
+	MIDITimelineComponent(int numMeasures);
 	~MIDITimelineComponent() override;
 	void paint(Graphics&) override;
 	void resized() override;
@@ -37,6 +37,8 @@ public:
 	void shiftMouseUpEvent(const MouseEvent& event) override;
 	void mouseDoubleClickEvent(const MouseEvent& event) override;
 	void mouseDownEvent(const MouseEvent& event) override;
+	void controlMouseDownEvent(const MouseEvent& event) override;
+	
 	void mouseUpEvent(const MouseEvent& event) override;
 
 	void mouseMoveEvent(const MouseEvent& event) override;
@@ -53,14 +55,14 @@ public:
 	void triggerRepaint();
 	void deleteTimeline();
 
-private:
+protected:
 	//Methods
 	void drawMIDIEvents(Rectangle<float> trackRect, int trackIndex, Graphics& g);
 	void MIDITimelineComponent::scanPlugins();
 	void clearNoteEventMatrix();
 	void loadMIDI();
 	void setComponentSize();
-	void initMenu();
+	virtual void initMenu();
 	void populateSelectionMatrix();
 	void clearTimeline();
 	void repaintMatrixImage();
@@ -74,7 +76,7 @@ private:
 	void saveSelectionAsMIDIFile();
 	void clearSelection();
 	void generateRampChromatic();
-
+	void generateRhythm();
 	//Selection related
 	unique_ptr<Matrix<NoteEventDesc>> selectionMatrix;
 	int selectedCellStart = -1;
@@ -114,8 +116,9 @@ private:
 	Array<int> notesOffInFuture;
 
 	//Synth
-	OwnedArray<SynthAudioSource> synths;
+	unique_ptr<SynthAudioSource> audioSource;
 	OwnedArray<MarkovMatrixComponent> measureMatrices;
+	AudioFormatManager formatManager;
 
 	//Project
 	String projectPath = "";
@@ -130,7 +133,6 @@ private:
 	int audioBufferSampleIndex = 0;
 	AudioBuffer<float> audioBuffer;
 	AudioDeviceManager audioDeviceManager;
-	AudioPluginFormatManager formatManager;
 
 	//Other
 	int counter = 0;
