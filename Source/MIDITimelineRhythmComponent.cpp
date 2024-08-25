@@ -28,11 +28,20 @@ void MIDITimelineRhythmComponent::generateRhythm()
 		NoteEventDesc kick(60, 4, 1);
 		noteEventMatrix[60 - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure] = kick;
 		NoteEventDesc snare(62, 4, 1);
-		noteEventMatrix[62 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + 8)] = snare;
+		noteEventMatrix[62 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + 2 * (int)((float)numTimeUnitsPerMeasure / numQuartersPerMeasure))] = snare;
 		NoteEventDesc hihat(64, 4, 1);
-		noteEventMatrix[64 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + 4)] = hihat;
-		noteEventMatrix[64 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + 12)] = hihat;
+		noteEventMatrix[64 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + (int)((float)numTimeUnitsPerMeasure / numQuartersPerMeasure))] = hihat;
+		
+		if (numQuartersPerMeasure > 3.0f)
+		{
+			if ((i * numTimeUnitsPerMeasure + 3 * (int)((float)numTimeUnitsPerMeasure / numQuartersPerMeasure)) < numTimeUnitsPerMeasure * numMeasures)
+			{
+				noteEventMatrix[64 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + 3 * (int)((float)numTimeUnitsPerMeasure / numQuartersPerMeasure))] = hihat;
+			}
+		}
+
 	}
+
 	repaintMatrixImage();
 	setComponentSize();
 	repaint();

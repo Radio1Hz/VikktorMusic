@@ -13,6 +13,13 @@ using namespace std;
 using namespace juce;
 using namespace dsp;
 
+enum NoteEventType
+{
+	NoEvent = -1,
+	NoteOff = 0,
+	NoteOn = 1,
+	RhythmEvent = 2
+};
 
 class NoteEventDesc
 {
@@ -20,7 +27,7 @@ public:
 	/*-1: No Event, 0: Note Off, 1: Note On*/
 	int		NoteNumber = -1;
 	int		NoteDuration = 0;
-	int		EventType = -1;
+	int		EventType = NoteEventType::NoEvent;
 	NoteEventDesc();
 	NoteEventDesc(int noteNumber);
 	NoteEventDesc(int noteNumber, int noteDuration);
@@ -34,7 +41,7 @@ public:
 	int		Mode = -1;
 	int		RootMIDINote = -1;
 	int		ContextDuration = 0;
-	int		EventType = -1;
+	int		EventType = NoteEventType::NoEvent;
 	float	Probability = 0.0;
 	String friendlyName();
 	int getAbsoluteNoteFromKeyModeAndRole(int noteRoleIndex);
@@ -80,7 +87,8 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-	int							getNoteNumberByRoleNumber(int modeIndex, int roleIndex);
+	int							getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex);
+	int							getRandomRoleIndex(bool onlyConsonants);
 	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID);
 	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
 	list<ContextDesc>			getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
@@ -93,7 +101,7 @@ public:
 	vector<vector<int>> multiplyMatrixWithModes(const Matrix<int>& mat, const vector<vector<int>>& modes);
 	vector<int> _defMajorScaleIonianVector{ 2, -1, 1, -1,  2, 1, -1, 2, -1,  1, -1,  1 };
 	vector<int> _defMinorScaleAeolianVector{ 2, -1, 1,  2, -1, 1, -1, 2,  1, -1,  1, -1 };
-
+	bool isNoteInRange(int noteNumber);
 	vector<vector<int>> _modes_offset
 	{
 		{0, 2, 4, 5, 7, 9, 11},
@@ -108,6 +116,7 @@ private:
 
 	int noteRangeStart = 36;
 	int noteRangeEnd = 92;
+	Random random;
 
 	vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
 	{
@@ -203,7 +212,7 @@ private:
 		1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0
 	};
 
-	
+
 };
 
 

@@ -193,7 +193,7 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 						}
 					}
 
-					if (noteEventMatrix[i][currentTimeUnit].EventType == 1)
+					if (noteEventMatrix[i][currentTimeUnit].EventType == NoteEventType::NoteOn)
 					{
 						int playingNoteNumber = noteEventMatrix[i][currentTimeUnit].NoteNumber;
 
@@ -691,6 +691,7 @@ void MIDITimelineComponent::initMenu()
 		menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
 		menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
+		menu.addItem("Set Contexts from MIDI events", std::bind(&MIDITimelineComponent::defineAllContextsPerMeasures, this));
 		menu.addItem("Delete", std::bind(&MIDITimelineComponent::deleteTimeline, this));
 	}
 }
@@ -704,7 +705,7 @@ void MIDITimelineComponent::populateSelectionMatrix()
 		for (int i = 0; i < musicMath.getNoteRangeSize(); i++)
 		{
 			// If there is note
-			if (noteEventMatrix[i][j].EventType == 1)
+			if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOn)
 			{
 				selectionMatrix->operator()(i, j - selectedCellStart).NoteNumber = noteEventMatrix[i][j].NoteNumber;
 				selectionMatrix->operator()(i, j - selectedCellStart).EventType = noteEventMatrix[i][j].EventType;
@@ -803,7 +804,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 			for (int j = 0; j < numberOfTimeUnits; j++)
 			{
 				int currentMeasureIndex = (int)floor(j / numTimeUnitsPerMeasure); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
-				int currentQuarterIndex = (int)((j % (int)((float)numTimeUnitsPerMeasure / numQuartersPerMeasure))); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
+				int currentQuarterIndex = (int)((j % (int)ceil(numQuartersPerMeasure))); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
 				if (contextPerMeasureAndQuarterVector.size() > 0)
 				{
 					if (contextPerMeasureAndQuarterVector[currentMeasureIndex].size() > 0)
@@ -856,7 +857,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 					}
 				}
 
-				if (noteEventMatrix[i][j].EventType == 1) //if note on
+				if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOn) //if note on
 				{
 					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
 					g0.setColour(Colours::darkred);
@@ -865,7 +866,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 					g0.drawText(String(MusicMath::getNoteNameByMIDINoteNumber(noteEventMatrix[i][j].NoteNumber)), textBox, Justification::left);
 				}
 
-				if (noteEventMatrix[i][j].EventType == 0) //if note off, show white line
+				if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOff) //if note off, show white line
 				{
 					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
 					g0.setColour(Colours::white);
@@ -887,7 +888,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 			String str = "";
 			for (int j = 0; j < noteEventMatrix[i].size(); j++)
 			{
-				if (noteEventMatrix[i][j].EventType == 1)
+				if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOn)
 				{
 					str += String(noteEventMatrix[i][j].NoteNumber) + "\t";
 				}
@@ -974,7 +975,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 	contextPerMeasureVector.clear();
 	contextPerMeasureVector.resize(numMeasures);
 
-	bool shouldDefinePerQuarters = false;
+	bool shouldDefinePerQuarters = true;
 	for (int z = 0; z < numMeasures; z++)
 	{
 		if (contextPerMeasureAndQuarterVector[z].empty())
@@ -1000,15 +1001,9 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
 				if (allPossiblieTonalities.size() > 0)
 				{
-					if (contextPerMeasureAndQuarterVector[z][(int)q].empty())
-					{
-						std::vector<ContextDesc> vec;
-						contextPerMeasureAndQuarterVector[z][(int)q] = vec;
-					}
-					for (ContextDesc& i : allPossiblieTonalities)
-					{
-						contextPerMeasureAndQuarterVector[z][(int)q].push_back(i);
-					}
+					std::vector<ContextDesc> vec(1);
+					vec[0] = allPossiblieTonalities.front();
+					contextPerMeasureAndQuarterVector[z][(int)q] = vec;
 				}
 			}
 
@@ -1083,7 +1078,7 @@ void MIDITimelineComponent::saveMIDIFileToDisk()
 			NoteEventDesc noteInMatrix = noteEventMatrix[i][j];
 
 			//No need for defaultMIDIChannel because we save it to disk.
-			if (noteInMatrix.EventType == 1)
+			if (noteInMatrix.EventType == NoteEventType::NoteOn)
 			{
 				MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
 				msg.setTimeStamp(currentMIDITimestamp);
@@ -1128,7 +1123,7 @@ void MIDITimelineComponent::saveSelectionAsMIDIFile()
 				double currentMIDITimestamp = ((float)(j - selectedCellStart) / (float)selectionMatrix->getNumColumns()) * totalDurationInMIDITicks;
 				NoteEventDesc noteInMatrix = noteEventMatrix[i - musicMath.getNoteRangeStart()][j];
 
-				if (noteInMatrix.EventType == 1)
+				if (noteInMatrix.EventType == NoteEventType::NoteOn)
 				{
 					MidiMessage msg = MidiMessage::noteOn(1, noteInMatrix.NoteNumber, (uint8)128);
 					msg.setTimeStamp(currentMIDITimestamp);
@@ -1162,16 +1157,16 @@ void MIDITimelineComponent::clearSelection()
 			for (int i = musicMath.getNoteRangeStart(); i < musicMath.getNoteRangeEnd(); i++)
 			{
 				NoteEventDesc currentDesc = noteEventMatrix[i - musicMath.getNoteRangeStart()][j];
-				if (currentDesc.EventType == 1)
+				if (currentDesc.EventType == NoteEventType::NoteOn)
 				{
-					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].EventType = -1;
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].EventType = NoteEventType::NoEvent;
 					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteNumber = 0;
 					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteDuration = 0;
 				}
 
-				if (currentDesc.EventType == 0)
+				if (currentDesc.EventType == NoteEventType::NoteOff)
 				{
-					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].EventType = -1;
+					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].EventType = NoteEventType::NoEvent;
 					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteNumber = 0;
 					noteEventMatrix[i - musicMath.getNoteRangeStart()][j].NoteDuration = 0;
 				}
@@ -1190,7 +1185,7 @@ void MIDITimelineComponent::generateRampChromatic()
 		int currentNote = musicMath.getNoteRangeStart();
 		for (int i = selectedCellStart; i <= selectedCellEnd; i++)
 		{
-			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].EventType = 1;
+			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].EventType = NoteEventType::NoteOn;
 			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].NoteNumber = currentNote;
 			noteEventMatrix[currentNote - musicMath.getNoteRangeStart()][i].NoteDuration = 1;
 

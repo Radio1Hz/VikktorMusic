@@ -13,13 +13,14 @@
 
 MusicMath::MusicMath()
 {
-
+	random.setSeed(Time::currentTimeMillis());
 }
 
 MusicMath::MusicMath(int noteRangeStart, int noteRangeEnd)
 {
 	this->noteRangeStart = noteRangeStart;
 	this->noteRangeEnd = noteRangeEnd;
+	random.setSeed(Time::currentTimeMillis());
 }
 
 MusicMath::~MusicMath()
@@ -250,9 +251,9 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 	return -1;
 }
 
-int MusicMath::getNoteNumberByRoleNumber(int modeIndex, int roleIndex)
+int MusicMath::getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex)
 {
-	return 60 + _modes_offset[modeIndex][roleIndex];
+	return keyRoot + _modes_offset[modeIndex][roleIndex];
 	/*_modes_offset
 	{
 		{0, 2, 4, 5, 7, 9, 11},
@@ -263,6 +264,27 @@ int MusicMath::getNoteNumberByRoleNumber(int modeIndex, int roleIndex)
 		{0, 2, 3, 5, 7, 8, 10},
 		{0, 1, 3, 5, 6, 8, 10}
 	};*/
+}
+
+int MusicMath::getRandomRoleIndex(bool onlyConsonants)
+{
+	if (onlyConsonants)
+	{
+		int num = random.nextInt(3);
+		if (num == 0)
+		{
+			return 0; //Root
+		}
+		if (num == 1)
+		{
+			return 2; //Third
+		}
+		if (num == 2)
+		{
+			return 4; //Fifth
+		}
+	}
+	return random.nextInt(7);
 }
 
 list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, int methodID)
@@ -628,6 +650,11 @@ vector<vector<int>> MusicMath::multiplyMatrixWithModes(const Matrix<int>& mat, c
 		}
 	}
 	return resultingMultiplication;
+}
+
+bool MusicMath::isNoteInRange(int noteNumber)
+{
+	return noteNumber <= noteRangeEnd && noteNumber >= noteRangeStart;
 }
 
 

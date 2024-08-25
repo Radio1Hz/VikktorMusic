@@ -63,6 +63,7 @@ void SampleWaveVoice::loadSamples()
 
 bool SampleWaveVoice::canPlaySound(SynthesiserSound* /*sound*/)
 {
+	//return true;
 	return !isPlaying;
 }
 
@@ -93,26 +94,33 @@ void SampleWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int
 	if (isPlaying)
 	{
 		float currentSample = 0.0f;
+		outputBuffer.clear();
+
 		if (playingMIDINoteNumber > 0)
 		{
 			if (buffersPerMIDINote->count(playingMIDINoteNumber) > 0)
 			{
 				AudioSampleBuffer& internalBuffer = buffersPerMIDINote->at(playingMIDINoteNumber);
+				bool shouldStop = false;
 				while (--numSamples >= 0)
 				{
 					for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
 					{
-						currentSample = playingNoteVelocity * internalBuffer.getSample(i, bufferSampleCounter);
+						currentSample = playingNoteVelocity * internalBuffer.getSample(i, bufferSampleCounter % internalBuffer.getNumSamples());
+						if (bufferSampleCounter >= internalBuffer.getNumSamples())
+						{
+							currentSample = 0.0f;
+							shouldStop = true;
+						}
 						outputBuffer.addSample(i, startSample, currentSample);
 					}
-
-					startSample++;
 					bufferSampleCounter++;
-					if (bufferSampleCounter >= internalBuffer.getNumSamples())
-					{
-						isPlaying = false;
-						bufferSampleCounter = 0;
-					}
+					startSample++;
+				}
+				if (shouldStop)
+				{
+					bufferSampleCounter = 0;
+					isPlaying = false;
 				}
 			}
 		}
