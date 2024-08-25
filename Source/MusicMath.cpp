@@ -449,9 +449,7 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 		for (int tIndex = 0; tIndex < 12; tIndex++)
 		{
 			int t = (startTonality + tIndex) % 12;
-			DBG("Tonality: " + MusicMath::getNoteNameByMIDINoteNumber(t) + "-----------------------------------------------");
 
-			String tonalityRootName = MusicMath::getNoteNameByMIDINoteNumber(t);
 			for (int c = 0; c < numColumns; c++)
 			{
 				//Define template vectors for Major and Minor for the Tonality[t]
@@ -479,7 +477,7 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 
 				if (maxSum < resultingSum)
 				{
-					ContextDesc cd(t, m, (float)resultingSum);
+					ContextDesc cd(t+middleC, m, (float)resultingSum);
 					allPossiblieTonalities.push_back(cd);
 					maxSum = resultingSum;
 				}
@@ -674,29 +672,26 @@ Octave	C	C#	D	D#	E	F	F#	G	G#	A	Bb	B
 */
 NoteEventDesc::NoteEventDesc()
 {
-	this->NoteNumber = 0;
-	this->NoteDuration = 0;
-	this->EventType = -1;
 }
 NoteEventDesc::NoteEventDesc(int noteNumber)
 {
-	this->NoteNumber = noteNumber;
-	this->NoteDuration = 0;
-	this->EventType = -1;
+	NoteNumber = noteNumber;
+	NoteDuration = 0;
 }
 
-NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration)
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration) : NoteEventDesc::NoteEventDesc(noteNumber)
 {
-	this->NoteNumber = noteNumber;
-	this->NoteDuration = noteDuration;
-	this->EventType = -1;
+	NoteDuration = noteDuration;
 }
 
-NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType)
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType) : NoteEventDesc::NoteEventDesc(noteNumber, noteDuration)
 {
-	this->NoteNumber = noteNumber;
-	this->NoteDuration = noteDuration;
-	this->EventType = eventType;
+	EventType = eventType;
+}
+
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole) : NoteEventDesc::NoteEventDesc(noteNumber, noteDuration, eventType)
+{
+	NoteRole = noteRole;
 }
 
 NoteEventDesc::~NoteEventDesc()

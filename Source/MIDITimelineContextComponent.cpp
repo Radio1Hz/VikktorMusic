@@ -28,10 +28,10 @@ void MIDITimelineContextComponent::generateRhythm()
 
 void MIDITimelineContextComponent::generateContexts()
 {
-	vector<vector<ContextDesc>> vecMeasures(numMeasures);
-	vector<vector<vector<ContextDesc>>> vecMeasuresQuarters(numMeasures);
+	vector<vector<ContextDesc>>& vecMeasures = AppProperties::getContextPerMeasureVector();
+	vector<vector<vector<ContextDesc>>>& vecMeasuresQuarters = AppProperties::getContextPerMeasureAndQuarterVector();
 
-	int middleC = 60;
+	int middleC = 48;
 	int currentRepetitionNumber = 0; //Ionian
 	vector<int> numRepetitions{ 1, 1, 1, 1 };
 	/*
@@ -59,83 +59,111 @@ void MIDITimelineContextComponent::generateContexts()
 	int currentMode = contextsInUse[currentContextInUseIndex].Mode;
 	bool shouldCreateChordNotes = true;
 
-	//Generate Contexts
-	for (int i = 0; i < numMeasures; i++)
+	if (vecMeasuresQuarters[0].size() == 0)
 	{
-		if (index <= 0)
+		//Generate Contexts
+		for (int i = 0; i < numMeasures; i++)
 		{
-			index = numRepetitions[(++currentRepetitionNumber) % (int)numRepetitions.size()];
-			ContextDesc& desc = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
-			currentMode = desc.Mode;
-			root = desc.RootMIDINote;
-		}
-		index--;
-		ContextDesc cDesc(root, currentMode, 1.0f);
-		vecMeasures[i].push_back(cDesc);
-
-		for (int j = 0; j < (int)ceil(numQuartersPerMeasure); j++)
-		{
-			ContextDesc cDescQuarter(root, currentMode, 1.0f);
-			if (vecMeasuresQuarters[i].size() == 0)
+			if (index <= 0)
 			{
-				vecMeasuresQuarters[i].resize((int)ceil(numQuartersPerMeasure));
+				index = numRepetitions[(++currentRepetitionNumber) % (int)numRepetitions.size()];
+				ContextDesc& desc = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
+				currentMode = desc.Mode;
+				root = desc.RootMIDINote;
 			}
-			vecMeasuresQuarters[i][j].push_back(cDescQuarter);
+			index--;
+			ContextDesc cDesc(root, currentMode, 1.0f);
+			vecMeasures[i].push_back(cDesc);
 
-			if (shouldCreateChordNotes)
+			for (int j = 0; j < (int)ceil(numQuartersPerMeasure); j++)
 			{
-				int duration = (int)ceil(numTimeUnitsPerMeasure / numQuartersPerMeasure);
-
-				if (j == (int)ceil(numQuartersPerMeasure) - 1)
+				ContextDesc cDescQuarter(root, currentMode, 1.0f);
+				if (vecMeasuresQuarters[i].size() == 0)
 				{
-					if ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure) > 0)
+					vecMeasuresQuarters[i].resize((int)ceil(numQuartersPerMeasure));
+				}
+				vecMeasuresQuarters[i][j].push_back(cDescQuarter);
+
+				if (shouldCreateChordNotes)
+				{
+					int duration = (int)ceil(numTimeUnitsPerMeasure / numQuartersPerMeasure);
+
+					if (j == (int)ceil(numQuartersPerMeasure) - 1)
 					{
-						duration = 2 * ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure));
-					}
-					
-				}
+						if ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure) > 0)
+						{
+							duration = 2 * ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure));
+						}
 
-				if (duration > 0)
-				{
-					NoteEventDesc descRoot(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
-					NoteEventDesc descThird(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
-					NoteEventDesc descFifth(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
-					noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
-					noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
-					noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
+					}
+
+					if (duration > 0)
+					{
+						NoteEventDesc descRoot(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
+						NoteEventDesc descThird(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
+						NoteEventDesc descFifth(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
+						noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
+						noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
+						noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
+					}
 				}
 			}
 		}
+		AppProperties::setContextPerMeasureVector(vecMeasures);
+		AppProperties::setContextPerMeasureAndQuarterVector(vecMeasuresQuarters);
 	}
-	AppProperties::setContextPerMeasureVector(vecMeasures);
-	AppProperties::setContextPerMeasureAndQuarterVector(vecMeasuresQuarters);
+	
 
 	// Generate melody using basicRhythm
 	NoteEventDesc rhythmEventDesc(0, 1, 2);
 
-	vector<int> basicRhythm{ 1, -1, -1, -1, 1, -1, -1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-	//int musicalThoughtLengthInMeasures = (int)ceil((float)basicRhythm.size() / (float)numTimeUnitsPerMeasure);
-	//int currentMusicalThoughtIndex = 0;
+	vector<vector<int>> basicRhythms
+	{
+		{
+			1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
+			-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
+			5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
+			-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,
+
+			1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
+			-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
+			5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
+			2, -1, -1, -1,		3, -1, -1, -1,		4, -1, 5, -1,		 -1, -1, 6, -1
+		},
+		{
+			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+			-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
+			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+			-1, -1, -1, -1,		-1, -1, -1, -1,		2, -1, 1, -1,		1, -1, 0, -1,
+
+			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+			-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
+			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+			-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1
+		}
+		
+	};
+	int musicalThoughtLengthInMeasures = (int)ceil((float)basicRhythms[0].size() / (float)numTimeUnitsPerMeasure);
+	int currentMusicalThoughtIndex = -1;
 
 	for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)
 	{
+		if (i % (musicalThoughtLengthInMeasures * numTimeUnitsPerMeasure) == 0)
+		{
+			currentMusicalThoughtIndex = (currentMusicalThoughtIndex + 1) % basicRhythms.size();
+		}
 		int currentMeasure = (int)(i / numTimeUnitsPerMeasure);
 		int currentQuarter = (int)(i % (int)ceil(numQuartersPerMeasure));
-		if (basicRhythm[i % (int)(basicRhythm.size())] != -1)
+		if (basicRhythms[currentMusicalThoughtIndex][i % (int)(basicRhythms[currentMusicalThoughtIndex].size())] != -1)
 		{
-			int nextNote = 12 + musicMath.getNoteNumberByRoleNumber(vecMeasuresQuarters[currentMeasure][currentQuarter][0].RootMIDINote, vecMeasuresQuarters[currentMeasure][currentQuarter][0].Mode, musicMath.getRandomRoleIndex(false));
+			int nextNote = 12 + musicMath.getNoteNumberByRoleNumber(vecMeasuresQuarters[currentMeasure][currentQuarter][0].RootMIDINote, vecMeasuresQuarters[currentMeasure][currentQuarter][0].Mode, basicRhythms[currentMusicalThoughtIndex][i % (int)(basicRhythms[currentMusicalThoughtIndex].size())]);
 			if (musicMath.isNoteInRange(nextNote))
 			{
-				NoteEventDesc newEvent(nextNote, 2, 1);
+				NoteEventDesc newEvent(nextNote, 2, 1, basicRhythms[currentMusicalThoughtIndex][i % (int)(basicRhythms[currentMusicalThoughtIndex].size())]);
 				noteEventMatrix[newEvent.NoteNumber - musicMath.getNoteRangeStart()][i] = newEvent;
 			}
-			
 		}
-
-		/*if (i / numTimeUnitsPerMeasure < numMeasures)
-		{
-
-		}*/
+		
 	}
 
 	repaintMatrixImage();

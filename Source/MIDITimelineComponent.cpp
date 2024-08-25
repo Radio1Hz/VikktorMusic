@@ -719,7 +719,14 @@ void MIDITimelineComponent::clearTimeline()
 {
 	clearNoteEventMatrix();
 	stopMIDI();
-	defineAllContextsPerMeasures();
+	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector(numMeasures);
+	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
+	contextPerMeasureAndQuarterVector.clear();
+	contextPerMeasureAndQuarterVector.resize(numMeasures);
+	contextPerMeasureVector.clear();
+	contextPerMeasureVector.resize(numMeasures);
+	AppProperties::setContextPerMeasureAndQuarterVector(contextPerMeasureAndQuarterVector);
+	AppProperties::setContextPerMeasureVector(contextPerMeasureVector);
 	repaintMatrixImage();
 	repaint();
 }
@@ -807,7 +814,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 				int currentQuarterIndex = (int)((j % (int)ceil(numQuartersPerMeasure))); // roundToInt((float)numMeasures * ((float)j / (float)numberOfTimeUnits));
 				if (contextPerMeasureAndQuarterVector.size() > 0)
 				{
-					if (contextPerMeasureAndQuarterVector[currentMeasureIndex].size() > 0)
+					if (contextPerMeasureAndQuarterVector[currentMeasureIndex].size() > 0 && contextPerMeasureAndQuarterVector[currentMeasureIndex][0].size() <= (int)ceil(numQuartersPerMeasure))
 					{
 						if (contextPerMeasureAndQuarterVector[currentMeasureIndex][currentQuarterIndex].size() > 0)
 						{
@@ -863,7 +870,15 @@ void MIDITimelineComponent::repaintMatrixImage()
 					g0.setColour(Colours::darkred);
 					g0.fillRect(textBox);
 					g0.setColour(Colours::white);
-					g0.drawText(String(MusicMath::getNoteNameByMIDINoteNumber(noteEventMatrix[i][j].NoteNumber)), textBox, Justification::left);
+					String stringToDisplay = String(MusicMath::getNoteNameByMIDINoteNumber(noteEventMatrix[i][j].NoteNumber));
+					g0.drawText(stringToDisplay, textBox, Justification::left);
+					if (noteEventMatrix[i][j].NoteRole != -1)
+					{
+						textBox.translate(0, -timeUnitWidthPixels);
+						stringToDisplay = "[" + String(noteEventMatrix[i][j].NoteRole + 1) + "]";
+						g0.drawText(stringToDisplay, textBox, Justification::left);
+					}
+
 				}
 
 				if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOff) //if note off, show white line
@@ -976,8 +991,10 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 	contextPerMeasureVector.resize(numMeasures);
 
 	bool shouldDefinePerQuarters = true;
+	vector<ContextDesc> prevDesc(1);
 	for (int z = 0; z < numMeasures; z++)
 	{
+
 		if (contextPerMeasureAndQuarterVector[z].empty())
 		{
 			contextPerMeasureAndQuarterVector[z] = vector<vector<ContextDesc>>(4);
@@ -1001,9 +1018,14 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
 				if (allPossiblieTonalities.size() > 0)
 				{
-					std::vector<ContextDesc> vec(1);
+					vector<ContextDesc> vec(1);
 					vec[0] = allPossiblieTonalities.front();
 					contextPerMeasureAndQuarterVector[z][(int)q] = vec;
+					prevDesc = vec;
+				}
+				else
+				{
+					contextPerMeasureAndQuarterVector[z][(int)q] = prevDesc;
 				}
 			}
 

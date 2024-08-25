@@ -24,14 +24,15 @@ enum NoteEventType
 class NoteEventDesc
 {
 public:
-	/*-1: No Event, 0: Note Off, 1: Note On*/
 	int		NoteNumber = -1;
+	int		NoteRole = -1;
 	int		NoteDuration = 0;
 	int		EventType = NoteEventType::NoEvent;
 	NoteEventDesc();
 	NoteEventDesc(int noteNumber);
 	NoteEventDesc(int noteNumber, int noteDuration);
 	NoteEventDesc(int noteNumber, int noteDuration, int eventType);
+	NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole);
 	~NoteEventDesc();
 };
 
@@ -112,6 +113,7 @@ public:
 		{0, 2, 3, 5, 7, 8, 10},
 		{0, 1, 3, 5, 6, 8, 10}
 	};
+	int middleC = 48;
 private:
 
 	int noteRangeStart = 36;
