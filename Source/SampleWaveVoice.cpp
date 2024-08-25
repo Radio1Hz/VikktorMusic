@@ -61,7 +61,7 @@ void SampleWaveVoice::loadSamples()
 	}
 }
 
-bool SampleWaveVoice::canPlaySound(SynthesiserSound* sound)
+bool SampleWaveVoice::canPlaySound(SynthesiserSound* /*sound*/)
 {
 	return !isPlaying;
 }

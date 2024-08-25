@@ -28,7 +28,7 @@ public:
 	MIDITimelineComponent();
 	MIDITimelineComponent(int numMeasures);
 	~MIDITimelineComponent() override;
-	void paint(Graphics&) override;
+	virtual void paint(Graphics&) override;
 	void resized() override;
 	void changeListenerCallback(ChangeBroadcaster* source) override;
 	void handleAsyncUpdate() override;
@@ -76,7 +76,8 @@ protected:
 	void saveSelectionAsMIDIFile();
 	void clearSelection();
 	void generateRampChromatic();
-	void generateRhythm();
+	virtual void generateRhythm();
+	virtual void generateContexts();
 	//Selection related
 	unique_ptr<Matrix<NoteEventDesc>> selectionMatrix;
 	int selectedCellStart = -1;
@@ -103,7 +104,7 @@ protected:
 	int currentTimeUnit = 0;
 	short defaultTicksPerQuarterNote = 196;
 	int numMeasures = 0;
-	int numTimeUnitsInMeasure = 0;
+	int numTimeUnitsPerMeasure = 0;
 	float numQuartersPerMeasure = 0;
 	int defaultContextAnalysisMethodID = 1;
 

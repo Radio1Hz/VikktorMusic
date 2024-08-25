@@ -250,6 +250,21 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 	return -1;
 }
 
+int MusicMath::getNoteNumberByRoleNumber(int modeIndex, int roleIndex)
+{
+	return 60 + _modes_offset[modeIndex][roleIndex];
+	/*_modes_offset
+	{
+		{0, 2, 4, 5, 7, 9, 11},
+		{0, 2, 3, 5, 7, 9, 10},
+		{0, 1, 3, 5, 7, 8, 10},
+		{0, 2, 4, 6, 7, 9, 11},
+		{0, 2, 4, 5, 7, 9, 10},
+		{0, 2, 3, 5, 7, 8, 10},
+		{0, 1, 3, 5, 6, 8, 10}
+	};*/
+}
+
 list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, int methodID)
 {
 	list<ContextDesc> allPossiblieTonalities;
@@ -683,8 +698,17 @@ ContextDesc::~ContextDesc()
 {
 }
 
-String ContextDesc::debug()
+String ContextDesc::friendlyName()
 {
 	MusicMath math;
-	return MusicMath::getNoteNameByMIDINoteNumber(RootMIDINote) + (Mode > -1 ? math.getModeDegree(Mode) : "") + " p: " + String::formatted("%1.1f", this->Probability);
+	String suffixText = "";
+	if (Mode == 1 || Mode == 2 || Mode == 5 || Mode == 6)
+	{
+		suffixText = "m";
+	}
+	if (Mode == 6)
+	{
+		suffixText = "dim";
+	}
+	return MusicMath::getNoteNameByMIDINoteNumber(RootMIDINote) + suffixText + " (" + (Mode > -1 ? math.getModeDegree(Mode) : "") + ")";
 }

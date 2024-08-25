@@ -100,11 +100,19 @@ void AppProperties::setProjectPath(String path)
 
 vector<vector<vector<ContextDesc>>> AppProperties::getContextPerMeasureAndQuarterVector()
 {
+	if (AppProperties::contextPerMeasureAndQuarterVector.size() == 0)
+	{
+		AppProperties::contextPerMeasureAndQuarterVector.resize(numMeasures);
+	}
 	return AppProperties::contextPerMeasureAndQuarterVector;
 }
 
 vector<vector<ContextDesc>> AppProperties::getContextPerMeasureVector()
 {
+	if (AppProperties::contextPerMeasureVector.size() == 0)
+	{
+		AppProperties::contextPerMeasureVector.resize(numMeasures);
+	}
 	return AppProperties::contextPerMeasureVector;
 }
 

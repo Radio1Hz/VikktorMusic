@@ -36,7 +36,7 @@ public:
 	int		ContextDuration = 0;
 	int		EventType = -1;
 	float	Probability = 0.0;
-	String debug();
+	String friendlyName();
 	ContextDesc();
 	ContextDesc(int rootMIDINote, int mode);
 	ContextDesc(int rootMIDINote, int mode, float probability);
@@ -78,6 +78,7 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
+	int							getNoteNumberByRoleNumber(int modeIndex, int roleIndex);
 	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID);
 	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
 	list<ContextDesc>			getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);

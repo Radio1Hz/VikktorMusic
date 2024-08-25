@@ -21,6 +21,7 @@
 #include "MIDISynthComponent.h"
 #include "MIDITimelineComponent.h"
 #include "MIDITimelineRhythmComponent.h"
+#include "MIDITimelineContextComponent.h"
 #include "EuclidianRythmTimerComponent.h"
 #include "ComponentStateController.h"
 #include "ApplicationProperties.h"
@@ -75,6 +76,7 @@ public:
 		//menu.addItem("Add new Time Object Componet", std::bind(&LogSpaceComponent::addNewTimeObjectComponent, this));
 		menu.addItem("Add new Markov Matrix", std::bind(&LogSpaceComponent::addMarkovMatrix, this));
 		menu.addItem("Add new MIDI Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineComponent, this));
+		menu.addItem("Add new MIDI Context Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineContextComponent, this));
 		menu.addItem("Add new MIDI Rhythm Timeline", std::bind(&LogSpaceComponent::addNewMIDITimelineRhythmComponent, this));
 	}
 
@@ -89,6 +91,14 @@ public:
 	void LogSpaceComponent::addNewMIDITimelineRhythmComponent()
 	{
 		MIDITimelineRhythmComponent* t0 = new MIDITimelineRhythmComponent(AppProperties::getNumMeasures());
+		MIDITimelineObjects.add(t0);
+		addAndMakeVisible(t0);
+		t0->init();
+	}
+	
+	void LogSpaceComponent::addNewMIDITimelineContextComponent()
+	{
+		MIDITimelineContextComponent* t0 = new MIDITimelineContextComponent(AppProperties::getNumMeasures());
 		MIDITimelineObjects.add(t0);
 		addAndMakeVisible(t0);
 		t0->init();

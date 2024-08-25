@@ -16,9 +16,9 @@ using namespace std;
 class MIDITimelineRhythmComponent : public MIDITimelineComponent
 {
 public:
-	MIDITimelineRhythmComponent();
 	MIDITimelineRhythmComponent(int numMeasures);
 	~MIDITimelineRhythmComponent();
+	void MIDITimelineRhythmComponent::generateRhythm() override;
 
 private:
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MIDITimelineRhythmComponent)
