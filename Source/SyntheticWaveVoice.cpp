@@ -123,6 +123,11 @@ float SyntheticWaveVoice::synthFunction(int sID, double angle, double lvl, float
         currentSample = (float)(round(std::sin(angle)) * lvl);
         break;
     }
+    case 2:
+    {
+        currentSample = (float)(std::sin(angle) * lvl * 0.5f);
+        break;
+    }
     default:
         break;
     }

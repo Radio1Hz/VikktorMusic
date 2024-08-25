@@ -28,25 +28,46 @@ void MIDITimelineContextComponent::generateRhythm()
 
 void MIDITimelineContextComponent::generateContexts()
 {
-
 	vector<vector<ContextDesc>> vecMeasures(numMeasures);
 	vector<vector<vector<ContextDesc>>> vecMeasuresQuarters(numMeasures);
+	int middleC = 60;
+	int currentRepetitionNumber = 0; //Ionian
+	vector<int> numRepetitions{ 1, 1, 1, 1 };
+	/*
+		C	0
+		C#	1
+		D	2
+		D#	3
+		E	4
+		F	5
+		F#	6
+		G	7
+		G#	8
+		A	9
+		A#	10
+		B	11
+		//Invitatio ad festum
+		Gm				G#				Am				A#
+		7-1				8-3				9-1				10-3
+	*/
 
-	int numMeasuresRepeated = 2;
-	int index = numMeasuresRepeated;
-	int key = 0; // C
-	int root = key + 60; // C + keyIndex
-	int currentMode = 0; //Ionian
+	vector<ContextDesc> contextsInUse{ ContextDesc(middleC + 7, 1), ContextDesc(middleC + 8, 3), ContextDesc(middleC + 9, 1), ContextDesc(middleC + 10, 3) };
+	int index = numRepetitions[currentRepetitionNumber];
+	int currentContextInUseIndex = 0; //First Context in vector
+	int root = contextsInUse[currentContextInUseIndex].RootMIDINote; // C + keyIndex
+	int currentMode = contextsInUse[currentContextInUseIndex].Mode;
+	bool shouldCreateChordNotes = true;
 
 	for (int i = 0; i < numMeasures; i++)
 	{
-		if (--index < 0)
+		if (index <= 0)
 		{
-			index = numMeasuresRepeated;
-			currentMode = (++currentMode) % 7;
-			root = musicMath.getNoteNumberByRoleNumber(key, currentMode);
+			index = numRepetitions[(++currentRepetitionNumber) % (int)numRepetitions.size()];
+			ContextDesc& desc = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
+			currentMode = desc.Mode;
+			root = desc.RootMIDINote;
 		}
-
+		index--;
 		ContextDesc cDesc(root, currentMode, 1.0f);
 		vecMeasures[i].push_back(cDesc);
 
@@ -58,6 +79,22 @@ void MIDITimelineContextComponent::generateContexts()
 				vecMeasuresQuarters[i].resize((int)ceil(numQuartersPerMeasure));
 			}
 			vecMeasuresQuarters[i][j].push_back(cDescQuarter);
+
+			if (shouldCreateChordNotes)
+			{
+				int duration = (int)ceil(numTimeUnitsPerMeasure / numQuartersPerMeasure);
+				if (j == (int)ceil(numQuartersPerMeasure) - 1)
+				{
+					duration = numTimeUnitsPerMeasure - 3 * 4;
+				}
+
+				NoteEventDesc descRoot(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
+				NoteEventDesc descThird(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
+				NoteEventDesc descFifth(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
+				noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
+				noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
+				noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
+			}
 		}
 	}
 	AppProperties::setContextPerMeasureVector(vecMeasures);

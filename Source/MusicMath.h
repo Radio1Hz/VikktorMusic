@@ -37,6 +37,8 @@ public:
 	int		EventType = -1;
 	float	Probability = 0.0;
 	String friendlyName();
+	int getAbsoluteNoteFromKeyModeAndRole(int noteRoleIndex);
+
 	ContextDesc();
 	ContextDesc(int rootMIDINote, int mode);
 	ContextDesc(int rootMIDINote, int mode, float probability);
@@ -92,6 +94,16 @@ public:
 	vector<int> _defMajorScaleIonianVector{ 2, -1, 1, -1,  2, 1, -1, 2, -1,  1, -1,  1 };
 	vector<int> _defMinorScaleAeolianVector{ 2, -1, 1,  2, -1, 1, -1, 2,  1, -1,  1, -1 };
 
+	vector<vector<int>> _modes_offset
+	{
+		{0, 2, 4, 5, 7, 9, 11},
+		{0, 2, 3, 5, 7, 9, 10},
+		{0, 1, 3, 5, 7, 8, 10},
+		{0, 2, 4, 6, 7, 9, 11},
+		{0, 2, 4, 5, 7, 9, 10},
+		{0, 2, 3, 5, 7, 8, 10},
+		{0, 1, 3, 5, 6, 8, 10}
+	};
 private:
 
 	int noteRangeStart = 36;
@@ -145,16 +157,6 @@ private:
 		Colour::fromRGBA(255, 105, 180, 255)	//F Major
 	};
 
-	vector<vector<int>> _modes_offset
-	{
-		{0, 2, 4, 5, 7, 9, 11},
-		{0, 2, 3, 5, 7, 9, 10},
-		{0, 1, 3, 5, 7, 8, 10},
-		{0, 2, 4, 6, 7, 9, 11},
-		{0, 2, 4, 5, 7, 9, 10},
-		{0, 2, 3, 5, 7, 8, 10},
-		{0, 1, 3, 5, 6, 8, 10}
-	};
 
 	vector<vector<int>> _modesWeightVectors
 	{

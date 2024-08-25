@@ -49,6 +49,11 @@ public:
 				
 				break;
 			}
+			case 2:
+			{
+				synth.addVoice(new SyntheticWaveVoice(synthID));
+				break;
+			}
 			default:
 				break;
 			}

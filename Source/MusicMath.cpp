@@ -712,3 +712,18 @@ String ContextDesc::friendlyName()
 	}
 	return MusicMath::getNoteNameByMIDINoteNumber(RootMIDINote) + suffixText + " (" + (Mode > -1 ? math.getModeDegree(Mode) : "") + ")";
 }
+
+int ContextDesc::getAbsoluteNoteFromKeyModeAndRole(int noteRoleIndex)
+{
+	MusicMath musicMath;
+	return musicMath._modes_offset[Mode][noteRoleIndex] + RootMIDINote;
+	/*{
+		{0, 2, 4, 5, 7, 9, 11},
+		{0, 2, 3, 5, 7, 9, 10},
+		{0, 1, 3, 5, 7, 8, 10},
+		{0, 2, 4, 6, 7, 9, 11},
+		{0, 2, 4, 5, 7, 9, 10},
+		{0, 2, 3, 5, 7, 8, 10},
+		{0, 1, 3, 5, 6, 8, 10}
+	};*/
+}
