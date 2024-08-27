@@ -92,8 +92,8 @@ public:
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
 	static int					getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex);
-	static int					getRandomConsonanceRoleIndex(int previousNote, ContextDesc& previousContext, bool shouldBePerfect);
-	static int					getRandomDissonanceRoleIndex(int previousNote, ContextDesc& previousContext);
+	static int					getRandomConsonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& previousContext, bool shouldBePerfect);
+	static int					getRandomDissonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& previousContext);
 	int							getRandomRoleIndex(bool onlyConsonants);
 	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID);
 	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);

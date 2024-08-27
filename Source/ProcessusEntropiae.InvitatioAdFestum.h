@@ -55,23 +55,22 @@ public:
 		int root = contextsInUse[currentContextInUseIndex].RootMIDINote; // C + keyIndex
 		int currentMode = contextsInUse[currentContextInUseIndex].Mode;
 		bool shouldCreateChordNotes = true;
-		ContextDesc previousContext;
-
+		ContextDesc currentContext(0, 0);
 		if (vecMeasures[0].size() == 0)
 		{
 			//Generate Contexts
 			for (int i = 0; i < numMeasures; i++)
 			{
+				currentContext = ContextDesc(root, currentMode, 1.0f);
 				if (index <= 0)
 				{
 					index = numRepetitions[(++currentRepetitionNumber) % (int)numRepetitions.size()];
-					previousContext = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
-					currentMode = previousContext.Mode;
-					root = previousContext.RootMIDINote;
+					currentContext = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
+					currentMode = currentContext.Mode;
+					root = currentContext.RootMIDINote;
 				}
 				index--;
-				ContextDesc cDesc(root, currentMode, 1.0f);
-				vecMeasures[i].push_back(cDesc);
+				vecMeasures[i].push_back(currentContext);
 
 				for (int j = 0; j < (int)ceil(numQuartersPerMeasure); j++)
 				{
@@ -96,12 +95,12 @@ public:
 
 						if (duration > 0)
 						{
-							NoteEventDesc descRoot(cDesc.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
-							NoteEventDesc descThird(cDesc.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
-							NoteEventDesc descFifth(cDesc.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
-							noteEventMatrix[cDesc.getAbsoluteNoteFromKeyModeAndRole(0) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
-							noteEventMatrix[cDesc.getAbsoluteNoteFromKeyModeAndRole(2) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
-							noteEventMatrix[cDesc.getAbsoluteNoteFromKeyModeAndRole(4) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
+							NoteEventDesc descRoot(currentContext.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
+							NoteEventDesc descThird(currentContext.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
+							NoteEventDesc descFifth(currentContext.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
+							noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(0) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
+							noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(2) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
+							noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(4) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
 						}
 					}
 				}
@@ -146,15 +145,26 @@ public:
 			// C - Consonace
 			// D - Dissonace
 			{
-				"C", "", "", "",		"C", "", "", "",		"C", "", "C", "",		"", "", "C", "",
+				"C", "", "", "",		"C", "", "", "",		"D", "", "C", "",		"", "", "C", "",
 				"", "", "C", "",		"", "", "C", "",		"", "", "", "",			"", "", "C", "",
-				"C", "", "", "",		"C", "","", "",			"C", "", "C", "",		"", "", "C", "",
+				"C", "", "", "",		"C", "","", "",			"D", "", "C", "",		"", "", "C", "",
 				"", "", "", "",			"", "", "", "",			"", "", "", "",			"", "", "", "",
 
-				"C", "", "", "",		"C", "", "", "",		"C", "", "C", "",		"", "", "C", "",
+				"C", "", "", "",		"C", "", "", "",		"D", "", "C", "",		"", "", "C", "",
 				"", "", "C", "",		"", "", "C", "",		"", "", "", "",			"", "", "C", "",
-				"C", "", "", "",		"C", "","", "",			"C", "", "C", "",		"", "", "C", "",
+				"C", "", "", "",		"C", "","", "",			"D", "", "C", "",		"", "", "C", "",
 				"C", "", "", "",		"C", "", "", "",		"C", "", "C", "",		"", "", "C", ""
+			},
+			{
+				"3", "", "", "",		"4", "", "", "",		"0", "", "4", "",		"", "", "3", "",
+				"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "7", "",
+				"2", "", "", "",		"3", "", "", "",		"7", "", "3", "",		"", "", "2", "",
+				"", "", "", "",			"", "", "", "",			"1", "", "2", "",		"5", "", "1", "",
+
+				"0", "", "", "",		"0", "", "", "",		"4", "", "4", "",		"", "", "3", "",
+				"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "7", "",
+				"2", "", "", "",		"3", "", "", "",		"7", "", "2", "",		"", "", "2", "",
+				"", "", "", "",			"", "", "", "",			"1", "", "2", "",		"5", "", "1", ""
 			},
 			{
 				"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
@@ -173,13 +183,52 @@ public:
 		int musicalThoughtLengthInMeasures = (int)ceil((float)basicRhythmsPattern[0].size() / (float)numTimeUnitsPerMeasure);
 		int currentMusicalThoughtIndex = -1;
 		int previousNote = -1;
-		previousContext = vecMeasures[0][0];
+
+		vector<float> commonNotesForAllContexts(12);
+		MusicMath tempMath;
+		/*_modes_offset
+		{
+		{0, 2, 4, 5, 7, 9, 11, 12},
+		{0, 2, 3, 5, 7, 9, 10, 12},
+		{0, 1, 3, 5, 7, 8, 10, 12},
+		{0, 2, 4, 6, 7, 9, 11, 12},
+		{0, 2, 4, 5, 7, 9, 10, 12},
+		{0, 2, 3, 5, 7, 8, 10, 12},
+		{0, 1, 3, 5, 6, 8, 10, 12},
+		{12, 14, 16, 17, 19, 21, 23, 24}, // Octave
+	};*/
 		
+			float maxValue = 0.0f;
+			for (int i = 0; i < 12; i++)
+			{
+				int resultingMult = 1;
+				for (ContextDesc& desc : contextsInUse)
+				{
+					int interval = (desc.RootMIDINote + i) % 12;
+
+					int roleID = desc.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
+					if (roleID != -1)
+					{
+						resultingMult = resultingMult * 1;
+					}
+					else
+					{
+						resultingMult = 0;
+					}
+				}
+				commonNotesForAllContexts[i] = resultingMult;
+			}
+		
+		for (int i = 0; i < 12; i++)
+		{
+			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / contextsInUse.size();
+		}
+
 		for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)
 		{
 			bool noteIsGenerated = false;
 			int currentMeasure = (int)(i / numTimeUnitsPerMeasure);
-
+			currentContext = ContextDesc(vecMeasures[currentMeasure][0]);
 			if (i % (musicalThoughtLengthInMeasures * numTimeUnitsPerMeasure) == 0)
 			{
 				currentMusicalThoughtIndex = (currentMusicalThoughtIndex + 1) % basicRhythmsPattern.size();
@@ -198,25 +247,29 @@ public:
 				{
 					if (symbol1 == "C") //Consonance
 					{
-						tempRoleIndex = MusicMath::getRandomConsonanceRoleIndex(previousNote, previousContext, false);
+						tempRoleIndex = MusicMath::getRandomConsonanceRoleIndex(commonNotesForAllContexts, previousNote, currentContext, false);
 					}
 					if (symbol1 == "D") //Dissonance
 					{
-						tempRoleIndex = MusicMath::getRandomDissonanceRoleIndex(previousNote, previousContext);
+						tempRoleIndex = MusicMath::getRandomDissonanceRoleIndex(commonNotesForAllContexts, previousNote, currentContext);
 					}
 					noteIsGenerated = true;
 				}
 
-				int nextNote = 12 + MusicMath::getNoteNumberByRoleNumber(vecMeasures[currentMeasure][0].RootMIDINote, vecMeasures[currentMeasure][0].Mode, tempRoleIndex);
-				if (noteRangeStart <= nextNote && nextNote <= noteRangeEnd)
+				if (tempRoleIndex != -1 && vecMeasures[currentMeasure].size() > 0)
 				{
-					NoteEventDesc newEvent(nextNote, 2, 1, tempRoleIndex, noteIsGenerated);
-					noteEventMatrix[newEvent.NoteNumber - noteRangeStart][i] = newEvent;
-					previousNote = nextNote;
+					int nextNote = MusicMath::getNoteNumberByRoleNumber(vecMeasures[currentMeasure][0].RootMIDINote, vecMeasures[currentMeasure][0].Mode, tempRoleIndex);
+					if (nextNote != -1)
+					{
+						nextNote += 12;
+						if (noteRangeStart <= nextNote && nextNote <= noteRangeEnd)
+						{
+							NoteEventDesc newEvent(nextNote, 2, 1, tempRoleIndex, noteIsGenerated);
+							noteEventMatrix[newEvent.NoteNumber - noteRangeStart][i] = newEvent;
+						}
+					}
 				}
 			}
-
-			previousContext = vecMeasures[currentMeasure][0];
 		}
 	}
 };
