@@ -186,39 +186,25 @@ public:
 
 		vector<float> commonNotesForAllContexts(12);
 		MusicMath tempMath;
-		/*_modes_offset
-		{
-		{0, 2, 4, 5, 7, 9, 11, 12},
-		{0, 2, 3, 5, 7, 9, 10, 12},
-		{0, 1, 3, 5, 7, 8, 10, 12},
-		{0, 2, 4, 6, 7, 9, 11, 12},
-		{0, 2, 4, 5, 7, 9, 10, 12},
-		{0, 2, 3, 5, 7, 8, 10, 12},
-		{0, 1, 3, 5, 6, 8, 10, 12},
-		{12, 14, 16, 17, 19, 21, 23, 24}, // Octave
-	};*/
-		
-			float maxValue = 0.0f;
-			for (int i = 0; i < 12; i++)
-			{
-				int resultingMult = 1;
-				for (ContextDesc& desc : contextsInUse)
-				{
-					int interval = (desc.RootMIDINote + i) % 12;
 
-					int roleID = desc.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
-					if (roleID != -1)
-					{
-						resultingMult = resultingMult * 1;
-					}
-					else
-					{
-						resultingMult = 0;
-					}
+		for (int i = 0; i < 12; i++)
+		{
+			float resultingMult = 1.0f;
+			for (ContextDesc& desc : contextsInUse)
+			{
+				int roleID = desc.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
+				if (roleID != -1)
+				{
+					resultingMult = resultingMult * 1.0f;
 				}
-				commonNotesForAllContexts[i] = resultingMult;
+				else
+				{
+					resultingMult = 0.0f;
+				}
 			}
-		
+			commonNotesForAllContexts[i] = resultingMult;
+		}
+
 		for (int i = 0; i < 12; i++)
 		{
 			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / contextsInUse.size();

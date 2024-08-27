@@ -1230,15 +1230,8 @@ void MIDITimelineComponent::generateRampChromatic()
 	}
 }
 
-void MIDITimelineComponent::generateRhythm()
-{
-
-}
-
-void MIDITimelineComponent::generateContexts()
-{
-}
-
+void MIDITimelineComponent::generateRhythm(){}
+void MIDITimelineComponent::generateContexts(){}
 
 void MIDITimelineComponent::shiftDragEvent(const MouseEvent& event)
 {

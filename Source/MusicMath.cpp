@@ -269,7 +269,7 @@ int MusicMath::getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleInd
 	*/
 }
 
-int MusicMath::getRandomConsonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& currentContext, bool shouldBePerfect)
+int MusicMath::getRandomConsonanceRoleIndex(vector<float>& probabilityVector, int /*previousNote*/, ContextDesc& currentContext, bool /*shouldBePerfect*/)
 {
 	//int previousRole = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(previousNote);
 	int startVectorIndex = AppProperties::random.nextInt(12);
@@ -283,95 +283,11 @@ int MusicMath::getRandomConsonanceRoleIndex(vector<float>& probabilityVector, in
 			break;
 		}
 	}
-	//}
-	//int returnRoleIndex = -1;
-	//if (shouldBePerfect)
-	//{
-	//	int perfectRole = AppProperties::random.nextInt(3);
-	//	if (perfectRole == 0)
-	//	{
-	//		returnRoleIndex = 0; // Unision
-	//	}
-	//	if (perfectRole == 1)
-	//	{
-	//		returnRoleIndex = 4; // Fifth
-	//	}
-	//	if (perfectRole == 2)
-	//	{
-	//		returnRoleIndex = 7; // Octave
-	//	}
-
-	//	if (returnRoleIndex == previousRole)
-	//	{
-	//		if (returnRoleIndex == 0)
-	//		{
-	//			returnRoleIndex = 4;
-	//		}
-	//		if (returnRoleIndex == 4)
-	//		{
-	//			returnRoleIndex = 7;
-	//		}
-	//		if (returnRoleIndex == 7)
-	//		{
-	//			returnRoleIndex = 0;
-	//		}
-	//	}
-	//}
-	//else
-	//{
-	//	int imperfectRole = AppProperties::random.nextInt(5);
-	//	if (imperfectRole == 0)
-	//	{
-	//		returnRoleIndex = 0; // Unision
-	//	}
-
-	//	if (imperfectRole == 1)
-	//	{
-	//		returnRoleIndex = 2; // Third
-	//	}
-
-	//	if (imperfectRole == 2)
-	//	{
-	//		returnRoleIndex = 4; // Fifth
-	//	}
-
-	//	if (imperfectRole == 3)
-	//	{
-	//		returnRoleIndex = 5; // Sixth
-	//	}
-
-	//	if (imperfectRole == 4)
-	//	{
-	//		returnRoleIndex = 7; // Octave
-	//	}
-
-	//	if (returnRoleIndex == previousRole)
-	//	{
-	//		if (returnRoleIndex == 0)
-	//		{
-	//			returnRoleIndex = 2;
-	//		}
-	//		if (returnRoleIndex == 2)
-	//		{
-	//			returnRoleIndex = 4;
-	//		}
-	//		if (returnRoleIndex == 4)
-	//		{
-	//			returnRoleIndex = 5;
-	//		}
-	//		if (returnRoleIndex == 5)
-	//		{
-	//			returnRoleIndex = 7;
-	//		}
-	//		if (returnRoleIndex == 7)
-	//		{
-	//			returnRoleIndex = 0;
-	//		}
-	//	}
+	
 	return returnRoleIndex;
 }
 // Returns random II, IV, VII
-int MusicMath::getRandomDissonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& previousContext)
+int MusicMath::getRandomDissonanceRoleIndex(vector<float>& probabilityVector, int /*previousNote*/, ContextDesc& currentContext)
 {
 	//int previousRole = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(previousNote);
 	int startVectorIndex = AppProperties::random.nextInt(12);
@@ -381,42 +297,11 @@ int MusicMath::getRandomDissonanceRoleIndex(vector<float>& probabilityVector, in
 	{
 		if (probabilityVector[(i + startVectorIndex) % 12] > 0.0f)
 		{
-			returnRoleIndex = previousContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
+			returnRoleIndex = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
 			break;
 		}
 	}
-	//
-
-	//int roleDice = AppProperties::random.nextInt(3);
-	//if (roleDice == 0)
-	//{
-	//	returnRoleIndex = 1; // Second
-	//}
-	//if (roleDice == 1)
-	//{
-	//	returnRoleIndex = 3; // Fourth
-	//}
-	//if (roleDice == 2)
-	//{
-	//	returnRoleIndex = 6; // Seventh
-	//}
-
-	//if (previousRole == returnRoleIndex)
-	//{
-	//	//Not Good, return something else
-	//	if (returnRoleIndex == 1)
-	//	{
-	//		returnRoleIndex = 3;
-	//	}
-	//	if (returnRoleIndex == 3)
-	//	{
-	//		returnRoleIndex = 6;
-	//	}
-	//	if (returnRoleIndex == 6)
-	//	{
-	//		returnRoleIndex = 1;
-	//	}
-	//}
+	
 	return returnRoleIndex;
 }
 
@@ -811,8 +696,9 @@ bool MusicMath::isNoteInRange(int noteNumber)
 
 void MusicMath::generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure)
 {
-	InvitatioAdFestum invitatio;
-	invitatio.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
+	//InvitatioAdFestum composition;
+	OlimInFukushima composition;
+	composition.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
 }
 
 
@@ -923,7 +809,7 @@ int ContextDesc::getNoteRoleIndexByAbsoluteMIDINoteNumber(int MIDINoteNumber)
 	for (int i : musicMath._modes_offset[Mode])
 	{
 		roleIndex++;
-		if (stepsDifference == (RootMIDINote + i)%12)
+		if (stepsDifference == (RootMIDINote + i) % 12)
 		{
 			return roleIndex;
 		}
