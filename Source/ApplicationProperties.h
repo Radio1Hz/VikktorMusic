@@ -53,8 +53,11 @@ public:
 		return instance;
 	}
 
+	inline static Random random;
+
 private:
 	AppProperties();
+	
 	inline static float tempo;
 	inline static bool shouldSaveAudio = false;
 	inline static bool internalSynthAudioOut = false;

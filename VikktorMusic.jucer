@@ -4,6 +4,20 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="OhT960" name="VikktorMusic">
     <GROUP id="{5C6FDB9F-F673-9806-6C25-EFB0EA0B91CB}" name="Source">
+      <GROUP id="{23A77058-1D3D-B4CB-CFD7-C36D3D12E728}" name="Compositions">
+        <GROUP id="{7FDACF6B-6069-F3F6-10F4-116558D2A2CA}" name="Contrapunctus">
+          <FILE id="t6mIQL" name="Contrapunctus.One.h" compile="0" resource="0"
+                file="Source/Contrapunctus.One.h"/>
+        </GROUP>
+        <GROUP id="{CCC4EA54-2042-1869-4DAB-9D3F045EA8AA}" name="Processus Entropiae">
+          <FILE id="wywB1s" name="ProcessusEntropiae.InvitatioAdFestum.h" compile="0"
+                resource="0" file="Source/ProcessusEntropiae.InvitatioAdFestum.h"/>
+          <FILE id="eR6ISv" name="ProcessusEntropiae.OlimInFukushima.h" compile="0"
+                resource="0" file="Source/ProcessusEntropiae.OlimInFukushima.h"/>
+        </GROUP>
+        <FILE id="yMLINt" name="CompositionBase.h" compile="0" resource="0"
+              file="Source/CompositionBase.h"/>
+      </GROUP>
       <GROUP id="{4F89E95F-0B92-AB4D-F3A0-139AB434990F}" name="SynthParts">
         <FILE id="PCuwKh" name="SampleWaveVoice.cpp" compile="1" resource="0"
               file="Source/SampleWaveVoice.cpp"/>

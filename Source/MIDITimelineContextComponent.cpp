@@ -28,144 +28,7 @@ void MIDITimelineContextComponent::generateRhythm()
 
 void MIDITimelineContextComponent::generateContexts()
 {
-	vector<vector<ContextDesc>>& vecMeasures = AppProperties::getContextPerMeasureVector();
-	vector<vector<vector<ContextDesc>>>& vecMeasuresQuarters = AppProperties::getContextPerMeasureAndQuarterVector();
-
-	int middleC = 48;
-	int currentRepetitionNumber = 0; //Ionian
-	vector<int> numRepetitions{ 1, 1, 1, 1 };
-	/*
-		C	0
-		C#	1
-		D	2
-		D#	3
-		E	4
-		F	5
-		F#	6
-		G	7
-		G#	8
-		A	9
-		A#	10
-		B	11
-		//Invitatio ad festum
-		Gm				G#				Am				A#
-		7-1				8-3				9-1				10-3
-	*/
-
-	vector<ContextDesc> contextsInUse{ ContextDesc(middleC + 7, 1), ContextDesc(middleC + 8, 3), ContextDesc(middleC + 9, 1), ContextDesc(middleC + 10, 3) };
-	int index = numRepetitions[currentRepetitionNumber];
-	int currentContextInUseIndex = 0; //First Context in vector
-	int root = contextsInUse[currentContextInUseIndex].RootMIDINote; // C + keyIndex
-	int currentMode = contextsInUse[currentContextInUseIndex].Mode;
-	bool shouldCreateChordNotes = true;
-
-	if (vecMeasuresQuarters[0].size() == 0)
-	{
-		//Generate Contexts
-		for (int i = 0; i < numMeasures; i++)
-		{
-			if (index <= 0)
-			{
-				index = numRepetitions[(++currentRepetitionNumber) % (int)numRepetitions.size()];
-				ContextDesc& desc = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
-				currentMode = desc.Mode;
-				root = desc.RootMIDINote;
-			}
-			index--;
-			ContextDesc cDesc(root, currentMode, 1.0f);
-			vecMeasures[i].push_back(cDesc);
-
-			for (int j = 0; j < (int)ceil(numQuartersPerMeasure); j++)
-			{
-				ContextDesc cDescQuarter(root, currentMode, 1.0f);
-				if (vecMeasuresQuarters[i].size() == 0)
-				{
-					vecMeasuresQuarters[i].resize((int)ceil(numQuartersPerMeasure));
-				}
-				vecMeasuresQuarters[i][j].push_back(cDescQuarter);
-
-				if (shouldCreateChordNotes)
-				{
-					int duration = (int)ceil(numTimeUnitsPerMeasure / numQuartersPerMeasure);
-
-					if (j == (int)ceil(numQuartersPerMeasure) - 1)
-					{
-						if ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure) > 0)
-						{
-							duration = 2 * ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure));
-						}
-
-					}
-
-					if (duration > 0)
-					{
-						NoteEventDesc descRoot(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
-						NoteEventDesc descThird(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
-						NoteEventDesc descFifth(cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
-						noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(0) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
-						noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(2) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
-						noteEventMatrix[cDescQuarter.getAbsoluteNoteFromKeyModeAndRole(4) - musicMath.getNoteRangeStart()][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
-					}
-				}
-			}
-		}
-		AppProperties::setContextPerMeasureVector(vecMeasures);
-		AppProperties::setContextPerMeasureAndQuarterVector(vecMeasuresQuarters);
-	}
-	
-
-	// Generate melody using basicRhythm
-	NoteEventDesc rhythmEventDesc(0, 1, 2);
-
-	vector<vector<int>> basicRhythms
-	{
-		{
-			1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
-			-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
-			5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
-			-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,
-
-			1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
-			-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
-			5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
-			2, -1, -1, -1,		3, -1, -1, -1,		4, -1, 5, -1,		 -1, -1, 6, -1
-		},
-		{
-			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-			-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
-			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-			-1, -1, -1, -1,		-1, -1, -1, -1,		2, -1, 1, -1,		1, -1, 0, -1,
-
-			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-			-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
-			2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-			-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1
-		}
-		
-	};
-	int musicalThoughtLengthInMeasures = (int)ceil((float)basicRhythms[0].size() / (float)numTimeUnitsPerMeasure);
-	int currentMusicalThoughtIndex = -1;
-
-	for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)
-	{
-		if (i % (musicalThoughtLengthInMeasures * numTimeUnitsPerMeasure) == 0)
-		{
-			currentMusicalThoughtIndex = (currentMusicalThoughtIndex + 1) % basicRhythms.size();
-		}
-		int currentMeasure = (int)(i / numTimeUnitsPerMeasure);
-		int currentQuarter = (int)(i % (int)ceil(numQuartersPerMeasure));
-		if (basicRhythms[currentMusicalThoughtIndex][i % (int)(basicRhythms[currentMusicalThoughtIndex].size())] != -1)
-		{
-			int nextNote = 12 + musicMath.getNoteNumberByRoleNumber(vecMeasuresQuarters[currentMeasure][currentQuarter][0].RootMIDINote, vecMeasuresQuarters[currentMeasure][currentQuarter][0].Mode, basicRhythms[currentMusicalThoughtIndex][i % (int)(basicRhythms[currentMusicalThoughtIndex].size())]);
-			if (musicMath.isNoteInRange(nextNote))
-			{
-				NoteEventDesc newEvent(nextNote, 2, 1, basicRhythms[currentMusicalThoughtIndex][i % (int)(basicRhythms[currentMusicalThoughtIndex].size())]);
-				noteEventMatrix[newEvent.NoteNumber - musicMath.getNoteRangeStart()][i] = newEvent;
-			}
-		}
-		
-	}
-
+	musicMath.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure);
 	repaintMatrixImage();
 	setComponentSize();
 	repaint();
@@ -244,11 +107,11 @@ void MIDITimelineContextComponent::paint(Graphics& g)
 		//Draw Contexts probabilities per measure and quarters
 		if (measureWidthInPixels > 80)
 		{
-			g.setFont(10.0f);
 			Rectangle<int> relativeScreenRect = getScreenBounds();
 
 			for (int currMeasure = 0; currMeasure < contextPerMeasureAndQuarterVector.size(); currMeasure++)
 			{
+				g.setFont(10.0f);
 				if (contextPerMeasureAndQuarterVector[currMeasure].size() > 0)
 				{
 					Rectangle<float> measureQuarterTonalityRect(measureWidthInPixels, contextPerMeasureAndQuarterVector[currMeasure][0].size() * 10.0f);
@@ -265,7 +128,7 @@ void MIDITimelineContextComponent::paint(Graphics& g)
 						for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
 						{
 							measureQuarterTonalityRect.setPosition(((float)currMeasure + q / numQuartersPerMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
-							measureTonalityRect.setPosition(((float)currMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
+							measureTonalityRect.setPosition(((float)currMeasure) * measureWidthInPixels + timeUnitWidthInPixels, timeUnitWidthInPixels + (float)headerHeight + 1.0f);
 							String text = "";
 							for (int t = 0; t < contextPerMeasureAndQuarterVector[currMeasure][(int)q].size(); t++)
 							{
@@ -278,16 +141,17 @@ void MIDITimelineContextComponent::paint(Graphics& g)
 									text += "\r\n" + contextPerMeasureAndQuarterVector[currMeasure][(int)q][t].friendlyName();
 								}
 								g.drawMultiLineText(text, (int)measureQuarterTonalityRect.getTopLeft().x, (int)measureQuarterTonalityRect.getTopLeft().y, (int)(measureWidthInPixels / numQuartersPerMeasure), Justification::left);
-
 							}
+
 							if (q == 0)
 							{
 								if (contextPerMeasureVector[currMeasure].size() > 0)
 								{
-									text += "\r\n*" + contextPerMeasureVector[currMeasure][0].friendlyName() + "*";
+									g.setFont(12.0f);
+									text = contextPerMeasureVector[currMeasure][0].friendlyName();
+									g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
 								}
 							}
-							//g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
 						}
 					}
 				}

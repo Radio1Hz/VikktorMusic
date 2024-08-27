@@ -28,11 +28,13 @@ public:
 	int		NoteRole = -1;
 	int		NoteDuration = 0;
 	int		EventType = NoteEventType::NoEvent;
+	bool	Generated = false;
 	NoteEventDesc();
 	NoteEventDesc(int noteNumber);
 	NoteEventDesc(int noteNumber, int noteDuration);
 	NoteEventDesc(int noteNumber, int noteDuration, int eventType);
 	NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole);
+	NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole, bool gnrtd);
 	~NoteEventDesc();
 };
 
@@ -46,6 +48,7 @@ public:
 	float	Probability = 0.0;
 	String friendlyName();
 	int getAbsoluteNoteFromKeyModeAndRole(int noteRoleIndex);
+	int getNoteRoleIndexByAbsoluteMIDINoteNumber(int MIDINoteNumber);
 
 	ContextDesc();
 	ContextDesc(int rootMIDINote, int mode);
@@ -88,7 +91,9 @@ public:
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
 	int							getRoleByNoteNumber(int noteNumber);
-	int							getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex);
+	static int					getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex);
+	static int					getRandomConsonanceRoleIndex(int previousNote, ContextDesc& previousContext, bool shouldBePerfect);
+	static int					getRandomDissonanceRoleIndex(int previousNote, ContextDesc& previousContext);
 	int							getRandomRoleIndex(bool onlyConsonants);
 	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID);
 	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
@@ -103,22 +108,37 @@ public:
 	vector<int> _defMajorScaleIonianVector{ 2, -1, 1, -1,  2, 1, -1, 2, -1,  1, -1,  1 };
 	vector<int> _defMinorScaleAeolianVector{ 2, -1, 1,  2, -1, 1, -1, 2,  1, -1,  1, -1 };
 	bool isNoteInRange(int noteNumber);
-	vector<vector<int>> _modes_offset
+	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure);
+
+	static inline vector<vector<int>> _modes_offset
 	{
-		{0, 2, 4, 5, 7, 9, 11},
-		{0, 2, 3, 5, 7, 9, 10},
-		{0, 1, 3, 5, 7, 8, 10},
-		{0, 2, 4, 6, 7, 9, 11},
-		{0, 2, 4, 5, 7, 9, 10},
-		{0, 2, 3, 5, 7, 8, 10},
-		{0, 1, 3, 5, 6, 8, 10}
+		{0, 2, 4, 5, 7, 9, 11, 12},
+		{0, 2, 3, 5, 7, 9, 10, 12},
+		{0, 1, 3, 5, 7, 8, 10, 12},
+		{0, 2, 4, 6, 7, 9, 11, 12},
+		{0, 2, 4, 5, 7, 9, 10, 12},
+		{0, 2, 3, 5, 7, 8, 10, 12},
+		{0, 1, 3, 5, 6, 8, 10, 12},
+		{12, 14, 16, 17, 19, 21, 23, 24}, // Octave
 	};
+
 	int middleC = 48;
+	static bool isNumber(const String& str)
+	{
+		for (auto c : str)
+		{
+			if (!CharacterFunctions::isDigit(c))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 private:
 
 	int noteRangeStart = 36;
 	int noteRangeEnd = 92;
-	Random random;
 
 	vector<int>			_keys_offset =					// Number of seminotes from C, sorted by circle of fifths
 	{

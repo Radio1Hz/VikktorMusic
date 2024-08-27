@@ -677,6 +677,7 @@ void MIDITimelineComponent::initMenu()
 		{
 			generateSubMenu.addItem("Generate Contexts", std::bind(&MIDITimelineComponent::generateContexts, this));
 		}
+
 		menu.addSeparator();
 		menu.addSubMenu("Selection", selectionSubMenu, true);
 		menu.addSeparator();
@@ -868,6 +869,12 @@ void MIDITimelineComponent::repaintMatrixImage()
 				{
 					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
 					g0.setColour(Colours::darkred);
+
+					if (noteEventMatrix[i][j].Generated)
+					{
+						g0.setColour(Colours::darkkhaki);
+					}
+
 					g0.fillRect(textBox);
 					g0.setColour(Colours::white);
 					String stringToDisplay = String(MusicMath::getNoteNameByMIDINoteNumber(noteEventMatrix[i][j].NoteNumber));

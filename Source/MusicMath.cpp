@@ -10,17 +10,19 @@
 
 #include "MusicMath.h"
 #include "ApplicationProperties.h"
+#include "ProcessusEntropiae.InvitatioAdFestum.h"
+#include "ProcessusEntropiae.OlimInFukushima.h"
+#include "Contrapunctus.One.h"
 
 MusicMath::MusicMath()
 {
-	random.setSeed(Time::currentTimeMillis());
+
 }
 
 MusicMath::MusicMath(int noteRangeStart, int noteRangeEnd)
 {
 	this->noteRangeStart = noteRangeStart;
 	this->noteRangeEnd = noteRangeEnd;
-	random.setSeed(Time::currentTimeMillis());
 }
 
 MusicMath::~MusicMath()
@@ -254,23 +256,154 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 int MusicMath::getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex)
 {
 	return keyRoot + _modes_offset[modeIndex][roleIndex];
-	/*_modes_offset
+	/*
+	_modes_offset
+		{0, 2, 4, 5, 7, 9, 11, 12},
+		{0, 2, 3, 5, 7, 9, 10, 12},
+		{0, 1, 3, 5, 7, 8, 10, 12},
+		{0, 2, 4, 6, 7, 9, 11, 12},
+		{0, 2, 4, 5, 7, 9, 10, 12},
+		{0, 2, 3, 5, 7, 8, 10, 12},
+		{0, 1, 3, 5, 6, 8, 10, 12},
+		{12, 14, 16, 17, 19, 21, 23, 24}, // Octave
+	*/
+}
+
+int MusicMath::getRandomConsonanceRoleIndex(int previousNote, ContextDesc& previousContext, bool shouldBePerfect)
+{
+	int previousRole = previousContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(previousNote);
+	int returnRoleIndex = -1;
+	if (shouldBePerfect)
 	{
-		{0, 2, 4, 5, 7, 9, 11},
-		{0, 2, 3, 5, 7, 9, 10},
-		{0, 1, 3, 5, 7, 8, 10},
-		{0, 2, 4, 6, 7, 9, 11},
-		{0, 2, 4, 5, 7, 9, 10},
-		{0, 2, 3, 5, 7, 8, 10},
-		{0, 1, 3, 5, 6, 8, 10}
-	};*/
+		int perfectRole = AppProperties::random.nextInt(3);
+		if (perfectRole == 0)
+		{
+			returnRoleIndex = 0; // Unision
+		}
+		if (perfectRole == 1)
+		{
+			returnRoleIndex = 4; // Fifth
+		}
+		if (perfectRole == 2)
+		{
+			returnRoleIndex = 7; // Octave
+		}
+
+		if (returnRoleIndex == previousRole)
+		{
+			if (returnRoleIndex == 0)
+			{
+				returnRoleIndex = 4;
+			}
+			if (returnRoleIndex == 4)
+			{
+				returnRoleIndex = 7;
+			}
+			if (returnRoleIndex == 7)
+			{
+				returnRoleIndex = 0;
+			}
+		}
+	}
+	else
+	{
+		int imperfectRole = AppProperties::random.nextInt(5);
+		if (imperfectRole == 0)
+		{
+			returnRoleIndex = 0; // Unision
+		}
+
+		if (imperfectRole == 1)
+		{
+			returnRoleIndex = 2; // Third
+		}
+
+		if (imperfectRole == 2)
+		{
+			returnRoleIndex = 4; // Fifth
+		}
+
+		if (imperfectRole == 3)
+		{
+			returnRoleIndex = 5; // Sixth
+		}
+
+		if (imperfectRole == 4)
+		{
+			returnRoleIndex = 7; // Octave
+		}
+
+		if (returnRoleIndex == previousRole)
+		{
+			if (returnRoleIndex == 0)
+			{
+				returnRoleIndex = 2;
+			}
+			if (returnRoleIndex == 2)
+			{
+				returnRoleIndex = 4;
+			}
+			if (returnRoleIndex == 4)
+			{
+				returnRoleIndex = 5;
+			}
+			if (returnRoleIndex == 5)
+			{
+				returnRoleIndex = 7;
+			}
+			if (returnRoleIndex == 7)
+			{
+				returnRoleIndex = 0;
+			}
+		}
+	}
+	return returnRoleIndex;
+}
+// Returns random II, IV, VII
+int MusicMath::getRandomDissonanceRoleIndex(int previousNote, ContextDesc& previousContext)
+{
+	int previousRole = previousContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(previousNote);
+
+	int returnRoleIndex = -1;
+
+	int roleDice = AppProperties::random.nextInt(3);
+	if (roleDice == 0)
+	{
+		returnRoleIndex = 1; // Second
+	}
+	if (roleDice == 1)
+	{
+		returnRoleIndex = 3; // Fourth
+	}
+	if (roleDice == 2)
+	{
+		returnRoleIndex = 6; // Seventh
+	}
+
+	if (previousRole == returnRoleIndex)
+	{
+		//Not Good, return something else
+		if (returnRoleIndex == 1)
+		{
+			returnRoleIndex = 3;
+		}
+		if (returnRoleIndex == 3)
+		{
+			returnRoleIndex = 6;
+		}
+		if (returnRoleIndex == 6)
+		{
+			returnRoleIndex = 1;
+		}
+	}
+	return returnRoleIndex;
 }
 
 int MusicMath::getRandomRoleIndex(bool onlyConsonants)
 {
 	if (onlyConsonants)
 	{
-		int num = random.nextInt(3);
+		int num = AppProperties::random.nextInt(3);
 		if (num == 0)
 		{
 			return 0; //Root
@@ -284,7 +417,7 @@ int MusicMath::getRandomRoleIndex(bool onlyConsonants)
 			return 4; //Fifth
 		}
 	}
-	return random.nextInt(7);
+	return AppProperties::random.nextInt(7);
 }
 
 list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, int methodID)
@@ -477,7 +610,7 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 
 				if (maxSum < resultingSum)
 				{
-					ContextDesc cd(t+middleC, m, (float)resultingSum);
+					ContextDesc cd(t + middleC, m, (float)resultingSum);
 					allPossiblieTonalities.push_back(cd);
 					maxSum = resultingSum;
 				}
@@ -655,6 +788,12 @@ bool MusicMath::isNoteInRange(int noteNumber)
 	return noteNumber <= noteRangeEnd && noteNumber >= noteRangeStart;
 }
 
+void MusicMath::generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure)
+{
+	InvitatioAdFestum invitatio;
+	invitatio.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
+}
+
 
 /*
 Octave	C	C#	D	D#	E	F	F#	G	G#	A	Bb	B
@@ -692,6 +831,11 @@ NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType) : 
 NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole) : NoteEventDesc::NoteEventDesc(noteNumber, noteDuration, eventType)
 {
 	NoteRole = noteRole;
+}
+
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole, bool gnrtd) : NoteEventDesc::NoteEventDesc(noteNumber, noteDuration, eventType, noteRole)
+{
+	Generated = gnrtd;
 }
 
 NoteEventDesc::~NoteEventDesc()
@@ -748,4 +892,20 @@ int ContextDesc::getAbsoluteNoteFromKeyModeAndRole(int noteRoleIndex)
 		{0, 2, 3, 5, 7, 8, 10},
 		{0, 1, 3, 5, 6, 8, 10}
 	};*/
+}
+
+int ContextDesc::getNoteRoleIndexByAbsoluteMIDINoteNumber(int MIDINoteNumber)
+{
+	int stepsDifference = (MIDINoteNumber - RootMIDINote) % 12; // Number of Half-steps above root (can be negative)
+	MusicMath musicMath;
+	int roleIndex = -1;
+	for (int i : musicMath._modes_offset[Mode])
+	{
+		roleIndex++;
+		if (stepsDifference == i)
+		{
+			return roleIndex;
+		}
+	}
+	return roleIndex;
 }
