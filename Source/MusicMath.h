@@ -32,7 +32,22 @@ public:
 	float	Velocity = 0.5f;
 	NoteEventDesc();
 	String info() {
-		return String(MidiMessage::getMidiNoteName(NoteNumber, true, false, 4)) + "("+ String(NoteNumber) +")[" + String(NoteRole + 1) + "]\r\nD:" + String(NoteDuration) + ", T:" + String(EventType) + ", G:" + (Generated ? "true" : "false") + ", V:" + String(Velocity);
+		return String(MidiMessage::getMidiNoteName(NoteNumber, true, false, 4)) + "(" + String(NoteNumber) + ")[" + String(NoteRole + 1) + "]\r\nD:" + String(NoteDuration) + ", T:" + String(EventType) + ", G:" + (Generated ? "true" : "false") + ", V:" + String(Velocity);
+	};
+	Colour colour() {
+		if (NoteRole == 0)
+		{
+			return Colours::red;
+		}
+		if (NoteRole == 2)
+		{
+			return Colours::darkorange;
+		}
+		if (NoteRole == 4)
+		{
+			return Colours::green;
+		}
+		return Colours::grey;
 	};
 	NoteEventDesc(int noteNumber);
 	NoteEventDesc(int noteNumber, int noteDuration);

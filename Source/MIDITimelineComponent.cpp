@@ -921,12 +921,7 @@ void MIDITimelineComponent::repaintMatrixImage()
 				if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOn) //if note on
 				{
 					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
-					g0.setColour(Colours::darkred);
-
-					if (noteEventMatrix[i][j].Generated)
-					{
-						g0.setColour(Colours::darkkhaki);
-					}
+					g0.setColour(noteEventMatrix[i][j].colour());
 
 					g0.fillRect(textBox);
 					g0.setColour(Colours::white);
@@ -949,12 +944,12 @@ void MIDITimelineComponent::repaintMatrixImage()
 					//}
 				}
 
-				if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOff) //if note off, show white line
-				{
-					textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
-					g0.setColour(Colours::white);
-					g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 0.6f);
-				}
+				//if (noteEventMatrix[i][j].EventType == NoteEventType::NoteOff) //if note off, show white line
+				//{
+				//	textBox.setWidth(timeUnitWidthPixels * (float)noteEventMatrix[i][j].NoteDuration);
+				//	g0.setColour(Colours::white);
+				//	g0.drawLine(textBox.getBottomLeft().x, textBox.getBottomLeft().y, textBox.getTopLeft().x, textBox.getTopLeft().y, 0.6f);
+				//}
 			}
 		}
 
