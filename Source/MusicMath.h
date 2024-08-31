@@ -29,12 +29,17 @@ public:
 	int		NoteDuration = 0;
 	int		EventType = NoteEventType::NoEvent;
 	bool	Generated = false;
+	float	Velocity = 0.5f;
 	NoteEventDesc();
+	String info() {
+		return String(MidiMessage::getMidiNoteName(NoteNumber, true, false, 4)) + "[" + String(NoteRole+1) + "]\r\nD:" + String(NoteDuration) + ", T:" + String(EventType) + ", G:" + (Generated ? "true" : "false") + ", V:" + String(Velocity);
+	};
 	NoteEventDesc(int noteNumber);
 	NoteEventDesc(int noteNumber, int noteDuration);
 	NoteEventDesc(int noteNumber, int noteDuration, int eventType);
 	NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole);
 	NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole, bool gnrtd);
+	NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole, bool gnrtd, float vel);
 	~NoteEventDesc();
 };
 

@@ -63,7 +63,9 @@ protected:
 	void loadMIDI();
 	void setComponentSize();
 	virtual void initMenu();
+	virtual void paintContextsPerMeasure(Graphics& g);
 	void populateSelectionMatrix();
+	void generateContextsByIndex(int compIndex);
 	void clearTimeline();
 	void repaintMatrixImage();
 	void processSelection();

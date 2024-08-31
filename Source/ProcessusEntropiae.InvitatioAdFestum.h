@@ -24,7 +24,7 @@ public:
 	~InvitatioAdFestum()
 	{
 	}
-	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd) override
+	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure, int noteRangeStart, int /*noteRangeEnd*/) override
 	{
 		vector<vector<ContextDesc>> vecMeasures = AppProperties::getContextPerMeasureVector();
 		vector<vector<vector<ContextDesc>>> vecMeasuresQuarters = AppProperties::getContextPerMeasureAndQuarterVector();
@@ -83,25 +83,14 @@ public:
 
 					if (shouldCreateChordNotes)
 					{
-						int duration = (int)ceil(numTimeUnitsPerMeasure / numQuartersPerMeasure);
+						int duration = (int)ceil(numTimeUnitsPerMeasure);
 
-						if (j == (int)ceil(numQuartersPerMeasure) - 1)
-						{
-							if ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure) > 0)
-							{
-								duration = 2 * ((int)ceil(numQuartersPerMeasure) - (int)floor(numQuartersPerMeasure));
-							}
-						}
-
-						if (duration > 0)
-						{
-							NoteEventDesc descRoot(currentContext.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1);  // Root = 0
-							NoteEventDesc descThird(currentContext.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1); // Third = 2
-							NoteEventDesc descFifth(currentContext.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1); // Fifth = 4
-							noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(0) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descRoot;
-							noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(2) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descThird;
-							noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(4) - noteRangeStart][i * numTimeUnitsPerMeasure + j * (int)floor(numTimeUnitsPerMeasure / numQuartersPerMeasure)] = descFifth;
-						}
+						NoteEventDesc descRoot(currentContext.getAbsoluteNoteFromKeyModeAndRole(0), duration, 1, 0, false, 0.25f);  // Root = 0
+						NoteEventDesc descThird(currentContext.getAbsoluteNoteFromKeyModeAndRole(2), duration, 1, 2, false, 0.25f); // Third = 2
+						NoteEventDesc descFifth(currentContext.getAbsoluteNoteFromKeyModeAndRole(4), duration, 1, 4, false, 0.25f); // Fifth = 4
+						noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(0) - noteRangeStart][i * numTimeUnitsPerMeasure] = descRoot;
+						noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(2) - noteRangeStart][i * numTimeUnitsPerMeasure] = descThird;
+						noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(4) - noteRangeStart][i * numTimeUnitsPerMeasure] = descFifth;
 					}
 				}
 			}
@@ -110,152 +99,152 @@ public:
 		}
 
 
-		// Generate melody using basicRhythm
-		NoteEventDesc rhythmEventDesc(0, 1, 2);
+		//// Generate melody using basicRhythm
+		//NoteEventDesc rhythmEventDesc(0, 1, 2);
 
-		vector<vector<int>> basicRhythms2
-		{
-			{
-				1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
-				-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
-				5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
-				-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,
+		//vector<vector<int>> basicRhythms2
+		//{
+		//	{
+		//		1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
+		//		-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
+		//		5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
+		//		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,
 
-				1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
-				-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
-				5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
-				2, -1, -1, -1,		3, -1, -1, -1,		4, -1, 5, -1,		 -1, -1, 6, -1
-			},
-			{
-				2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-				-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
-				2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-				-1, -1, -1, -1,		-1, -1, -1, -1,		2, -1, 1, -1,		1, -1, 0, -1,
+		//		1, -1, -1, -1,		1, -1, -1, -1,		3, -1, 2, -1,		-1, -1, 2, -1,
+		//		-1, -1, 1, -1,		-1, -1, 4, -1,		-1, -1, -1, -1,		-1, -1, 3, -1,
+		//		5, -1, -1, -1,		5, -1,-1, -1,		4, -1, 3, -1,		-1, -1, 3, -1,
+		//		2, -1, -1, -1,		3, -1, -1, -1,		4, -1, 5, -1,		 -1, -1, 6, -1
+		//	},
+		//	{
+		//		2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+		//		-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
+		//		2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+		//		-1, -1, -1, -1,		-1, -1, -1, -1,		2, -1, 1, -1,		1, -1, 0, -1,
 
-				2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-				-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
-				2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
-				-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1
-			}
+		//		2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+		//		-1, -1, 2, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, 2, -1,
+		//		2, -1, -1, -1,		2, -1, -1, -1,		2, -1, 3, -1,		-1, -1, 3, -1,
+		//		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1,		-1, -1, -1, -1
+		//	}
 
-		};
+		//};
 
-		vector<vector<string>> basicRhythmsPattern
-		{
-			// C - Consonace
-			// D - Dissonace
-			{
-				"C", "", "", "",		"C", "", "", "",		"D", "", "C", "",		"", "", "C", "",
-				"", "", "C", "",		"", "", "C", "",		"", "", "", "",			"", "", "C", "",
-				"C", "", "", "",		"C", "","", "",			"D", "", "C", "",		"", "", "C", "",
-				"", "", "", "",			"", "", "", "",			"", "", "", "",			"", "", "", "",
+		//vector<vector<string>> basicRhythmsPattern
+		//{
+		//	// C - Consonace
+		//	// D - Dissonace
+		//	{
+		//		"C", "", "", "",		"C", "", "", "",		"D", "", "C", "",		"", "", "C", "",
+		//		"", "", "C", "",		"", "", "C", "",		"", "", "", "",			"", "", "C", "",
+		//		"C", "", "", "",		"C", "","", "",			"D", "", "C", "",		"", "", "C", "",
+		//		"", "", "", "",			"", "", "", "",			"", "", "", "",			"", "", "", "",
 
-				"C", "", "", "",		"C", "", "", "",		"D", "", "C", "",		"", "", "C", "",
-				"", "", "C", "",		"", "", "C", "",		"", "", "", "",			"", "", "C", "",
-				"C", "", "", "",		"C", "","", "",			"D", "", "C", "",		"", "", "C", "",
-				"C", "", "", "",		"C", "", "", "",		"C", "", "C", "",		"", "", "C", ""
-			},
-			{
-				"3", "", "", "",		"4", "", "", "",		"0", "", "4", "",		"", "", "3", "",
-				"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "7", "",
-				"2", "", "", "",		"3", "", "", "",		"7", "", "3", "",		"", "", "2", "",
-				"", "", "", "",			"", "", "", "",			"1", "", "2", "",		"5", "", "1", "",
+		//		"C", "", "", "",		"C", "", "", "",		"D", "", "C", "",		"", "", "C", "",
+		//		"", "", "C", "",		"", "", "C", "",		"", "", "", "",			"", "", "C", "",
+		//		"C", "", "", "",		"C", "","", "",			"D", "", "C", "",		"", "", "C", "",
+		//		"C", "", "", "",		"C", "", "", "",		"C", "", "C", "",		"", "", "C", ""
+		//	},
+		//	{
+		//		"3", "", "", "",		"4", "", "", "",		"0", "", "4", "",		"", "", "3", "",
+		//		"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "7", "",
+		//		"2", "", "", "",		"3", "", "", "",		"7", "", "3", "",		"", "", "2", "",
+		//		"", "", "", "",			"", "", "", "",			"1", "", "2", "",		"5", "", "1", "",
 
-				"0", "", "", "",		"0", "", "", "",		"4", "", "4", "",		"", "", "3", "",
-				"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "7", "",
-				"2", "", "", "",		"3", "", "", "",		"7", "", "2", "",		"", "", "2", "",
-				"", "", "", "",			"", "", "", "",			"1", "", "2", "",		"5", "", "1", ""
-			},
-			{
-				"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
-				"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "2", "",
-				"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
-				"", "", "", "",			"", "", "", "",			"2", "", "1", "",		"1", "", "0", "",
+		//		"0", "", "", "",		"0", "", "", "",		"4", "", "4", "",		"", "", "3", "",
+		//		"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "7", "",
+		//		"2", "", "", "",		"3", "", "", "",		"7", "", "2", "",		"", "", "2", "",
+		//		"", "", "", "",			"", "", "", "",			"1", "", "2", "",		"5", "", "1", ""
+		//	},
+		//	{
+		//		"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
+		//		"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "2", "",
+		//		"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
+		//		"", "", "", "",			"", "", "", "",			"2", "", "1", "",		"1", "", "0", "",
 
-				"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
-				"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "2", "",
-				"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
-				"", "", "", "",			"", "", "", "",			"", "", "", "",			"", "", "", ""
-			}
-		};
+		//		"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
+		//		"", "", "2", "",		"", "", "", "",			"", "", "", "",			"", "", "2", "",
+		//		"2", "", "", "",		"2", "", "", "",		"2", "", "3", "",		"", "", "3", "",
+		//		"", "", "", "",			"", "", "", "",			"", "", "", "",			"", "", "", ""
+		//	}
+		//};
 
 
-		int musicalThoughtLengthInMeasures = (int)ceil((float)basicRhythmsPattern[0].size() / (float)numTimeUnitsPerMeasure);
-		int currentMusicalThoughtIndex = -1;
-		int previousNote = -1;
+		//int musicalThoughtLengthInMeasures = (int)ceil((float)basicRhythmsPattern[0].size() / (float)numTimeUnitsPerMeasure);
+		//int currentMusicalThoughtIndex = -1;
+		//int previousNote = -1;
 
-		vector<float> commonNotesForAllContexts(12);
-		MusicMath tempMath;
+		//vector<float> commonNotesForAllContexts(12);
+		//MusicMath tempMath;
 
-		for (int i = 0; i < 12; i++)
-		{
-			float resultingMult = 1.0f;
-			for (ContextDesc& desc : contextsInUse)
-			{
-				int roleID = desc.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
-				if (roleID != -1)
-				{
-					resultingMult = resultingMult * 1.0f;
-				}
-				else
-				{
-					resultingMult = 0.0f;
-				}
-			}
-			commonNotesForAllContexts[i] = resultingMult;
-		}
+		//for (int i = 0; i < 12; i++)
+		//{
+		//	float resultingMult = 1.0f;
+		//	for (ContextDesc& desc : contextsInUse)
+		//	{
+		//		int roleID = desc.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
+		//		if (roleID != -1)
+		//		{
+		//			resultingMult = resultingMult * 1.0f;
+		//		}
+		//		else
+		//		{
+		//			resultingMult = 0.0f;
+		//		}
+		//	}
+		//	commonNotesForAllContexts[i] = resultingMult;
+		//}
 
-		for (int i = 0; i < 12; i++)
-		{
-			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / contextsInUse.size();
-		}
+		//for (int i = 0; i < 12; i++)
+		//{
+		//	commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / contextsInUse.size();
+		//}
 
-		for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)
-		{
-			bool noteIsGenerated = false;
-			int currentMeasure = (int)(i / numTimeUnitsPerMeasure);
-			currentContext = ContextDesc(vecMeasures[currentMeasure][0]);
-			if (i % (musicalThoughtLengthInMeasures * numTimeUnitsPerMeasure) == 0)
-			{
-				currentMusicalThoughtIndex = (currentMusicalThoughtIndex + 1) % basicRhythmsPattern.size();
-			}
+		//for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)
+		//{
+		//	bool noteIsGenerated = false;
+		//	int currentMeasure = (int)(i / numTimeUnitsPerMeasure);
+		//	currentContext = ContextDesc(vecMeasures[currentMeasure][0]);
+		//	if (i % (musicalThoughtLengthInMeasures * numTimeUnitsPerMeasure) == 0)
+		//	{
+		//		currentMusicalThoughtIndex = (currentMusicalThoughtIndex + 1) % basicRhythmsPattern.size();
+		//	}
 
-			if (basicRhythmsPattern[currentMusicalThoughtIndex][i % (int)(basicRhythmsPattern[currentMusicalThoughtIndex].size())] != "")
-			{
-				int tempRoleIndex = -1;
-				String symbol1 = basicRhythmsPattern[currentMusicalThoughtIndex][i % (int)(basicRhythmsPattern[currentMusicalThoughtIndex].size())];
+		//	if (basicRhythmsPattern[currentMusicalThoughtIndex][i % (int)(basicRhythmsPattern[currentMusicalThoughtIndex].size())] != "")
+		//	{
+		//		int tempRoleIndex = -1;
+		//		String symbol1 = basicRhythmsPattern[currentMusicalThoughtIndex][i % (int)(basicRhythmsPattern[currentMusicalThoughtIndex].size())];
 
-				if (MusicMath::isNumber(symbol1))
-				{
-					tempRoleIndex = String(basicRhythmsPattern[currentMusicalThoughtIndex][i % (int)(basicRhythmsPattern[currentMusicalThoughtIndex].size())]).getIntValue();
-				}
-				else
-				{
-					if (symbol1 == "C") //Consonance
-					{
-						tempRoleIndex = MusicMath::getRandomConsonanceRoleIndex(commonNotesForAllContexts, previousNote, currentContext, false);
-					}
-					if (symbol1 == "D") //Dissonance
-					{
-						tempRoleIndex = MusicMath::getRandomDissonanceRoleIndex(commonNotesForAllContexts, previousNote, currentContext);
-					}
-					noteIsGenerated = true;
-				}
+		//		if (MusicMath::isNumber(symbol1))
+		//		{
+		//			tempRoleIndex = String(basicRhythmsPattern[currentMusicalThoughtIndex][i % (int)(basicRhythmsPattern[currentMusicalThoughtIndex].size())]).getIntValue();
+		//		}
+		//		else
+		//		{
+		//			if (symbol1 == "C") //Consonance
+		//			{
+		//				tempRoleIndex = MusicMath::getRandomConsonanceRoleIndex(commonNotesForAllContexts, previousNote, currentContext, false);
+		//			}
+		//			if (symbol1 == "D") //Dissonance
+		//			{
+		//				tempRoleIndex = MusicMath::getRandomDissonanceRoleIndex(commonNotesForAllContexts, previousNote, currentContext);
+		//			}
+		//			noteIsGenerated = true;
+		//		}
 
-				if (tempRoleIndex != -1 && vecMeasures[currentMeasure].size() > 0)
-				{
-					int nextNote = MusicMath::getNoteNumberByRoleNumber(vecMeasures[currentMeasure][0].RootMIDINote, vecMeasures[currentMeasure][0].Mode, tempRoleIndex);
-					if (nextNote != -1)
-					{
-						nextNote += 12;
-						if (noteRangeStart <= nextNote && nextNote <= noteRangeEnd)
-						{
-							NoteEventDesc newEvent(nextNote, 2, 1, tempRoleIndex, noteIsGenerated);
-							noteEventMatrix[newEvent.NoteNumber - noteRangeStart][i] = newEvent;
-						}
-					}
-				}
-			}
-		}
+		//		if (tempRoleIndex != -1 && vecMeasures[currentMeasure].size() > 0)
+		//		{
+		//			int nextNote = MusicMath::getNoteNumberByRoleNumber(vecMeasures[currentMeasure][0].RootMIDINote, vecMeasures[currentMeasure][0].Mode, tempRoleIndex);
+		//			if (nextNote != -1)
+		//			{
+		//				nextNote += 12;
+		//				if (noteRangeStart <= nextNote && nextNote <= noteRangeEnd)
+		//				{
+		//					NoteEventDesc newEvent(nextNote, 2, 1, tempRoleIndex, noteIsGenerated);
+		//					noteEventMatrix[newEvent.NoteNumber - noteRangeStart][i] = newEvent;
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 	}
 };

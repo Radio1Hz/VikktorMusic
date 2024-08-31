@@ -283,7 +283,7 @@ int MusicMath::getRandomConsonanceRoleIndex(vector<float>& probabilityVector, in
 			break;
 		}
 	}
-	
+
 	return returnRoleIndex;
 }
 // Returns random II, IV, VII
@@ -301,7 +301,7 @@ int MusicMath::getRandomDissonanceRoleIndex(vector<float>& probabilityVector, in
 			break;
 		}
 	}
-	
+
 	return returnRoleIndex;
 }
 
@@ -743,6 +743,11 @@ NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType, in
 NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole, bool gnrtd) : NoteEventDesc::NoteEventDesc(noteNumber, noteDuration, eventType, noteRole)
 {
 	Generated = gnrtd;
+}
+
+NoteEventDesc::NoteEventDesc(int noteNumber, int noteDuration, int eventType, int noteRole, bool gnrtd, float vel) : NoteEventDesc::NoteEventDesc(noteNumber, noteDuration, eventType, noteRole, gnrtd)
+{
+	Velocity = vel;
 }
 
 NoteEventDesc::~NoteEventDesc()
