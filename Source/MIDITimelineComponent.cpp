@@ -260,7 +260,6 @@ void MIDITimelineComponent::releaseResources()
 
 void MIDITimelineComponent::paintContextsPerMeasure(Graphics& g)
 {
-	g.setFont(10.0f);
 	Rectangle<float> parentBounds = getReducedLocalBounds().toFloat();
 	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
 	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
@@ -268,12 +267,10 @@ void MIDITimelineComponent::paintContextsPerMeasure(Graphics& g)
 	float timeUnitWidthInPixels = parentBounds.getWidth() / ((float)numMeasures * (float)numTimeUnitsPerMeasure);
 	Rectangle<int> relativeScreenRect = getScreenBounds();
 
-	for (int currMeasure = 0; currMeasure < contextPerMeasureAndQuarterVector.size(); currMeasure++)
+	for (int currMeasure = 0; currMeasure < contextPerMeasureVector.size(); currMeasure++)
 	{
-		g.setFont(10.0f);
-		if (contextPerMeasureAndQuarterVector[currMeasure].size() > 0)
+		if (contextPerMeasureVector[currMeasure].size() > 0)
 		{
-			Rectangle<float> measureQuarterTonalityRect(measureWidthInPixels, contextPerMeasureAndQuarterVector[currMeasure][0].size() * 10.0f);
 			Rectangle<float> measureTonalityRect(measureWidthInPixels, contextPerMeasureVector[currMeasure].size() * 10.0f);
 			int xPosition = currMeasure * (int)measureWidthInPixels + (int)timeUnitWidthInPixels;
 
@@ -284,33 +281,15 @@ void MIDITimelineComponent::paintContextsPerMeasure(Graphics& g)
 
 			if (relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen > 0 && relativeScreenRect.getTopLeft().x + (currentScreen * screenWidth) + currentOffsetWithinScreen < screenWidth)
 			{
-				for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
-				{
-					measureQuarterTonalityRect.setPosition(((float)currMeasure + q / numQuartersPerMeasure) * measureWidthInPixels + timeUnitWidthInPixels, 2 * timeUnitWidthInPixels + (float)headerHeight + 1.0f);
-					measureTonalityRect.setPosition(((float)currMeasure) * measureWidthInPixels + timeUnitWidthInPixels, timeUnitWidthInPixels + (float)headerHeight + 1.0f);
-					String text = "";
-					for (int t = 0; t < contextPerMeasureAndQuarterVector[currMeasure][(int)q].size(); t++)
-					{
-						if (t == 0)
-						{
-							text += contextPerMeasureAndQuarterVector[currMeasure][(int)q][t].friendlyName();
-						}
-						else
-						{
-							text += "\r\n" + contextPerMeasureAndQuarterVector[currMeasure][(int)q][t].friendlyName();
-						}
-						//g.drawMultiLineText(text, (int)measureQuarterTonalityRect.getTopLeft().x, (int)measureQuarterTonalityRect.getTopLeft().y, (int)(measureWidthInPixels / numQuartersPerMeasure), Justification::left);
-					}
+				measureTonalityRect.setPosition(((float)currMeasure) * measureWidthInPixels + timeUnitWidthInPixels, timeUnitWidthInPixels + (float)headerHeight + 1.0f);
 
-					if (q == 0)
-					{
-						if (contextPerMeasureVector[currMeasure].size() > 0)
-						{
-							g.setFont(12.0f);
-							text = contextPerMeasureVector[currMeasure][0].friendlyName();
-							g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
-						}
-					}
+				String text = "";
+				if (contextPerMeasureVector[currMeasure].size() > 0)
+				{
+					g.setFont(12.0f);
+					g.setColour(Colours::white);
+					text = contextPerMeasureVector[currMeasure][0].friendlyName();
+					g.drawMultiLineText(text, (int)measureTonalityRect.getTopLeft().x, (int)measureTonalityRect.getTopLeft().y, (int)measureWidthInPixels, Justification::left);
 				}
 			}
 		}
@@ -423,13 +402,13 @@ void MIDITimelineComponent::paint(Graphics& g)
 				float cWidth = parentBounds.getWidth() / numberOfTimeUnits;
 				float cHeight = parentBounds.getHeight() / musicMath.getNoteRangeSize();
 				Rectangle<float> currentScreenCursorPositionRect(cWidth, cHeight);
-				currentScreenCursorPositionRect.setPosition(currentCursorPosition[1] * cWidth + 1, currentCursorPosition[0] * (cHeight) + headerHeight + 1);
+				currentScreenCursorPositionRect.setPosition(currentCursorPosition[1] * cWidth + 1, currentCursorPosition[0] * (cHeight)+headerHeight + 1);
 				g.setColour(Colour::fromRGBA(192, 192, 192, 128));
 				g.fillRect(currentScreenCursorPositionRect);
 
 				float minWidth = 50.0f;
 				float cursorInfoWidth = cWidth * 12;
-				float cursorInfoHeight = cWidth * 5;
+				float cursorInfoHeight = cWidth * 3;
 
 				float aspectRatio = cursorInfoWidth / cursorInfoHeight;
 				if (cursorInfoWidth < minWidth)
@@ -440,14 +419,15 @@ void MIDITimelineComponent::paint(Graphics& g)
 
 				Rectangle<float> currentScreenCursorInfoRect(cursorInfoWidth, cursorInfoHeight);
 				currentScreenCursorInfoRect.setPosition(((currentCursorPosition[1] + 1) * cWidth) + 1, ((currentCursorPosition[0]) * cHeight) + headerHeight);
-				
+
 
 				//Paint mouseover event info
 				if (noteEventMatrix.size() > 0)
 				{
 					g.setColour(Colour::fromRGBA(20, 20, 20, 128));
 					g.fillRect(currentScreenCursorInfoRect);
-					String info = "";
+					int midiNoteNumber = musicMath.getNoteRangeSize() - currentCursorPosition[0] - 1 + musicMath.getNoteRangeStart();
+					String info = MusicMath::getNoteNameByMIDINoteNumber(midiNoteNumber) + " (" + String(midiNoteNumber) + ")";
 					if (currentCursorPosition[1] < noteEventMatrix[0].size())
 					{
 						if (noteEventMatrix[musicMath.getNoteRangeSize() - currentCursorPosition[0] - 1][currentCursorPosition[1]].EventType != -1)
@@ -457,13 +437,13 @@ void MIDITimelineComponent::paint(Graphics& g)
 							info = noteEventMatrix[musicMath.getNoteRangeSize() - currentCursorPosition[0] - 1][currentCursorPosition[1]].info();
 						}
 					}
-					
+
 					g.setColour(Colours::white);
-					g.drawMultiLineText(cTimeUnitFormattedText + "\r\n" + info, (int)currentScreenCursorInfoRect.getTopLeft().x, (int)currentScreenCursorInfoRect.getCentreY(), (int)currentScreenCursorInfoRect.getWidth(), Justification::centred);
+					g.drawMultiLineText(cTimeUnitFormattedText + "\r\n" + info, (int)currentScreenCursorInfoRect.getTopLeft().x, (int)currentScreenCursorInfoRect.getTopLeft().y + (int)cHeight, (int)currentScreenCursorInfoRect.getWidth(), Justification::centred);
 				}
 			}
 
-			
+
 		}
 	}
 }
@@ -701,11 +681,13 @@ void MIDITimelineComponent::initMenu()
 		{
 			generateSubMenu.addItem("Generate Rhythm", std::bind(&MIDITimelineComponent::generateRhythm, this));
 		}
+
 		if (synthID == 2)
 		{
 			generateSubMenu.addItem("Generate Context For Invitatio", [this] { generateContextsByIndex(1); });
 			generateSubMenu.addItem("Generate Context For Olim", [this] { generateContextsByIndex(2); });
 		}
+		generateSubMenu.addItem("Improvize melody", [this] { improvizeMelody(); });
 
 		menu.addSeparator();
 		menu.addSubMenu("Selection", selectionSubMenu, true);
@@ -751,15 +733,17 @@ void MIDITimelineComponent::generateContextsByIndex(int compIndex)
 	{
 	case 1:
 	{
-		InvitatioAdFestum compInvitatio;
-		compInvitatio.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
+		clearNoteEventMatrix();
+		composition.reset(new InvitatioAdFestum());
+		composition->generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
 		break;
 	}
 
 	case 2:
 	{
-		OlimInFukushima compOlim;
-		compOlim.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
+		clearNoteEventMatrix();
+		composition.reset(new OlimInFukushima());
+		composition->generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
 		break;
 	}
 
@@ -767,6 +751,16 @@ void MIDITimelineComponent::generateContextsByIndex(int compIndex)
 		break;
 	}
 
+	repaintMatrixImage();
+	setComponentSize();
+}
+
+void MIDITimelineComponent::improvizeMelody()
+{
+	if (composition->Name != "")
+	{
+		composition->generateMelody(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
+	}
 	repaintMatrixImage();
 	setComponentSize();
 }
@@ -1355,13 +1349,13 @@ void MIDITimelineComponent::mouseDownEvent(const MouseEvent& /*event*/)
 
 void MIDITimelineComponent::controlMouseDownEvent(const MouseEvent& /*event*/)
 {
-	midiOutput->sendMessageNow(MidiMessage::noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
-	audioSource->synth.noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], 1.0f);
+	midiOutput->sendMessageNow(MidiMessage::noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)(127.0f * 0.5f)));
+	audioSource->synth.noteOn(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], 0.5f);
 }
 
 void MIDITimelineComponent::mouseUpEvent(const MouseEvent& /*event*/)
 {
-	midiOutput->sendMessageNow(MidiMessage::noteOff(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)255));
+	midiOutput->sendMessageNow(MidiMessage::noteOff(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], (uint8)127));
 	audioSource->synth.noteOff(defaultMIDIChannel, musicMath.getNoteRangeEnd() - currentCursorPosition[0], 1.0f, true);
 }
 

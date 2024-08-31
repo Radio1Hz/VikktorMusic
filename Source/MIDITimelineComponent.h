@@ -16,6 +16,7 @@
 #include "MusicMath.h"
 #include "MarkovMatrixComponent.h"
 #include "SynthAudioSource.h"
+#include "CompositionBase.h"
 
 using namespace juce;
 using namespace dsp;
@@ -65,6 +66,7 @@ protected:
 	virtual void initMenu();
 	virtual void paintContextsPerMeasure(Graphics& g);
 	void populateSelectionMatrix();
+	void improvizeMelody();
 	void generateContextsByIndex(int compIndex);
 	void clearTimeline();
 	void repaintMatrixImage();
@@ -109,6 +111,9 @@ protected:
 	int numTimeUnitsPerMeasure = 0;
 	float numQuartersPerMeasure = 0;
 	int defaultContextAnalysisMethodID = 1;
+
+	//Composition
+	unique_ptr<CompositionBase> composition;
 
 	//MIDI
 	unique_ptr<FileChooser> fileChooser;
