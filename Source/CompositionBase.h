@@ -94,6 +94,7 @@ public:
 		vector<float> commonNotesForAllContexts(12);
 		MusicMath tempMath;
 
+		float maxRes = 0;
 		for (int i = 0; i < 12; i++)
 		{
 			float resultingMult = 1.0f;
@@ -102,7 +103,14 @@ public:
 				int roleID = desc.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
 				if (roleID != -1)
 				{
-					resultingMult = resultingMult * 1.0f;
+					if (roleID == 0 || roleID == 2 || roleID == 4)
+					{
+						resultingMult *= 2.0f;
+					}
+					else
+					{
+						resultingMult *= 1.0f;
+					}
 				}
 				else
 				{
@@ -110,11 +118,15 @@ public:
 				}
 			}
 			commonNotesForAllContexts[i] = resultingMult;
+			if (maxRes < resultingMult)
+			{
+				maxRes = resultingMult;
+			}
 		}
 
 		for (int i = 0; i < 12; i++)
 		{
-			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / contextsInUse.size();
+			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / maxRes;
 		}
 
 		for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)

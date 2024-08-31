@@ -158,13 +158,13 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 
 				if (produceAudio)
 				{
-					audioSource->synth.allNotesOff(defaultMIDIChannel, true);
+					//audioSource->synth.allNotesOff(defaultMIDIChannel, true);
 				}
 
 				if (midiOutput != nullptr && produceMIDI)
 				{
-					MidiMessage noteOff(MidiMessage::allNotesOff(defaultMIDIChannel));
-					midiOutput->sendMessageNow(noteOff);
+					//MidiMessage noteOff(MidiMessage::allNotesOff(defaultMIDIChannel));
+					//midiOutput->sendMessageNow(noteOff);
 				}
 				triggerRepaint();
 			}
@@ -179,7 +179,7 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 					{
 						if (notesOffInFuture[n] > 0 && notesOffInFuture[n] < samplesElapsed)
 						{
-							if (produceAudio)
+							if (produceAudio || synthID == 1)
 							{
 								audioSource->synth.noteOff(defaultMIDIChannel, n + musicMath.getNoteRangeStart(), 0.0f, true);
 							}
@@ -198,12 +198,12 @@ void MIDITimelineComponent::getNextAudioBlock(const AudioSourceChannelInfo& buff
 						int playingNoteNumber = noteEventMatrix[i][currentTimeUnit].NoteNumber;
 
 						//Note On
-						if (produceAudio)
+						if (produceAudio || synthID == 1)
 						{
 							audioSource->synth.noteOn(defaultMIDIChannel, playingNoteNumber, noteEventMatrix[i][currentTimeUnit].Velocity);
 						}
 
-						if (midiOutput != nullptr && produceMIDI)
+						if (midiOutput != nullptr && produceMIDI && synthID != 1)
 						{
 							MidiMessage noteOn(MidiMessage::noteOn(defaultMIDIChannel, noteEventMatrix[i][currentTimeUnit].NoteNumber, (uint8)(noteEventMatrix[i][currentTimeUnit].Velocity * 127.0f)));
 							midiOutput->sendMessageNow(noteOn);
@@ -757,12 +757,15 @@ void MIDITimelineComponent::generateContextsByIndex(int compIndex)
 
 void MIDITimelineComponent::improvizeMelody()
 {
-	if (composition->Name != "")
+	if (composition != nullptr)
 	{
-		composition->generateMelody(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
+		if (composition->Name != "")
+		{
+			composition->generateMelody(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
+		}
+		repaintMatrixImage();
+		setComponentSize();
 	}
-	repaintMatrixImage();
-	setComponentSize();
 }
 
 void MIDITimelineComponent::clearTimeline()

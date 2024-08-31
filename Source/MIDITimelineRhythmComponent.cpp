@@ -39,11 +39,9 @@ void MIDITimelineRhythmComponent::generateRhythm()
 				noteEventMatrix[64 - musicMath.getNoteRangeStart()][(i * numTimeUnitsPerMeasure + 3 * (int)((float)numTimeUnitsPerMeasure / numQuartersPerMeasure))] = hihat;
 			}
 		}
-
 	}
 
 	repaintMatrixImage();
 	setComponentSize();
-	repaint();
 }
 

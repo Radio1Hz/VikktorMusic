@@ -274,12 +274,16 @@ int MusicMath::getRandomConsonanceRoleIndex(vector<float>& probabilityVector, in
 	//int previousRole = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(previousNote);
 	int startVectorIndex = AppProperties::random.nextInt(12);
 	int returnRoleIndex = -1;
-
+	float rnd = AppProperties::random.nextFloat();
 	for (int i = 0; i < 12; i++)
 	{
-		if (probabilityVector[(i + startVectorIndex) % 12] > 0.0f)
+		if (probabilityVector[(i + startVectorIndex) % 12] >= rnd)
 		{
 			returnRoleIndex = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber((i + startVectorIndex) % 12);
+			if (returnRoleIndex != 0 && returnRoleIndex != 2 && returnRoleIndex != 4)
+			{
+				continue;
+			}
 			break;
 		}
 	}
@@ -292,12 +296,17 @@ int MusicMath::getRandomDissonanceRoleIndex(vector<float>& probabilityVector, in
 	//int previousRole = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(previousNote);
 	int startVectorIndex = AppProperties::random.nextInt(12);
 	int returnRoleIndex = -1;
+	float rnd = AppProperties::random.nextFloat();
 
 	for (int i = 0; i < 12; i++)
 	{
-		if (probabilityVector[(i + startVectorIndex) % 12] > 0.0f)
+		if (probabilityVector[(i + startVectorIndex) % 12] >= rnd)
 		{
 			returnRoleIndex = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
+			if (returnRoleIndex == 0 && returnRoleIndex == 2 && returnRoleIndex == 4)
+			{
+				continue;
+			}
 			break;
 		}
 	}
