@@ -115,9 +115,9 @@ public:
 	static int					getRandomConsonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& currentContext, bool shouldBePerfect);
 	static int					getRandomDissonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& currentContext);
 	int							getRandomRoleIndex(bool onlyConsonants);
-	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID);
-	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
-	list<ContextDesc>			getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd);
+	list<ContextDesc>			getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, int methodID, ContextDesc* mainKey);
+	list<ContextDesc>			getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, ContextDesc* mainKey);
+	list<ContextDesc>			getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int selectedCellStart, int selectedCellEnd, ContextDesc* mainKey);
 	int sumOfCellsInMatrix(const Matrix<int>& mat);
 	int sumOfCellsInVector(const vector<int>& vec);
 	void debugMatrix(const Matrix<int>& mat, String friendlyName, bool showNoteRange);

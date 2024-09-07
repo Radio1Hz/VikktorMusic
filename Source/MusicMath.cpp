@@ -255,7 +255,14 @@ int MusicMath::getRoleByNoteNumber(int noteNumber)
 
 int MusicMath::getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex)
 {
-	return keyRoot + _modes_offset[modeIndex][roleIndex];
+	if (roleIndex < 0)
+	{
+		return keyRoot + _modes_offset[modeIndex][7 + roleIndex];
+	}
+	else
+	{
+		return keyRoot + _modes_offset[modeIndex][roleIndex];
+	}
 	/*
 	_modes_offset
 		{0, 2, 4, 5, 7, 9, 11, 12},
@@ -303,7 +310,7 @@ int MusicMath::getRandomDissonanceRoleIndex(vector<float>& probabilityVector, in
 		if (probabilityVector[(i + startVectorIndex) % 12] >= rnd)
 		{
 			returnRoleIndex = currentContext.getNoteRoleIndexByAbsoluteMIDINoteNumber(i);
-			if (returnRoleIndex == 0 && returnRoleIndex == 2 && returnRoleIndex == 4)
+			if (returnRoleIndex == 0 || returnRoleIndex == 2 || returnRoleIndex == 4)
 			{
 				continue;
 			}
@@ -334,23 +341,23 @@ int MusicMath::getRandomRoleIndex(bool onlyConsonants)
 	}
 	return AppProperties::random.nextInt(7);
 }
-
-list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, int methodID)
+// If mainKey is null
+list<ContextDesc> MusicMath::getContextDescriptions(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, int methodID, ContextDesc* mainKey)
 {
 	list<ContextDesc> allPossiblieTonalities;
 	switch (methodID)
 	{
 	case 0:
-		return getContextDescriptionsBasicMethod(noteEventMatrix, sCS, sCE);
+		return getContextDescriptionsBasicMethod(noteEventMatrix, sCS, sCE, mainKey);
 	case 1:
-		return getContextDescriptionsWeightedPitchMethod(noteEventMatrix, sCS, sCE);
+		return getContextDescriptionsWeightedPitchMethod(noteEventMatrix, sCS, sCE, mainKey);
 	default:
 		break;
 	}
 	return allPossiblieTonalities;
 }
 
-list<ContextDesc> MusicMath::getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& /*noteEventMatrix*/, int /*sCS*/, int /*sCE*/)
+list<ContextDesc> MusicMath::getContextDescriptionsBasicMethod(vector<vector<NoteEventDesc>>& /*noteEventMatrix*/, int /*sCS*/, int /*sCE*/, ContextDesc* /*mainKey*/)
 {
 	list<ContextDesc> allPossiblieTonalities;
 
@@ -452,10 +459,9 @@ list<ContextDesc> MusicMath::getContextDescriptionsBasicMethod(vector<vector<Not
 	return allPossiblieTonalities;
 }
 
-list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE)
+list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<vector<NoteEventDesc>>& noteEventMatrix, int sCS, int sCE, ContextDesc* mainKey)
 {
 	list<ContextDesc> allPossiblieTonalities;
-
 	vector<vector<int>> _modesWeightVectorsFull(noteRangeEnd - noteRangeStart);
 
 	int maxSum = 0;
@@ -467,8 +473,8 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 	//Normalize Matrix
 	bool shouldNormalize = true;
 	bool isAreaEmpty = true;
-	//Copy portion of noteEventMatrix into tempMatrix
 
+	//Copy portion of noteEventMatrix into tempMatrix and normalize
 	for (int c = 0; c < tempMatrix.getNumColumns(); c++)
 	{
 		for (int n = noteRangeStart; n < noteRangeEnd; n++)
@@ -525,7 +531,20 @@ list<ContextDesc> MusicMath::getContextDescriptionsWeightedPitchMethod(vector<ve
 
 				if (maxSum < resultingSum)
 				{
-					ContextDesc cd(t + middleC, m, (float)resultingSum);
+					int newMode = m;
+					int root = t + middleC;
+					if (mainKey)
+					{
+						for (int mode = 0; mode < 7; mode++)
+						{
+							if (root == mainKey->RootMIDINote + _modes_offset[0][mode])
+							{
+								newMode = mode;
+								break;
+							}
+						}
+					}
+					ContextDesc cd(root, newMode, (float)resultingSum);
 					allPossiblieTonalities.push_back(cd);
 					maxSum = resultingSum;
 				}

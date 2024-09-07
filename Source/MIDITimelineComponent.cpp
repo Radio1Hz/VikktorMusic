@@ -514,7 +514,7 @@ void MIDITimelineComponent::loadMIDI()
 				projectName = file.getFileName();
 				name = file.getFileName() + " - Midi timeformat: " + String(defaultTicksPerQuarterNote) + ", last timestamp: " + String(midiFile->getLastTimestamp()) + ", tracks: " + String(midiFile->getNumTracks() + ", tempo: " + String(AppProperties::getTempo()));
 				processMidi();
-				defineAllContextsPerMeasures();
+				calculateAllContextsPerMeasures();
 				repaintMatrixImage();
 				setComponentSize();
 				repaint();
@@ -703,7 +703,7 @@ void MIDITimelineComponent::initMenu()
 		menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
 		menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
-		menu.addItem("Set Contexts from MIDI events", std::bind(&MIDITimelineComponent::defineAllContextsPerMeasures, this));
+		menu.addItem("Set Contexts from MIDI events", std::bind(&MIDITimelineComponent::calculateAllContextsPerMeasures, this));
 		menu.addItem("Delete", std::bind(&MIDITimelineComponent::deleteTimeline, this));
 	}
 }
@@ -1017,7 +1017,7 @@ void MIDITimelineComponent::analyzeContextInSelection()
 	if (selectedCellStart > -1)
 	{
 		populateSelectionMatrix();
-		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd, defaultContextAnalysisMethodID);
+		list<ContextDesc> allPossibleTonalities = musicMath.getContextDescriptions(noteEventMatrix, selectedCellStart, selectedCellEnd, defaultContextAnalysisMethodID, NULL);
 		for (ContextDesc& desc : allPossibleTonalities)
 		{
 			DBG(desc.friendlyName());
@@ -1044,7 +1044,7 @@ void MIDITimelineComponent::loopSelection()
 	}
 }
 
-void MIDITimelineComponent::defineAllContextsPerMeasures()
+void MIDITimelineComponent::calculateAllContextsPerMeasures()
 {
 	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
 	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
@@ -1055,6 +1055,16 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 
 	bool shouldDefinePerQuarters = true;
 	vector<ContextDesc> prevDesc(1);
+
+	//Calculate Key the composition is in
+	list<ContextDesc> mostProbableKeys = musicMath.getContextDescriptions(noteEventMatrix, 0, numTimeUnitsPerMeasure * numMeasures - 1, defaultContextAnalysisMethodID, NULL);
+	ContextDesc mainTonality = mostProbableKeys.front();
+	DBG("Main Tonality" + mainTonality.friendlyName());
+	vector<int> mainTonalityScaleVector = musicMath._modes_offset[mainTonality.Mode];
+	int rootNote = musicMath.getNoteNumberByRoleNumber(mainTonality.RootMIDINote, mainTonality.Mode, -mainTonality.Mode);
+	ContextDesc mainKey = ContextDesc(rootNote, 0, 1.0f);
+	DBG("Main Key" + mainKey.friendlyName());
+
 	for (int z = 0; z < numMeasures; z++)
 	{
 
@@ -1078,7 +1088,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 
 			if (shouldDefinePerQuarters)
 			{
-				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
+				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKey);
 				if (allPossiblieTonalities.size() > 0)
 				{
 					vector<ContextDesc> vec(1);
@@ -1095,7 +1105,7 @@ void MIDITimelineComponent::defineAllContextsPerMeasures()
 			if (q == 0)
 			{
 				pseudoSelectedCellEnd = (z + 1) * numTimeUnitsPerMeasure - 1;
-				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID);
+				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKey);
 				if (allPossiblieTonalitiesMeasure.size() > 0)
 				{
 					if (contextPerMeasureVector[z].empty())

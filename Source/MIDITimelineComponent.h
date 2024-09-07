@@ -73,7 +73,7 @@ protected:
 	void processSelection();
 	void analyzeContextInSelection();
 	void loopSelection();
-	void defineAllContextsPerMeasures();
+	void calculateAllContextsPerMeasures();
 	void operationOnSelection01();
 	void saveAudioBufferToDisk();
 	void saveMIDIFileToDisk();

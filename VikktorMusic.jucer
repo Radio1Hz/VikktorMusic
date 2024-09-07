@@ -17,6 +17,8 @@
         </GROUP>
         <FILE id="yMLINt" name="CompositionBase.h" compile="0" resource="0"
               file="Source/CompositionBase.h"/>
+        <FILE id="FdExOw" name="PlaygroundComposition.h" compile="0" resource="0"
+              file="Source/PlaygroundComposition.h"/>
       </GROUP>
       <GROUP id="{4F89E95F-0B92-AB4D-F3A0-139AB434990F}" name="SynthParts">
         <FILE id="PCuwKh" name="SampleWaveVoice.cpp" compile="1" resource="0"

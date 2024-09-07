@@ -68,7 +68,10 @@ void MIDITimelineContextComponent::paint(Graphics& g)
 			}
 			else
 			{
-				nextContextText = contextPerMeasureVector[currentMeasureIndex + 1][0].friendlyName();
+				if (contextPerMeasureVector[currentMeasureIndex + 1].size() > 0)
+				{
+					nextContextText = contextPerMeasureVector[currentMeasureIndex + 1][0].friendlyName();
+				}
 			}
 			nextContextText = "..." + nextContextText;
 			g.setFont(30.0f);
