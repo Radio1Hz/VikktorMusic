@@ -12,10 +12,13 @@
 #include <JuceHeader.h>
 #include "MusicMath.h"
 #include "ApplicationProperties.h"
+#include "CompositionBase.h"
+#include "MarkovMatrixComponent.h"
 
 using namespace juce;
 using namespace std;
-class MarkovCompositionBase
+
+class MarkovCompositionBase : public CompositionBase
 {
 public:
 	MarkovCompositionBase()
@@ -26,60 +29,53 @@ public:
 	{
 	}
 
-	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int /*noteRangeEnd*/)
+	void generateRhythm(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd, MarkovMatrixComponent* matrix)
 	{
-		vector<vector<ContextDesc>> vecMeasures = AppProperties::getContextPerMeasureVector();
-		vector<vector<vector<ContextDesc>>> vecMeasuresQuarters = AppProperties::getContextPerMeasureAndQuarterVector();
-		int currentRepetitionNumber = 0; //Ionian
+		int duration = 0;
+		int musicalThoughtDuration = 16;
+		vector<string> generatedRhythm(musicalThoughtDuration);
 
-		int index = numRepetitions[currentRepetitionNumber];
-		int currentContextInUseIndex = 0; //First Context in vector
-		int root = contextsInUse[currentContextInUseIndex].RootMIDINote; // C + keyIndex
-		int currentMode = contextsInUse[currentContextInUseIndex].Mode;
-		bool shouldCreateChordNotes = true;
-		ContextDesc currentContext(0, 0);
-
-		//Generate Contexts
-		for (int i = 0; i < numMeasures; i++)
+		for (int measureIndex = 0; measureIndex < numMeasures; measureIndex++)
 		{
-			currentContext = ContextDesc(root, currentMode, 1.0f);
-
-			if (index <= 0)
+			duration = 0;
+			while (duration < musicalThoughtDuration)
 			{
-				index = numRepetitions[(++currentRepetitionNumber) % (int)numRepetitions.size()];
-				currentContext = contextsInUse[(++currentContextInUseIndex) % (int)contextsInUse.size()];
-				currentMode = currentContext.Mode;
-				root = currentContext.RootMIDINote;
-			}
-
-			index--;
-			vecMeasures[i].push_back(currentContext);
-			// Set vecMeasureQuarters
-			/*for (int j = 0; j < (int)ceil(numQuartersPerMeasure); j++)
-			{
-				ContextDesc cDescQuarter(root, currentMode, 1.0f);
-				if (vecMeasuresQuarters[i].size() == 0)
+				for (int i = 0; i < matrix->current_state; i++)
 				{
-					vecMeasuresQuarters[i].resize((int)ceil(numQuartersPerMeasure));
+					if (i == 0)
+					{
+						generatedRhythm[duration++] = "C";
+					}
+					else
+					{
+						generatedRhythm[duration++] = "";
+					}
+					if (duration == musicalThoughtDuration)
+					{
+						break;
+					}
 				}
-				vecMeasuresQuarters[i][j].push_back(cDescQuarter);
-			}*/
-
-			if (shouldCreateChordNotes)
-			{
-				NoteEventDesc descRoot(currentContext.getAbsoluteNoteFromKeyModeAndRole(0), numTimeUnitsPerMeasure, 1, 0, false, defaultContextVelocity);  // Root = 0
-				NoteEventDesc descThird(currentContext.getAbsoluteNoteFromKeyModeAndRole(2), numTimeUnitsPerMeasure, 1, 2, false, defaultContextVelocity); // Third = 2
-				NoteEventDesc descFifth(currentContext.getAbsoluteNoteFromKeyModeAndRole(4), numTimeUnitsPerMeasure, 1, 4, false, defaultContextVelocity); // Fifth = 4
-				noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(0) - noteRangeStart][i * numTimeUnitsPerMeasure] = descRoot;
-				noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(2) - noteRangeStart][i * numTimeUnitsPerMeasure] = descThird;
-				noteEventMatrix[currentContext.getAbsoluteNoteFromKeyModeAndRole(4) - noteRangeStart][i * numTimeUnitsPerMeasure] = descFifth;
+				matrix->nextState();
 			}
+			basicRhythmsPattern.push_back(generatedRhythm);
 		}
-		AppProperties::setContextPerMeasureVector(vecMeasures);
-		AppProperties::setContextPerMeasureAndQuarterVector(vecMeasuresQuarters);
+		generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
+		generateMelody(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
 	}
 
-	void generateMelody(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd)
+	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& /*noteEventMatrix*/, float /*numQuartersPerMeasure*/, int /*numTimeUnitsPerMeasure*/, int /*noteRangeStart*/, int /*noteRangeEnd*/) override
+	{
+		vector<vector<ContextDesc>> vecko(numMeasures);
+		for (int i = 0; i < numMeasures; i++)
+		{
+			vector<ContextDesc> desc{ ContextDesc(48, 0) };
+			vecko[i] = desc;
+		}
+		AppProperties::setContextPerMeasureVector(vecko);
+		contextsInUse = vector <ContextDesc>{ ContextDesc(48, 0) };
+	}
+
+	void generateMelody(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd) override
 	{
 		// Generate melody using basicRhythm
 		NoteEventDesc rhythmEventDesc(0, 1, 2);
@@ -124,7 +120,7 @@ public:
 			}
 		}
 
-		for (int i = 0; i < 12; i++)
+		for (int i = 0; i < 12; i++) 
 		{
 			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / maxRes;
 		}
@@ -178,12 +174,5 @@ public:
 		}
 	}
 	String Name = "";
-
-protected:
-	int middleC = 48;
-	vector<ContextDesc> contextsInUse;
-	vector<int> numRepetitions;
-	vector<vector<string>> basicRhythmsPattern;
-	float defaultContextVelocity = 0.25f;
 };
 

@@ -10,19 +10,58 @@
 
 #include <JuceHeader.h>
 #include "MarkovMatrixComponent.h"
-#include "ProbabilitySlider.h"
-#include "TimerComponent.h"
-#include "ArraySorter.h"
 
 using namespace juce;
+using namespace std;
 
 MarkovMatrixComponent::MarkovMatrixComponent(int size, bool readOnly)
 {
 	this->readOnlyMode = readOnly;
 	this->size = size;
 	this->name = "Markov Matrix " + String(size);
+	this->states = vector<int>(size);
 	matrix = std::make_unique<dsp::Matrix<float>>(size, size);
+	current_state_index = 0;
 	resetMatrix();
+	createChildren();
+}
+
+MarkovMatrixComponent::MarkovMatrixComponent(vector<int> states, int initialState, vector<vector<float>> transitionMatrix)
+{
+	// : MarkovMatrixComponent::MarkovMatrixComponent(size, false)
+	if ((int)transitionMatrix.size() != (int)states.size() || (int)transitionMatrix[0].size() != (int)states.size())
+	{
+		throw "invalid dimension of transitionMatrix";
+	}
+
+	this->readOnlyMode = false;
+	this->size = (int)states.size();
+	this->states = vector<int>(this->size);
+	for (int z = 0; z < this->size; z++)
+	{
+		this->states[z] = states[z];
+	}
+	this->name = "Markov Matrix " + String(this->size);
+	matrix = std::make_unique<dsp::Matrix<float>>(this->size, this->size);
+
+	resetMatrix();
+
+	for (int x = 0; x < this->states.size(); x++)
+	{
+		if (this->states[x] == initialState)
+		{
+			this->current_state_index = x;
+			this->current_state = initialState;
+		}
+	}
+
+	for (int i = 0; i < transitionMatrix.size(); i++)
+	{
+		for (int j = 0; j < transitionMatrix[i].size(); j++)
+		{
+			matrix->operator()(i, j) = transitionMatrix[i][j];
+		}
+	}
 	createChildren();
 }
 
@@ -38,7 +77,7 @@ void MarkovMatrixComponent::resetMatrix()
 	}
 }
 
-void MarkovMatrixComponent::nextStep()
+int MarkovMatrixComponent::nextState()
 {
 	for (int i = 0; i < size * size; i++)
 	{
@@ -49,23 +88,22 @@ void MarkovMatrixComponent::nextStep()
 	double sum = 0;
 	for (int i = 0; i < size; i++)
 	{
-		sum += matrix->operator()(current_state, i);
+		sum += matrix->operator()(current_state_index, i);
 		if (nextDouble <= sum)
 		{
-			current_state = i;
+			current_state_index = i;
+			current_state = states[i];
 			break;
 		}
 	}
-	if (current_state == 0)
-	{
-		sendChangeMessage();
-	}
+
 	repaint();
+	return current_state;
 }
 
 void MarkovMatrixComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
-	if (TimerComponent* d = dynamic_cast<TimerComponent*>(source))
+	/*if (TimerComponent* d = dynamic_cast<TimerComponent*>(source))
 	{
 		nextStep();
 	}
@@ -73,7 +111,7 @@ void MarkovMatrixComponent::changeListenerCallback(ChangeBroadcaster* source)
 	if (MarkovMatrixComponent* d = dynamic_cast<MarkovMatrixComponent*>(source))
 	{
 		nextStep();
-	}
+	}*/
 
 	if (ProbabilitySlider* d = dynamic_cast<ProbabilitySlider*>(source))
 	{
@@ -189,7 +227,7 @@ void MarkovMatrixComponent::markCurrentState()
 {
 	for (int i = 0; i < size; i++)
 	{
-		auto* comp = getChildComponent(current_state * size + i);
+		auto* comp = getChildComponent(current_state_index * size + i);
 		((ProbabilitySlider*)comp)->isHighlighted = true;
 	}
 }
@@ -201,7 +239,7 @@ void MarkovMatrixComponent::resized()
 
 	for (auto* sO : sliders)
 	{
-		sO->setBounds(Rectangle<int>(getReducedLocalBounds().getX() + sO->col * sliders_width / size, getReducedLocalBounds().getY() + sO->row * sliders_height/ size, sliders_width / size, sliders_height/ size));
+		sO->setBounds(Rectangle<int>(getReducedLocalBounds().getX() + sO->col * sliders_width / size, getReducedLocalBounds().getY() + sO->row * sliders_height / size, sliders_width / size, sliders_height / size));
 	}
 }
 

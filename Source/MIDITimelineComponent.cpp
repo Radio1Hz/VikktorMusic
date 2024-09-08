@@ -683,7 +683,7 @@ void MIDITimelineComponent::initMenu()
 		PopupMenu generateSubMenu;
 		generateSubMenu.addItem("Ramp - Chromatic", std::bind(&MIDITimelineComponent::generateRampChromatic, this));
 
-		if (dynamic_cast<MIDITimelineRhythmComponent*>(this) != nullptr)
+		if (dynamic_cast<MIDITimelineRhythmComponent*>(this) != nullptr || dynamic_cast<MIDITimelineMarkovComponent*>(this) != nullptr)
 		{
 			generateSubMenu.addItem("Generate Rhythm", std::bind(&MIDITimelineComponent::generateRhythm, this));
 		}
@@ -696,7 +696,7 @@ void MIDITimelineComponent::initMenu()
 
 		if (dynamic_cast<MIDITimelineMarkovComponent*>(this) != nullptr)
 		{
-			generateSubMenu.addItem("Generate Markov Contexts", [this] { generateContextsByIndex(2); });
+			generateSubMenu.addItem("Generate Markov Contexts", [this] { generateContextsByIndex(3); });
 		}
 
 		generateSubMenu.addItem("Improvize melody", [this] { improvizeMelody(); });
@@ -758,7 +758,13 @@ void MIDITimelineComponent::generateContextsByIndex(int compIndex)
 		composition->generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
 		break;
 	}
-
+	case 3:
+	{
+		clearNoteEventMatrix();
+		MarkovCompositionBase markovComp;
+		markovComp.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
+		break;
+	}
 	default:
 		break;
 	}

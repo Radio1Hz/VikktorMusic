@@ -9,6 +9,8 @@
 */
 #include <JuceHeader.h>
 #include "MIDITimelineComponent.h"
+#include "MarkovMatrixComponent.h"
+#include "MarkovCompositionBase.h"
 
 #pragma once
 using namespace juce;
@@ -22,7 +24,11 @@ public:
 	void generateRhythm() override;
 	void generateContexts() override;
 	void paint(Graphics&) override;
+	void resized() override;
+	unique_ptr<MarkovMatrixComponent> rhythmMatrix;
 
 private:
+	//Composition
+	unique_ptr<MarkovCompositionBase> composition;
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MIDITimelineMarkovComponent)
 };

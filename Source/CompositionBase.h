@@ -26,7 +26,7 @@ public:
 	{
 	}
 
-	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int /*noteRangeEnd*/)
+	virtual void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int /*noteRangeEnd*/)
 	{
 		vector<vector<ContextDesc>> vecMeasures = AppProperties::getContextPerMeasureVector();
 		vector<vector<vector<ContextDesc>>> vecMeasuresQuarters = AppProperties::getContextPerMeasureAndQuarterVector();
@@ -79,7 +79,7 @@ public:
 		AppProperties::setContextPerMeasureAndQuarterVector(vecMeasuresQuarters);
 	}
 
-	void generateMelody(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd)
+	virtual void generateMelody(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd)
 	{
 		// Generate melody using basicRhythm
 		NoteEventDesc rhythmEventDesc(0, 1, 2);
@@ -178,12 +178,12 @@ public:
 		}
 	}
 	String Name = "";
+	vector<vector<string>> basicRhythmsPattern;
 
 protected:
 	int middleC = 48;
 	vector<ContextDesc> contextsInUse;
 	ContextDesc mainKeyContext();
 	vector<int> numRepetitions;
-	vector<vector<string>> basicRhythmsPattern;
 	float defaultContextVelocity = 0.25f;
 };

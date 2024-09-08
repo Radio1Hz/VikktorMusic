@@ -9,6 +9,7 @@
 */
 #include "MIDITimelineComponent.h"
 #include "MIDITimelineMarkovComponent.h"
+#include "MarkovMatrixComponent.h"
 #include "ApplicationProperties.h"
 #include "MainComponent.h"
 
@@ -24,14 +25,17 @@ MIDITimelineMarkovComponent::~MIDITimelineMarkovComponent()
 
 void MIDITimelineMarkovComponent::generateRhythm()
 {
+	int musicalThoughtDuration = 128;
+	vector<string> generatedRhythm(musicalThoughtDuration);
+	composition = make_unique<MarkovCompositionBase>();
+	composition->generateRhythm(numMeasures, noteEventMatrix, 4.0f, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd(), rhythmMatrix.get());
+	repaintMatrixImage();
+	repaint();
 }
 
 void MIDITimelineMarkovComponent::generateContexts()
 {
-	musicMath.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure);
-	repaintMatrixImage();
-	setComponentSize();
-	repaint();
+	composition->generateContexts(numMeasures, noteEventMatrix, 4.0f, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
 }
 
 void MIDITimelineMarkovComponent::paint(Graphics& g)
@@ -84,3 +88,24 @@ void MIDITimelineMarkovComponent::paint(Graphics& g)
 
 	}
 }
+
+void MIDITimelineMarkovComponent::resized()
+{
+	if (rhythmMatrix == nullptr)
+	{
+		rhythmMatrix = make_unique<MarkovMatrixComponent>(vector<int>{2, 4, 8, 16}, 2,
+			vector<vector<float>>
+		{
+			{ 0.1f, 0.2f, 0.3f, 0.4f },
+			{ 0.2f, 0.3f, 0.4f, 0.1f },
+			{ 0.3f, 0.4f, 0.1f, 0.2f },
+			{ 0.4f, 0.1f, 0.2f, 0.3f }
+		});
+
+		rhythmMatrix->setSize(200, 200);
+		addAndMakeVisible(rhythmMatrix.get());
+		rhythmMatrix->resized();
+	}
+	//rhythmMatrix->setBounds(getLocalBounds().reduced(10));
+}
+
