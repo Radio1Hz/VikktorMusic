@@ -17,8 +17,8 @@
         </GROUP>
         <FILE id="yMLINt" name="CompositionBase.h" compile="0" resource="0"
               file="Source/CompositionBase.h"/>
-        <FILE id="FdExOw" name="PlaygroundComposition.h" compile="0" resource="0"
-              file="Source/PlaygroundComposition.h"/>
+        <FILE id="FdExOw" name="MarkovCompositionBase.h" compile="0" resource="0"
+              file="Source/MarkovCompositionBase.h"/>
       </GROUP>
       <GROUP id="{4F89E95F-0B92-AB4D-F3A0-139AB434990F}" name="SynthParts">
         <FILE id="PCuwKh" name="SampleWaveVoice.cpp" compile="1" resource="0"
@@ -98,6 +98,10 @@
             resource="0" file="Source/MIDITimelineRhythmComponent.cpp"/>
       <FILE id="R5wLf1" name="MIDITimelineRhythmComponent.h" compile="0"
             resource="0" file="Source/MIDITimelineRhythmComponent.h"/>
+      <FILE id="ClZZ19" name="MIDITimelineMarkovComponent.cpp" compile="1"
+            resource="0" file="Source/MIDITimelineMarkovComponent.cpp"/>
+      <FILE id="eMckb3" name="MIDITimelineMarkovComponent.h" compile="0"
+            resource="0" file="Source/MIDITimelineMarkovComponent.h"/>
       <FILE id="Wr9rjk" name="TreeNode.cpp" compile="1" resource="0" file="Source/TreeNode.cpp"/>
       <FILE id="VIowKh" name="TreeNode.h" compile="0" resource="0" file="Source/TreeNode.h"/>
       <FILE id="PlUmrP" name="BaseAudioAppComponent.cpp" compile="1" resource="0"

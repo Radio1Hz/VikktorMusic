@@ -307,6 +307,11 @@ void MIDITimelineComponent::paint(Graphics& g)
 		this->name += midiInfo;
 	}
 
+	if (mainKeyContext.RootMIDINote != -1)
+	{
+		this->name += ", Key: " + mainKeyContext.friendlyName();
+	}
+
 	double beatDuration = 60.0 / (double)AppProperties::getTempo();
 	double timeUnitDuration = beatDuration / 4.0f;
 	double totalDurationSec = (timeUnitDuration * (double)numMeasures * (double)numTimeUnitsPerMeasure);
@@ -677,16 +682,23 @@ void MIDITimelineComponent::initMenu()
 
 		PopupMenu generateSubMenu;
 		generateSubMenu.addItem("Ramp - Chromatic", std::bind(&MIDITimelineComponent::generateRampChromatic, this));
-		if (synthID == 1)
+
+		if (dynamic_cast<MIDITimelineRhythmComponent*>(this) != nullptr)
 		{
 			generateSubMenu.addItem("Generate Rhythm", std::bind(&MIDITimelineComponent::generateRhythm, this));
 		}
 
-		if (synthID == 2)
+		if (dynamic_cast<MIDITimelineContextComponent*>(this) != nullptr)
 		{
 			generateSubMenu.addItem("Generate Context For Invitatio", [this] { generateContextsByIndex(1); });
 			generateSubMenu.addItem("Generate Context For Olim", [this] { generateContextsByIndex(2); });
 		}
+
+		if (dynamic_cast<MIDITimelineMarkovComponent*>(this) != nullptr)
+		{
+			generateSubMenu.addItem("Generate Markov Contexts", [this] { generateContextsByIndex(2); });
+		}
+
 		generateSubMenu.addItem("Improvize melody", [this] { improvizeMelody(); });
 
 		menu.addSeparator();
@@ -1059,11 +1071,9 @@ void MIDITimelineComponent::calculateAllContextsPerMeasures()
 	//Calculate Key the composition is in
 	list<ContextDesc> mostProbableKeys = musicMath.getContextDescriptions(noteEventMatrix, 0, numTimeUnitsPerMeasure * numMeasures - 1, defaultContextAnalysisMethodID, NULL);
 	ContextDesc mainTonality = mostProbableKeys.front();
-	DBG("Main Tonality" + mainTonality.friendlyName());
 	vector<int> mainTonalityScaleVector = musicMath._modes_offset[mainTonality.Mode];
 	int rootNote = musicMath.getNoteNumberByRoleNumber(mainTonality.RootMIDINote, mainTonality.Mode, -mainTonality.Mode);
-	ContextDesc mainKey = ContextDesc(rootNote, 0, 1.0f);
-	DBG("Main Key" + mainKey.friendlyName());
+	mainKeyContext = ContextDesc(rootNote, 0, 1.0f);
 
 	for (int z = 0; z < numMeasures; z++)
 	{
@@ -1088,7 +1098,7 @@ void MIDITimelineComponent::calculateAllContextsPerMeasures()
 
 			if (shouldDefinePerQuarters)
 			{
-				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKey);
+				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
 				if (allPossiblieTonalities.size() > 0)
 				{
 					vector<ContextDesc> vec(1);
@@ -1105,7 +1115,7 @@ void MIDITimelineComponent::calculateAllContextsPerMeasures()
 			if (q == 0)
 			{
 				pseudoSelectedCellEnd = (z + 1) * numTimeUnitsPerMeasure - 1;
-				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKey);
+				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
 				if (allPossiblieTonalitiesMeasure.size() > 0)
 				{
 					if (contextPerMeasureVector[z].empty())

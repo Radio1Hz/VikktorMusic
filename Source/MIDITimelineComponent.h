@@ -111,6 +111,7 @@ protected:
 	int numTimeUnitsPerMeasure = 0;
 	float numQuartersPerMeasure = 0;
 	int defaultContextAnalysisMethodID = 1;
+	ContextDesc mainKeyContext;
 
 	//Composition
 	unique_ptr<CompositionBase> composition;

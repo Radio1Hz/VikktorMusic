@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-	CompositionBase.h
+	MarkovCompositionBase.h
 	Created: 27 Aug 2024 8:36:54am
 	Author:  viktor
 
@@ -15,14 +15,14 @@
 
 using namespace juce;
 using namespace std;
-class CompositionBase
+class MarkovCompositionBase
 {
 public:
-	CompositionBase()
+	MarkovCompositionBase()
 	{
 	}
 
-	~CompositionBase()
+	~MarkovCompositionBase()
 	{
 	}
 
@@ -182,8 +182,8 @@ public:
 protected:
 	int middleC = 48;
 	vector<ContextDesc> contextsInUse;
-	ContextDesc mainKeyContext();
 	vector<int> numRepetitions;
 	vector<vector<string>> basicRhythmsPattern;
 	float defaultContextVelocity = 0.25f;
 };
+
