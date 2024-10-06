@@ -12,6 +12,7 @@
 #include "MarkovMatrixComponent.h"
 #include "ApplicationProperties.h"
 #include "MainComponent.h"
+#include "Markov.01.h"
 
 MIDITimelineMarkovComponent::MIDITimelineMarkovComponent(int nM) : MIDITimelineComponent(nM)
 {
@@ -27,7 +28,7 @@ void MIDITimelineMarkovComponent::generateRhythm()
 {
 	int musicalThoughtDuration = 128;
 	vector<string> generatedRhythm(musicalThoughtDuration);
-	composition = make_unique<MarkovCompositionBase>();
+	composition = make_unique<Markov01>();
 	composition->generateRhythm(numMeasures, noteEventMatrix, 4.0f, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd(), rhythmMatrix.get());
 	repaintMatrixImage();
 	repaint();

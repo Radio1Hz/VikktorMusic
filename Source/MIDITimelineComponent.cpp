@@ -13,6 +13,7 @@
 #include "MusicMath.h"
 #include "ApplicationProperties.h"
 #include "MainComponent.h"
+#include "Markov.01.h"
 #include "ProcessusEntropiae.InvitatioAdFestum.h"
 #include "ProcessusEntropiae.OlimInFukushima.h"
 
@@ -685,7 +686,7 @@ void MIDITimelineComponent::initMenu()
 
 		if (dynamic_cast<MIDITimelineRhythmComponent*>(this) != nullptr || dynamic_cast<MIDITimelineMarkovComponent*>(this) != nullptr)
 		{
-			generateSubMenu.addItem("Generate Rhythm", std::bind(&MIDITimelineComponent::generateRhythm, this));
+			//generateSubMenu.addItem("Generate Rhythm", std::bind(&MIDITimelineComponent::generateRhythm, this));
 		}
 
 		if (dynamic_cast<MIDITimelineContextComponent*>(this) != nullptr)
@@ -715,7 +716,7 @@ void MIDITimelineComponent::initMenu()
 		menu.addItem("Repaint Matrix", std::bind(&MIDITimelineComponent::repaintMatrixImage, this));
 		menu.addItem("Save audioBuffer to disk", std::bind(&MIDITimelineComponent::saveAudioBufferToDisk, this));
 		menu.addItem("Save Timeline to MIDI", std::bind(&MIDITimelineComponent::saveMIDIFileToDisk, this));
-		menu.addItem("Set Contexts from MIDI events", std::bind(&MIDITimelineComponent::calculateAllContextsPerMeasures, this));
+		menu.addItem("Calcualate Contexts from MIDI events", std::bind(&MIDITimelineComponent::calculateAllContextsPerMeasures, this));
 		menu.addItem("Delete", std::bind(&MIDITimelineComponent::deleteTimeline, this));
 	}
 }
@@ -761,7 +762,7 @@ void MIDITimelineComponent::generateContextsByIndex(int compIndex)
 	case 3:
 	{
 		clearNoteEventMatrix();
-		MarkovCompositionBase markovComp;
+		Markov01 markovComp;
 		markovComp.generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, musicMath.getNoteRangeStart(), musicMath.getNoteRangeEnd());
 		break;
 	}
@@ -790,14 +791,20 @@ void MIDITimelineComponent::clearTimeline()
 {
 	clearNoteEventMatrix();
 	stopMIDI();
-	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector(numMeasures);
-	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
-	contextPerMeasureAndQuarterVector.clear();
-	contextPerMeasureAndQuarterVector.resize(numMeasures);
-	contextPerMeasureVector.clear();
-	contextPerMeasureVector.resize(numMeasures);
-	AppProperties::setContextPerMeasureAndQuarterVector(contextPerMeasureAndQuarterVector);
-	AppProperties::setContextPerMeasureVector(contextPerMeasureVector);
+	bool shouldCLearContexts = false;
+
+	if (shouldCLearContexts)
+	{
+		vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector(numMeasures);
+		vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
+		contextPerMeasureAndQuarterVector.clear();
+		contextPerMeasureAndQuarterVector.resize(numMeasures);
+		contextPerMeasureVector.clear();
+		contextPerMeasureVector.resize(numMeasures);
+		AppProperties::setContextPerMeasureAndQuarterVector(contextPerMeasureAndQuarterVector);
+		AppProperties::setContextPerMeasureVector(contextPerMeasureVector);
+	}
+	
 	repaintMatrixImage();
 	repaint();
 }
@@ -1064,17 +1071,12 @@ void MIDITimelineComponent::loopSelection()
 
 void MIDITimelineComponent::calculateAllContextsPerMeasures()
 {
-	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
 	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
-	contextPerMeasureAndQuarterVector.clear();
-	contextPerMeasureAndQuarterVector.resize(numMeasures);
 	contextPerMeasureVector.clear();
 	contextPerMeasureVector.resize(numMeasures);
 
-	bool shouldDefinePerQuarters = true;
 	vector<ContextDesc> prevDesc(1);
 
-	//Calculate Key the composition is in
 	list<ContextDesc> mostProbableKeys = musicMath.getContextDescriptions(noteEventMatrix, 0, numTimeUnitsPerMeasure * numMeasures - 1, defaultContextAnalysisMethodID, NULL);
 	ContextDesc mainTonality = mostProbableKeys.front();
 	vector<int> mainTonalityScaleVector = musicMath._modes_offset[mainTonality.Mode];
@@ -1083,63 +1085,118 @@ void MIDITimelineComponent::calculateAllContextsPerMeasures()
 
 	for (int z = 0; z < numMeasures; z++)
 	{
+		int pseudoSelectedCellStart = z * numTimeUnitsPerMeasure;
+		int pseudoSelectedCellEnd = (z + 1) * numTimeUnitsPerMeasure - 1;
 
-		if (contextPerMeasureAndQuarterVector[z].empty())
+		list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
+		if (allPossiblieTonalitiesMeasure.size() > 0)
 		{
-			contextPerMeasureAndQuarterVector[z] = vector<vector<ContextDesc>>(4);
-		}
-
-		for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
-		{
-			int pseudoSelectedCellStart = z * numTimeUnitsPerMeasure + (int)(q * ((float)numTimeUnitsPerMeasure / (float)ceil(numQuartersPerMeasure)));
-			int pseudoSelectedCellEnd = 0;
-			if (q > floor(numQuartersPerMeasure) - 1)
+			if (contextPerMeasureVector[z].empty())
 			{
-				pseudoSelectedCellEnd = z * numTimeUnitsPerMeasure + (numTimeUnitsPerMeasure - (int)((float)ceil(numQuartersPerMeasure) / 4.0f));
+				std::vector<ContextDesc> vec;
+				contextPerMeasureVector[z] = vec;
 			}
-			else
+			for (ContextDesc& i : allPossiblieTonalitiesMeasure)
 			{
-				pseudoSelectedCellEnd = z * numTimeUnitsPerMeasure + (int)((q + 1.0f) * ((float)numTimeUnitsPerMeasure / (float)ceil(numQuartersPerMeasure))) - 1;
-			}
-
-			if (shouldDefinePerQuarters)
-			{
-				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
-				if (allPossiblieTonalities.size() > 0)
-				{
-					vector<ContextDesc> vec(1);
-					vec[0] = allPossiblieTonalities.front();
-					contextPerMeasureAndQuarterVector[z][(int)q] = vec;
-					prevDesc = vec;
-				}
-				else
-				{
-					contextPerMeasureAndQuarterVector[z][(int)q] = prevDesc;
-				}
-			}
-
-			if (q == 0)
-			{
-				pseudoSelectedCellEnd = (z + 1) * numTimeUnitsPerMeasure - 1;
-				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
-				if (allPossiblieTonalitiesMeasure.size() > 0)
-				{
-					if (contextPerMeasureVector[z].empty())
-					{
-						std::vector<ContextDesc> vec;
-						contextPerMeasureVector[z] = vec;
-					}
-					for (ContextDesc& i : allPossiblieTonalitiesMeasure)
-					{
-						contextPerMeasureVector[z].push_back(i);
-					}
-				}
+				contextPerMeasureVector[z].push_back(i);
 			}
 		}
 	}
-	AppProperties::setContextPerMeasureAndQuarterVector(contextPerMeasureAndQuarterVector);
+
 	AppProperties::setContextPerMeasureVector(contextPerMeasureVector);
+
+	for (int i = 0; i < numTimeUnitsPerMeasure * numMeasures; i++)
+	{
+		int currentMeasure = i / numTimeUnitsPerMeasure;
+
+		for (int j = 0; j < musicMath.getNoteRangeSize(); j++)
+		{
+			if (noteEventMatrix[j][i].EventType > -1)
+			{
+				noteEventMatrix[j][i].NoteRole = musicMath.getNoteRoleByNoteNumber(contextPerMeasureVector[currentMeasure][0], noteEventMatrix[j][i].NoteNumber);
+			}
+		}
+	}
 }
+
+//void MIDITimelineComponent::calculateAllContextsPerMeasures()
+//{
+//	vector<vector<vector<ContextDesc>>> contextPerMeasureAndQuarterVector = AppProperties::getContextPerMeasureAndQuarterVector();
+//	vector<vector<ContextDesc>> contextPerMeasureVector = AppProperties::getContextPerMeasureVector();
+//	contextPerMeasureAndQuarterVector.clear();
+//	contextPerMeasureAndQuarterVector.resize(numMeasures);
+//	contextPerMeasureVector.clear();
+//	contextPerMeasureVector.resize(numMeasures);
+//
+//	bool shouldDefinePerQuarters = true;
+//	vector<ContextDesc> prevDesc(1);
+//
+//	//Calculate Key the composition is in
+//	list<ContextDesc> mostProbableKeys = musicMath.getContextDescriptions(noteEventMatrix, 0, numTimeUnitsPerMeasure * numMeasures - 1, defaultContextAnalysisMethodID, NULL);
+//	ContextDesc mainTonality = mostProbableKeys.front();
+//	vector<int> mainTonalityScaleVector = musicMath._modes_offset[mainTonality.Mode];
+//	int rootNote = musicMath.getNoteNumberByRoleNumber(mainTonality.RootMIDINote, mainTonality.Mode, -mainTonality.Mode);
+//	mainKeyContext = ContextDesc(rootNote, 0, 1.0f);
+//
+//	for (int z = 0; z < numMeasures; z++)
+//	{
+//
+//		if (contextPerMeasureAndQuarterVector[z].empty())
+//		{
+//			contextPerMeasureAndQuarterVector[z] = vector<vector<ContextDesc>>(4);
+//		}
+//
+//		for (float q = 0; q < ceil(numQuartersPerMeasure); q += 1.0f)
+//		{
+//			int pseudoSelectedCellStart = z * numTimeUnitsPerMeasure + (int)(q * ((float)numTimeUnitsPerMeasure / (float)ceil(numQuartersPerMeasure)));
+//			int pseudoSelectedCellEnd = 0;
+//			if (q > floor(numQuartersPerMeasure) - 1)
+//			{
+//				pseudoSelectedCellEnd = z * numTimeUnitsPerMeasure + (numTimeUnitsPerMeasure - (int)((float)ceil(numQuartersPerMeasure) / 4.0f));
+//			}
+//			else
+//			{
+//				pseudoSelectedCellEnd = z * numTimeUnitsPerMeasure + (int)((q + 1.0f) * ((float)numTimeUnitsPerMeasure / (float)ceil(numQuartersPerMeasure))) - 1;
+//			}
+//
+//			if (shouldDefinePerQuarters)
+//			{
+//				list<ContextDesc> allPossiblieTonalities = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
+//				if (allPossiblieTonalities.size() > 0)
+//				{
+//					vector<ContextDesc> vec(1);
+//					vec[0] = allPossiblieTonalities.front();
+//					contextPerMeasureAndQuarterVector[z][(int)q] = vec;
+//					prevDesc = vec;
+//				}
+//				else
+//				{
+//					contextPerMeasureAndQuarterVector[z][(int)q] = prevDesc;
+//				}
+//			}
+//
+//			if (q == 0)
+//			{
+//				pseudoSelectedCellEnd = (z + 1) * numTimeUnitsPerMeasure - 1;
+//				list<ContextDesc> allPossiblieTonalitiesMeasure = musicMath.getContextDescriptions(noteEventMatrix, pseudoSelectedCellStart, pseudoSelectedCellEnd, defaultContextAnalysisMethodID, &mainKeyContext);
+//				if (allPossiblieTonalitiesMeasure.size() > 0)
+//				{
+//					if (contextPerMeasureVector[z].empty())
+//					{
+//						std::vector<ContextDesc> vec;
+//						contextPerMeasureVector[z] = vec;
+//					}
+//					for (ContextDesc& i : allPossiblieTonalitiesMeasure)
+//					{
+//						contextPerMeasureVector[z].push_back(i);
+//					}
+//				}
+//			}
+//		}
+//	}
+//	AppProperties::setContextPerMeasureAndQuarterVector(contextPerMeasureAndQuarterVector);
+//	AppProperties::setContextPerMeasureVector(contextPerMeasureVector);
+//}
 
 void MIDITimelineComponent::operationOnSelection01()
 {

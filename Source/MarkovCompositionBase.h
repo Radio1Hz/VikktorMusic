@@ -28,53 +28,8 @@ public:
 	~MarkovCompositionBase()
 	{
 	}
-
-	void generateRhythm(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float numQuartersPerMeasure, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd, MarkovMatrixComponent* matrix)
-	{
-		int duration = 0;
-		int musicalThoughtDuration = 16;
-		vector<string> generatedRhythm(musicalThoughtDuration);
-
-		for (int measureIndex = 0; measureIndex < numMeasures; measureIndex++)
-		{
-			duration = 0;
-			while (duration < musicalThoughtDuration)
-			{
-				for (int i = 0; i < matrix->current_state; i++)
-				{
-					if (i == 0)
-					{
-						generatedRhythm[duration++] = "C";
-					}
-					else
-					{
-						generatedRhythm[duration++] = "";
-					}
-					if (duration == musicalThoughtDuration)
-					{
-						break;
-					}
-				}
-				matrix->nextState();
-			}
-			basicRhythmsPattern.push_back(generatedRhythm);
-		}
-		generateContexts(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
-		generateMelody(numMeasures, noteEventMatrix, numQuartersPerMeasure, numTimeUnitsPerMeasure, noteRangeStart, noteRangeEnd);
-	}
-
-	void generateContexts(int numMeasures, vector<vector<NoteEventDesc>>& /*noteEventMatrix*/, float /*numQuartersPerMeasure*/, int /*numTimeUnitsPerMeasure*/, int /*noteRangeStart*/, int /*noteRangeEnd*/) override
-	{
-		vector<vector<ContextDesc>> vecko(numMeasures);
-		for (int i = 0; i < numMeasures; i++)
-		{
-			vector<ContextDesc> desc{ ContextDesc(48, 0) };
-			vecko[i] = desc;
-		}
-		AppProperties::setContextPerMeasureVector(vecko);
-		contextsInUse = vector <ContextDesc>{ ContextDesc(48, 0) };
-	}
-
+	virtual void generateRhythm(int /*numMeasures*/, vector<vector<NoteEventDesc>>& /*noteEventMatrix*/, float /*numQuartersPerMeasure*/, int /*numTimeUnitsPerMeasure*/, int /*noteRangeStart*/, int /*noteRangeEnd*/, MarkovMatrixComponent* /*matrix*/)
+	{}
 	void generateMelody(int numMeasures, vector<vector<NoteEventDesc>>& noteEventMatrix, float /*numQuartersPerMeasure*/, int numTimeUnitsPerMeasure, int noteRangeStart, int noteRangeEnd) override
 	{
 		// Generate melody using basicRhythm
@@ -120,7 +75,7 @@ public:
 			}
 		}
 
-		for (int i = 0; i < 12; i++) 
+		for (int i = 0; i < 12; i++)
 		{
 			commonNotesForAllContexts[i] = commonNotesForAllContexts[i] / maxRes;
 		}
@@ -129,7 +84,12 @@ public:
 		{
 			bool noteIsGenerated = false;
 			int currentMeasure = (int)(i / numTimeUnitsPerMeasure);
-			currentContext = ContextDesc(vecMeasures[currentMeasure][0]);
+
+			if (vecMeasures[currentMeasure].size() > 0)
+			{
+				currentContext = ContextDesc(vecMeasures[currentMeasure][0]);
+			}
+				
 			if (i % (musicalThoughtLengthInMeasures * numTimeUnitsPerMeasure) == 0)
 			{
 				currentMusicalThoughtIndex = (currentMusicalThoughtIndex + 1) % basicRhythmsPattern.size();

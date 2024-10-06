@@ -39,15 +39,32 @@ public:
 		{
 			return Colours::red;
 		}
+		if (NoteRole == 1)
+		{
+			return Colours::darkkhaki;
+		}
 		if (NoteRole == 2)
 		{
 			return Colours::darkorange;
+		}
+		if (NoteRole == 3)
+		{
+			return Colours::darkcyan;
 		}
 		if (NoteRole == 4)
 		{
 			return Colours::green;
 		}
-		return Colours::grey;
+		if (NoteRole == 5)
+		{
+			return Colours::lightblue;
+		}
+		if (NoteRole == 6)
+		{
+			return Colours::brown;
+		}
+
+		return Colours::black;
 	};
 	NoteEventDesc(int noteNumber);
 	NoteEventDesc(int noteNumber, int noteDuration);
@@ -110,6 +127,7 @@ public:
 	void						changeMode(int newModeIndex);
 	int							translateRoleIndex(const MidiMessage&);
 	int							translateRoleToModeOffset(int, int);
+	int							getNoteRoleByNoteNumber(const ContextDesc& currentContext, int noteNumber);
 	int							getRoleByNoteNumber(int noteNumber);
 	static int					getNoteNumberByRoleNumber(int keyRoot, int modeIndex, int roleIndex);
 	static int					getRandomConsonanceRoleIndex(vector<float>& probabilityVector, int previousNote, ContextDesc& currentContext, bool shouldBePerfect);

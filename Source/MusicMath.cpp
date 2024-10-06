@@ -135,6 +135,47 @@ int MusicMath::translateRoleToModeOffset(int roleIndex, int modeIndex)
 	return _modes_offset[modeIndex][roleIndex];
 }
 
+//static inline vector<vector<int>> _modes_offset
+//{
+//	{0, 2, 4, 5, 7, 9, 11, 12},
+//	{0, 2, 3, 5, 7, 9, 10, 12},
+//	{0, 1, 3, 5, 7, 8, 10, 12},
+//	{0, 2, 4, 6, 7, 9, 11, 12},
+//	{0, 2, 4, 5, 7, 9, 10, 12},
+//	{0, 2, 3, 5, 7, 8, 10, 12},
+//	{0, 1, 3, 5, 6, 8, 10, 12},
+//	{12, 14, 16, 17, 19, 21, 23, 24}, // Octave
+//};
+int MusicMath::getNoteRoleByNoteNumber(const ContextDesc& currentContext, int noteNumber)
+{
+	int modeIndex = currentContext.Mode;
+	int roleIndex = -1;
+	bool outsideOfScale = true;
+	int noteNumberNormalized = noteNumber % 12;
+	int contextRootNormalized = currentContext.RootMIDINote % 12;
+
+	for (int i = 0; i < _modes_offset[modeIndex].size() - 1; i++)
+	{
+		roleIndex = i;
+		if ((contextRootNormalized + _modes_offset[modeIndex][i]) % 12 == noteNumberNormalized)
+		{
+			break;
+		}
+
+		if (i > 0)
+		{
+			if ((contextRootNormalized + _modes_offset[modeIndex][i - 1] + 1) % 12 == noteNumberNormalized)
+			{
+				outsideOfScale = true;
+				break;
+			}
+		}
+	}
+
+
+	return roleIndex;
+}
+
 String MusicMath::getKeyName(int keyIndex)
 {
 	return _keys_display[keyIndex];

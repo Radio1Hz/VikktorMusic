@@ -427,7 +427,8 @@ protected:
 		g.setFont(14.0f);
 		g.drawEllipse(pointArea, 1.0f);
 		g.setColour(juce::Colours::darkgrey);
-		g.fillRoundedRectangle(juce::Rectangle<float>(screen_p.x, screen_p.y, f.getStringWidthFloat(math_pointer_label), 20), 5);
+		StringRef str(math_pointer_label);
+		g.fillRoundedRectangle(juce::Rectangle<float>(screen_p.x, screen_p.y, TextLayout::getStringWidth(f,str), 20), 5);
 		g.setColour(juce::Colours::white);
 		g.drawText(math_pointer_label, juce::Rectangle<float>(screen_p.x, screen_p.y, 200, 20), juce::Justification(0));
 	}
