@@ -188,16 +188,16 @@ private:
 
 		switch (state)
 		{
-			// Logistic function
+				// Logistic function introduction
 			case 0:
 				g.setFont(30.0f);
 				g.setColour(juce::Colours::yellow);
 				DrawLogisticFunction(g, false);
 				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawPointWithLabel(g, juce::Point<float>(0, res.y), "x");
+				DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
 				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 				break;
-
+				// Inverse function introduction
 			case 1:
 				g.setFont(30.0f);
 				g.setColour(juce::Colours::yellow);
@@ -205,9 +205,10 @@ private:
 				DrawLogisticFunction(g, true);
 				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
 				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
-				DrawPointWithLabel(g, juce::Point<float>(0, res.y), "x");
+				DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
 				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 				break;
+				// Intersection points
 			case 2:
 				g.setFont(30.0f);
 				g.setColour(juce::Colours::yellow);
@@ -217,8 +218,6 @@ private:
 				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
 				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
 				DrawIntersectionPoints(g);
-				DrawPointWithLabel(g, juce::Point<float>(0, res.y), "x");
-				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 				break;
 			case 3:
 				g.setFont(30.0f);
@@ -229,8 +228,6 @@ private:
 				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
 				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
 				DrawMathematicalLine(g, juce::Point<float>(start, 0), res, juce::Colours::aqua, true, 0.75f);
-				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
-				DrawPointWithLabel(g, juce::Point<float>(res.x, 0), "x");
 				DrawLogisticIterations(g, false, generalIterator);
 				break;
 			case 4:
@@ -242,23 +239,20 @@ private:
 				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
 				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
 				DrawMathematicalLine(g, juce::Point<float>(start, 0), res, juce::Colours::aqua, true, 0.75f);
-				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
-				DrawPointWithLabel(g, juce::Point<float>(res.x, 0), "x");
 				DrawLogisticIterations(g, false);
 				DrawLambdaImage(g);
 				break;
 			case 5:
 				g.setFont(30.0f);
 				g.setColour(juce::Colours::yellow);
-				DrawLogisticFunction(g, false);
+				DrawLogisticFunctionSin(g, false);
 				g.setColour(juce::Colours::red);
-				DrawLogisticFunction(g, true);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
+				DrawLogisticFunctionSin(g, true);
+				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = (r/4)sin(PI*x)", juce::Colours::yellow);
+				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = (r/4)sin(PI*y)", juce::Colours::red);
 				DrawMathematicalLine(g, juce::Point<float>(start, 0), res, juce::Colours::aqua, true, 0.75f);
 				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
-				DrawPointWithLabel(g, juce::Point<float>(res.x, 0), "x");
-				DrawLogisticIterations(g, true);
+				DrawLogisticIterationsSin(g, false);
 				DrawLambdaImage(g);
 				break;
 
@@ -301,6 +295,8 @@ private:
 			x = (lambda - 1) / lambda;
 			res = function_provider.LogisticFunction(lambda, x);
 			DrawPointWithLabel(g, juce::Point<float>(res.x, res.y), "X1");
+			DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
+			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 		}
 
 		if (lambda > 3)
@@ -308,10 +304,14 @@ private:
 			x = (1 / (2 * lambda))*(lambda + 1 - sqrt(lambda * lambda - 2 * lambda - 3));
 			res = function_provider.LogisticFunction(lambda, x);
 			DrawPointWithLabel(g, juce::Point<float>(res.x, res.y), "X2");
+			DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
+			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 
 			x = (1 / (2 * lambda))*(lambda + 1 + sqrt(lambda * lambda - 2 * lambda - 3));
 			res = function_provider.LogisticFunction(lambda, x);
 			DrawPointWithLabel(g, juce::Point<float>(res.x, res.y), "X3");
+			DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
+			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 		}
 		
 
@@ -323,10 +323,10 @@ private:
 		juce::String lambdaLabel = juce::String(("r: "));
 		lambdaLabel.append(juce::String(lambda), 7);
         // Just draw the pre-rendered image X
-        Point<float> topLeftX = MathToScreenPoint(juce::Point<float>(1.2, 1));
-        Point<float> bottomRightX = MathToScreenPoint(juce::Point<float>(3.2, 0));
-		Point<float> lineBottomX = juce::Point<float>(1.2 + (lambda)/(3.2-1.2), 0);
-		Point<float> lineTopX = juce::Point<float>(1.2 + (lambda) / (3.2 - 1.2), 1);
+        Point<float> topLeftX = MathToScreenPoint(juce::Point<float>(1.2f, 1));
+        Point<float> bottomRightX = MathToScreenPoint(juce::Point<float>(3.2f, 0));
+		Point<float> lineBottomX = juce::Point<float>(1.2f + (lambda)/(3.2f-1.2f), 0);
+		Point<float> lineTopX = juce::Point<float>(1.2f + (lambda) / (3.2f - 1.2f), 1);
 		
         juce::Rectangle<float> lambdaRectangleX(topLeftX.x, topLeftX.y, 
             bottomRightX.x - topLeftX.x, bottomRightX.y - topLeftX.y);
@@ -337,10 +337,10 @@ private:
 		if (both)
 		{
 			// Just draw the pre-rendered image Y
-			Point<float> topLeftY = MathToScreenPoint(juce::Point<float>(0, 1.2));
-			Point<float> bottomRightY = MathToScreenPoint(juce::Point<float>(1, 3.2));
-			Point<float> lineBottomY = juce::Point<float>(1, 1.2 + (lambda) / (3.2 - 1.2));
-			Point<float> lineTopY = juce::Point<float>(0, 1.2 + (lambda) / (3.2 - 1.2));
+			Point<float> topLeftY = MathToScreenPoint(juce::Point<float>(0, 1.2f));
+			Point<float> bottomRightY = MathToScreenPoint(juce::Point<float>(1, 3.2f));
+			Point<float> lineBottomY = juce::Point<float>(1.0f, 1.2f + (lambda) / (3.2f - 1.2f));
+			Point<float> lineTopY = juce::Point<float>(0, 1.2f + (lambda) / (3.2f - 1.2f));
 
 			juce::Rectangle<float> lambdaRectangleY(topLeftY.x, topLeftY.y,
 				bottomRightY.x - topLeftY.x, bottomRightY.y - topLeftY.y);
@@ -438,25 +438,64 @@ private:
 				Graphics lambdaG(lambdaConvergenceImageX);
 				DrawPointScreen(lambdaG, juce::Point<float>(lambdaConvergenceImageX.getWidth() * (lambda / 4.0f), lambdaConvergenceImageX.getHeight() - math_point.y * lambdaConvergenceImageX.getHeight()), juce::Colours::yellow, 1.0f, 2.0f);
 			}
-
 		}
-
 	}
+	void MathRenderer::DrawLogisticIterationsSin(Graphics& g, bool drawLambdaFunction, int numIterations = -1)
+	{
+		float start_x = start;
+		juce::Line<float> line_segment = juce::Line<float>(MathToScreenPoint(juce::Point<float>(start_x, 0.0f)), juce::Point<float>(0.0f, 0.0f));
+		juce::Point<float> math_point = juce::Point<float>(start_x, 0.0f);
 
+		if (numIterations == -1)
+		{
+			numIterations = iterations;
+		}
+		for (int i = 0; i <= numIterations; i++)
+		{
+			math_point = function_provider.LogisticFunctionSin(lambda, math_point.x);
+			if (abs(MathToScreenPoint(math_point).x) < 10000 && abs(MathToScreenPoint(math_point).y) < 10000)
+			{
+				DrawPoint(g, math_point, juce::Colours::lightblue);
+
+				line_segment.setEnd(MathToScreenPoint(math_point));
+				g.setColour(juce::Colours::lightgrey);
+				g.drawLine(line_segment, 1.0);
+
+				line_segment.setStart(MathToScreenPoint(math_point));
+				if (i % 2 == 0 && i > 0)
+				{
+					math_point = function_provider.LogisticFunctionInverseSin(lambda, math_point.y);
+					if (abs(MathToScreenPoint(math_point).x) < 10000 && abs(MathToScreenPoint(math_point).y) < 10000)
+					{
+						DrawPoint(g, math_point, juce::Colours::lightpink);
+						line_segment.setEnd(MathToScreenPoint(math_point));
+						g.setColour(juce::Colours::lightgrey);
+						g.drawLine(line_segment, 1.0);
+						line_segment.setStart(MathToScreenPoint(math_point));
+					}
+				}
+			}
+
+			if (i > numIterations * 0.8f && drawLambdaFunction)
+			{
+				Graphics lambdaG(lambdaConvergenceImageX);
+				DrawPointScreen(lambdaG, juce::Point<float>(lambdaConvergenceImageX.getWidth() * (lambda / 4.0f), lambdaConvergenceImageX.getHeight() - math_point.y * lambdaConvergenceImageX.getHeight()), juce::Colours::yellow, 1.0f, 2.0f);
+			}
+		}
+	}
 	void MathRenderer::DrawLogisticFunction(Graphics& g, bool inverse = false)
 	{
 		float step = 10;
 		float math_x = -1, math_y = 0;
-
+		float offset = -0.003f;
 		juce::Point<float> path_point = juce::Point<float>(-1000, -1000);
-
 
 		if (inverse)
 		{
 			for (float y = 0; y < area_height; y += step)
 			{
 				math_y = -(y - x0.y) / screen_math_ratio;
-				if(math_y >= -0.003 && math_y <= 1)
+				if(math_y >= offset && math_y <= 1)
 				DrawSegment(g, function_provider.LogisticFunctionInverse(lambda, math_y), path_point, juce::Colours::red);
 			}
 		}
@@ -465,26 +504,25 @@ private:
 			for (float x = 0; x < area_width; x += step)
 			{
 				math_x = (x - x0.x) / screen_math_ratio;
-				if (math_x >= -0.003 && math_x <= 1)
+				if (math_x >= offset && math_x <= 1)
 				DrawSegment(g, function_provider.LogisticFunction(lambda, math_x), path_point, juce::Colours::yellow);
 			}
 		}
-
 	}
 
 	void MathRenderer::DrawLogisticFunctionSin(Graphics& g, bool inverse = false)
 	{
 		float step = 10;
 		float math_x = 0, math_y = 0;
-
+		float offset = -0.003f;
 		juce::Point<float> path_point = juce::Point<float>(-1000, -1000);
-
 
 		if (inverse)
 		{
 			for (float y = 0; y < area_height; y += step)
 			{
 				math_y = -(y - x0.y) / screen_math_ratio;
+				if (math_y >= offset && math_y <= 1)
 				DrawSegment(g, function_provider.LogisticFunctionInverseSin(lambda, math_y), path_point, juce::Colours::red);
 			}
 		}
@@ -493,13 +531,11 @@ private:
 			for (float x = 0; x < area_width; x += step)
 			{
 				math_x = (x - x0.x) / screen_math_ratio;
+				if (math_x >= offset && math_x <= 1)
 				DrawSegment(g, function_provider.LogisticFunctionSin(lambda, math_x), path_point, juce::Colours::yellow);
 			}
 		}
-
 	}
-
-
 
 protected:
 	void MathRenderer::DrawSegment(Graphics& g, juce::Point<float> math_point_par, juce::Point<float>& path_point_par, juce::Colour col)

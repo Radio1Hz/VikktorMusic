@@ -59,6 +59,12 @@ public:
 		SampleVisualization
 	};
 
+	enum AppMode
+	{
+		Normal,
+		ComponentOnly
+	};
+
 	enum TransportState
 	{
 		Stopped,
@@ -129,6 +135,6 @@ private:
 
 	TransportState state;
 	Random random;
-
+	AppMode appMode = ComponentOnly;
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

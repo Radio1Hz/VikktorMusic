@@ -357,7 +357,8 @@ public:
 				if (getLocalBounds().getWidth() >= 200)
 				{
 					//cO->setBounds(Random::getSystemRandom().nextInt(getLocalBounds().getWidth() - 500), Random::getSystemRandom().nextInt(getLocalBounds().getHeight() - 200), 500, 200);
-					cO->setBounds(0, 0, 1350, 575);
+					//cO->setBounds(0, 0, getScreenBounds().getWidth(), getScreenBounds().getHeight());
+					cO->setBounds(0, 0, 1375, 750);
 				}
 
 			}

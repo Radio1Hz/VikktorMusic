@@ -47,7 +47,7 @@ public:
 	{
 		juce::Point<float> math_pt_f = juce::Point<float>(x, 0);
 
-		math_pt_f.y = lambda * sin(x);
+		math_pt_f.y = lambda * sin(juce::MathConstants<float>().pi * x)/4;
 		return math_pt_f;
 	}
 
@@ -55,7 +55,7 @@ public:
 	{
 		juce::Point<float> math_pt_f = juce::Point<float>(0, y);
 
-		math_pt_f.x = lambda * sin(y);
+		math_pt_f.x = lambda * sin(juce::MathConstants<float>().pi * y)/4;
 		return math_pt_f;
 	}
 	int common = 0;

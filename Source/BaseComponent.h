@@ -55,6 +55,7 @@ public:
     bool embeddedMode = false;
     bool readOnlyMode = false;
     bool isMinSize = false;
+    bool showInFullscreen = false;
 
 protected: 
     float getFontSize();

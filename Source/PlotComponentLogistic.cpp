@@ -17,7 +17,8 @@ PlotComponentLogistic::PlotComponentLogistic()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     this->name = "Plot Logistic";
-    
+	this->showInFullscreen = true;
+
     addAndMakeVisible(sliderR);
     sliderR.setRange(0, 4);
     sliderR.addListener(this);
@@ -119,6 +120,9 @@ void PlotComponentLogistic::paint (juce::Graphics& g)
     }
     Rectangle<int> remainingRect = getReducedLocalBounds();
     renderer->Draw(g, remainingRect.toFloat());
+	g.setColour(juce::Colours::darkgrey);
+	g.drawSingleLineText("Press left/right to change state, space to iterate in state 3", 10, getHeight() - 60);
+	g.drawSingleLineText("State: " + juce::String(component_state), 10, 20);
 
 }
 void PlotComponentLogistic::zoomEvent(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel)
@@ -139,7 +143,7 @@ void PlotComponentLogistic::resized()
 
     if (!renderedInitialized)
     {
-        renderer = new MathRenderer(getReducedLocalBounds(), Point<float>(1.5, 0.5), 1.5f);
+        renderer = new MathRenderer(getReducedLocalBounds(), Point<float>(1.5, 0.5), 2.0);
         sliderStart.setValue(0.5);
         sliderR.setValue(1.0);
         renderer->SetNewFontSize(getFontSize());
@@ -168,17 +172,25 @@ bool PlotComponentLogistic::keyPressed(const KeyPress& key, Component* /*origina
 {
     if (key == KeyPress::rightKey)
     {
-        renderer->state++;
-        component_state = renderer->state;
-        repaint();
-        return true;
+        if (renderer->state < 5)
+        {
+            renderer->state++;
+            component_state = renderer->state;
+            repaint();
+            return true;
+        }
+        return false;
     }
     else if (key == KeyPress::leftKey)
     {
-        renderer->state--;
-        component_state = renderer->state;
-        repaint();
-        return true;
+        if (renderer->state > 0)
+        {
+            renderer->state--;
+            component_state = renderer->state;
+            repaint();
+            return true;
+        }
+        return false;
     }
     else if (key == KeyPress::spaceKey)
     {

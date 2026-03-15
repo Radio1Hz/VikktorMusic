@@ -29,7 +29,10 @@ BaseComponent::~BaseComponent()
 
 void BaseComponent::paint(Graphics& g)
 {
-	drawOutline(g);
+	if (!showInFullscreen)
+	{
+		drawOutline(g);
+	}
 }
 float BaseComponent::getFontSize()
 {
@@ -47,7 +50,7 @@ void BaseComponent::getNextAudioBlock(const AudioSourceChannelInfo& /*bufferToFi
 
 void BaseComponent::drawOutline(Graphics& g)
 {
-	if (!this->embeddedMode)
+	if (!this->showInFullscreen)
 	{
 		Rectangle<int> screenPortionRect = getScreenBounds();
 		Rectangle<int> rect = getLocalBounds();
@@ -72,6 +75,7 @@ void BaseComponent::drawOutline(Graphics& g)
 		}
 		g.drawText(state, rect, Justification::centredLeft, true);
 	}
+
 }
 
 void BaseComponent::resized()
@@ -96,7 +100,7 @@ void BaseComponent::mouseUpEvent(const MouseEvent& /*event*/) {}
 Rectangle<int> BaseComponent::getReducedLocalBounds()
 {
 	Rectangle<int> rect = getLocalBounds();
-	if (!this->embeddedMode)
+	if (!this->showInFullscreen)
 	{
 		rect.translate(1, headerHeight);
 		rect.setHeight(rect.getHeight() - headerHeight - 1);
@@ -108,7 +112,7 @@ Rectangle<int> BaseComponent::getReducedLocalBounds()
 Rectangle<int> BaseComponent::getReducedBounds()
 {
 	Rectangle<int> rect = getBounds();
-	if (!this->embeddedMode)
+	if (!this->showInFullscreen)
 	{
 		rect.translate(1, headerHeight);
 		rect.setHeight(rect.getHeight() - headerHeight - 1);

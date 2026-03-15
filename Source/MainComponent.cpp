@@ -96,33 +96,37 @@ audioSetupComp(
 	timeLabel.setJustificationType(Justification::centredRight);
 
 	addAndMakeVisible(logSpaceComponent);
-	addAndMakeVisible(audioOnToggleButton);
-	addAndMakeVisible(&playButton);
-	addAndMakeVisible(&stopButton);
-	addAndMakeVisible(&loadButton);
-	addAndMakeVisible(&newButton);
-	addAndMakeVisible(&tempoText);
-	addAndMakeVisible(timeLabel);
-	addAndMakeVisible(tempoLabel);
-	addAndMakeVisible(audioSetupComp);
-	addAndMakeVisible(debugComponent);
-	addAndMakeVisible(audioSettingsToggleButton);
-	addAndMakeVisible(audioVisualizeToggleButton);
-	addAndMakeVisible(savePlayedAudioSamplesToggleButton);
+	if (appMode != ComponentOnly)
+	{
+		addAndMakeVisible(audioOnToggleButton);
+		addAndMakeVisible(&playButton);
+		addAndMakeVisible(&stopButton);
+		addAndMakeVisible(&loadButton);
+		addAndMakeVisible(&newButton);
+		addAndMakeVisible(&tempoText);
+		addAndMakeVisible(timeLabel);
+		addAndMakeVisible(tempoLabel);
+		addAndMakeVisible(audioSetupComp);
+		addAndMakeVisible(debugComponent);
+		addAndMakeVisible(audioSettingsToggleButton);
+		addAndMakeVisible(audioVisualizeToggleButton);
+		addAndMakeVisible(savePlayedAudioSamplesToggleButton);
 
-	addAndMakeVisible(produceAudioToggleButton);
-	addAndMakeVisible(produceMIDIToggleButton);
+		addAndMakeVisible(produceAudioToggleButton);
+		addAndMakeVisible(produceMIDIToggleButton);
 
-	addAndMakeVisible(keySignatureLabel);
-	addAndMakeVisible(keySignatureNumeratorText);
-	addAndMakeVisible(keySignatureSeparatorLabel);
-	addAndMakeVisible(keySignatureDenominatorText);
-	addAndMakeVisible(numMeasuresLabel);
-	addAndMakeVisible(numMeasuresText);
+		addAndMakeVisible(keySignatureLabel);
+		addAndMakeVisible(keySignatureNumeratorText);
+		addAndMakeVisible(keySignatureSeparatorLabel);
+		addAndMakeVisible(keySignatureDenominatorText);
+		addAndMakeVisible(numMeasuresLabel);
+		addAndMakeVisible(numMeasuresText);
 
-	audioSetupComp.setVisible(false);
-	audioSampleBlockImage = Image(Image::RGB, 240, 30, true);
-	audioSampleBufferCopy.clear();
+		audioSetupComp.setVisible(false);
+		audioSampleBlockImage = Image(Image::RGB, 240, 30, true);
+		audioSampleBufferCopy.clear();
+	}
+	
 
 	//projectTree.addListener(this);
 
@@ -682,7 +686,14 @@ void MainComponent::resized()
 	int controlsAreaOffsetFromBottom = 120;
 
 	debugComponent.setBounds(0, 0, getWidth(), 15);
-	logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom - 15);
+	if (appMode == ComponentOnly)
+	{
+		logSpaceComponent.setBounds(0, 0, getWidth(), getHeight());
+	}
+	else
+	{
+		logSpaceComponent.setBounds(0, 15, getWidth(), getHeight() - controlsAreaOffsetFromBottom - 15);
+	}
 	audioSettingsToggleButton.setBounds(getWidth() - 80, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	audioVisualizeToggleButton.setBounds(getWidth() - 160, getHeight() - controlsAreaOffsetFromBottom, 80, 30);
 	timeLabel.setBounds(getWidth() - 360, getHeight() - controlsAreaOffsetFromBottom, 160, 30);
