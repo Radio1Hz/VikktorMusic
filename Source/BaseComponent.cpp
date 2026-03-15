@@ -51,7 +51,7 @@ void BaseComponent::drawOutline(Graphics& g)
 	{
 		Rectangle<int> screenPortionRect = getScreenBounds();
 		Rectangle<int> rect = getLocalBounds();
-		//g.setColour(Colours::black);
+		g.setColour(Colours::black);
 		g.drawRect(rect);
 
 		g.setFont(15.0f);

@@ -18,7 +18,7 @@
 //==============================================================================
 /*
 */
-class PlotComponentLogistic  : public BaseComponent, public CommunicationAgent, public Slider::Listener
+class PlotComponentLogistic  : public BaseComponent, public CommunicationAgent, public Slider::Listener, public KeyListener
 {
 public:
     PlotComponentLogistic();
@@ -33,6 +33,7 @@ public:
     void controlMouseUpEvent(const juce::MouseEvent& event) override;
     void paint(juce::Graphics&) override;
     void resized() override;
+    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
 
 private:
     bool renderedInitialized = false;

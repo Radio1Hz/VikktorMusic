@@ -60,7 +60,7 @@ protected:
     float getFontSize();
     ComponentDragger myDragger;
     Colour outlineColour = Colours::darkred;
-    int defaultSize = 200;
+    int defaultSize = 400;
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;
     void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;

@@ -179,14 +179,39 @@
         <MODULEPATH id="juce_gui_basics" path="../../juce"/>
         <MODULEPATH id="juce_gui_extra" path="../../juce"/>
         <MODULEPATH id="juce_osc" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../../../../Programs/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
+    <VS2026 targetFolder="Builds/VisualStudio2026">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_dsp" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\Programs\JUCE\modules"/>
+        <MODULEPATH id="juce_osc" path="C:\Programs\JUCE\modules"/>
+      </MODULEPATHS>
+    </VS2026>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

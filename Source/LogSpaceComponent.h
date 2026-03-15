@@ -64,13 +64,14 @@ public:
 	{
 		rnd = Random::getSystemRandom();
 		initMenu();
+		addNewPlot();
 	}
 
 	void LogSpaceComponent::initMenu()
 	{
 		menu.clear();
 		//menu.addItem("Add new Timer", std::bind(&LogSpaceComponent::addNewTimer, this));
-		//menu.addItem("Add new Plot", std::bind(&LogSpaceComponent::addNewPlot, this));
+		menu.addItem("Add new Plot", std::bind(&LogSpaceComponent::addNewPlot, this));
 		//menu.addItem("Add new Audio Component", std::bind(&LogSpaceComponent::addNewAudioComponent, this));
 		//menu.addItem("Add new MIDI Synth Component", std::bind(&LogSpaceComponent::addNewMIDISynthComponent, this));
 		//menu.addItem("Add new Euclidian Rhythm Component", std::bind(&LogSpaceComponent::addNewEuclidianTimer, this));
@@ -162,7 +163,7 @@ public:
 	void LogSpaceComponent::addNewPlot()
 	{
 		PlotComponentLogistic* pO = new PlotComponentLogistic();
-		pO->iWillListenToYou(stateControllerObjects[0]);
+		//pO->iWillListenToYou(stateControllerObjects[0]);
 		addAndMakeVisible(pO);
 		plotObjects.add(pO);
 		resized();
@@ -355,7 +356,8 @@ public:
 			{
 				if (getLocalBounds().getWidth() >= 200)
 				{
-					cO->setBounds(Random::getSystemRandom().nextInt(getLocalBounds().getWidth() - 200), Random::getSystemRandom().nextInt(getLocalBounds().getHeight() - 200), 200, 200);
+					//cO->setBounds(Random::getSystemRandom().nextInt(getLocalBounds().getWidth() - 500), Random::getSystemRandom().nextInt(getLocalBounds().getHeight() - 200), 500, 200);
+					cO->setBounds(0, 0, 1350, 575);
 				}
 
 			}

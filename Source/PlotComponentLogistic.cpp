@@ -31,9 +31,14 @@ PlotComponentLogistic::PlotComponentLogistic()
     labelR.attachToComponent(&sliderR, true);
 
     addAndMakeVisible(labelStart);
-    labelStart.setText("x0 (0-1)", juce::dontSendNotification);
+    labelStart.setText("x (0-1)", juce::dontSendNotification);
     labelStart.attachToComponent(&sliderStart, true);
 
+    this->component_state = 0;
+
+    // Add key listener and make focusable
+    addKeyListener(this);
+    setWantsKeyboardFocus(true);
 }
 
 PlotComponentLogistic::~PlotComponentLogistic()
@@ -48,6 +53,7 @@ void PlotComponentLogistic::sliderValueChanged(juce::Slider* sliderParam)
     if (sliderParam == &sliderR)
     {
         renderer->lambda = (float)sliderR.getValue();
+		renderer->setLambda((float)sliderR.getValue());
         repaint();
     }
     if (sliderParam == &sliderStart)
@@ -86,7 +92,7 @@ void PlotComponentLogistic::changeListenerCallback(juce::ChangeBroadcaster* sour
 
         }
     }
-    //this->getParentComponent()->repaint();
+    this->getParentComponent()->repaint();
     repaint();
 }
 
@@ -104,15 +110,14 @@ void PlotComponentLogistic::controlDoubleClickEvent(const juce::MouseEvent& even
 
 void PlotComponentLogistic::paint (juce::Graphics& g)
 {
-
+    g.fillAll(Colour::fromRGB(31, 31, 31));  // or any color you want as background
     drawOutline(g);
     sliderStart.setVisible(false);
-    if (component_state > 0)
+    if (component_state > 2)
     {
         sliderStart.setVisible(true);
     }
     Rectangle<int> remainingRect = getReducedLocalBounds();
-   
     renderer->Draw(g, remainingRect.toFloat());
 
 }
@@ -126,15 +131,15 @@ void PlotComponentLogistic::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-    auto sliderLeft = 100;
+    auto sliderLeft = getWidth()/2;
     sliderR.setBounds(sliderLeft, 20, getWidth() - sliderLeft - 10, 20);
-    labelR.setBounds(0, 20, sliderLeft, 20);
+    labelR.setBounds(sliderLeft - 50, 20, 50, 20);
     sliderStart.setBounds(sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
-    labelStart.setBounds(0, 50, sliderLeft, 20);
+    labelStart.setBounds(sliderLeft-50, 50, 50, 20);
 
     if (!renderedInitialized)
     {
-        renderer = new MathRenderer(getReducedLocalBounds(), Point<float>(0.5, 0.5), 1.5f);
+        renderer = new MathRenderer(getReducedLocalBounds(), Point<float>(1.5, 0.5), 1.5f);
         sliderStart.setValue(0.5);
         sliderR.setValue(1.0);
         renderer->SetNewFontSize(getFontSize());
@@ -157,4 +162,29 @@ void PlotComponentLogistic::controlMouseUpEvent(const juce::MouseEvent&)
 void PlotComponentLogistic::controlDragEvent(const juce::MouseEvent&)
 {
     repaint();
+}
+
+bool PlotComponentLogistic::keyPressed(const KeyPress& key, Component* /*originatingComponent*/)
+{
+    if (key == KeyPress::rightKey)
+    {
+        renderer->state++;
+        component_state = renderer->state;
+        repaint();
+        return true;
+    }
+    else if (key == KeyPress::leftKey)
+    {
+        renderer->state--;
+        component_state = renderer->state;
+        repaint();
+        return true;
+    }
+    else if (key == KeyPress::spaceKey)
+    {
+        renderer->generalIterator++;
+        repaint();
+        return true;
+    }
+    return false;
 }
