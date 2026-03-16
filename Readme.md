@@ -66,7 +66,7 @@ It usually shows how values move ("bounce") between the function curve and the d
 
 Instead of using diagonal line $y = x$, let's use inverse function curve instead:
 
-$y = \frac{1}{2}\left(1\pm\sqrt{1-4\frac{x}{r})}\right)$
+$y = \frac{1}{2}\left(1\pm\sqrt{1-4\frac{x}{r}}\right)$
 
 And watch how values bounce between $f(x)$ and $f^{-1}(x)$
 
