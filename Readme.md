@@ -40,8 +40,13 @@ For $3 < r \le 4$ there are four intersection points:
 
 If a procedure repeatedly feeds the output back into the function, the operation internally alternates between $f(x)$ and $f^{-1}(x)$, i.e.
 
-$x_{n+1} = \begin{cases} f(x_n), &\text n = 2k &k \in W
-\\ f^{-1}(x_n), &\text n = 2k + 1  &k \in W \end{cases}$
+$$
+x_{n+1} =
+\begin{cases}
+f(x_n), & \text{if } n = 2k,\ k \in W \\
+f^{-1}(x_n), & \text{if } n = 2k + 1,\ k \in W
+\end{cases}
+$$
 
 For $x_0 \in [0,1]$:
 
@@ -55,8 +60,13 @@ $x_4 = f^{-1}(x_3) = f^{-1}(f(f^{-1}(f(x_0))))$
 
 For the Logistic function the sequence becomes:
 
-$x_{n+1} = \begin{cases} r x_{n} (1-x_n), &\text n = 2k &k \in W
-\\ \frac{1}{2}\left(1\pm\sqrt{1-4\frac{x_n}{r})}\right), &\text n = 2k + 1  &k \in W \end{cases}$
+$$
+x_{n+1} =
+\begin{cases}
+r x_n (1 - x_n), & \text{if } n = 2k,\ k \in W \\
+\frac{1}{2}\left(1 \pm \sqrt{1 - \frac{4x_n}{r}}\right), & \text{if } n = 2k + 1,\ k \in W
+\end{cases}
+$$
 
 ## Inverse Cobweb Diagram
 
