@@ -86,17 +86,23 @@ And watch how values bounce between $f(x)$ and $f^{-1}(x)$
 For certain value of r (r-oscillate, $r_o$) the iteration sequence "oscillates" between three values.
 To calculate $r_o$ we need to solve the two equations:
 
-eq 1: $f(x) = 1/2$
+### Equation 1
+$f(x) = \left. \frac{1}{2} \right|_{r>2}$
 
-It has two solutions for r>2:
+$rx(1-x) = \frac{1}{2}$
+
+Two solutions for r>2:
+
 $x_{o1} = \frac{r-\sqrt{(r-2)r}}{2r}$
+
 $x_{o2} = \frac{r+\sqrt{(r-2)r}}{2r}$
 
-eq 2: $f^{-1}(x_{o1}) = f(1/2)$, r>2
+### Equation 2
+$f^{-1}(x_{o1}) =\left.f(\frac{1}{2})  \right|_{r>2}$
 
 $\frac{1}{2}\left(1+\sqrt{1-4\frac{r-\sqrt{(r-2)r}}{2r^2}}\right) = \frac{r}{4}$
 
-Solving by r, we get $r_o$
+One solution for r>2:
 
 $r_o = 1 + \sqrt{1 + \frac{1}{3}\left(8 + (800 - 96\sqrt{69})^{1/3} + 2 \cdot 2^{2/3}(25 + 3\sqrt{69})^{1/3}\right)}$
 
