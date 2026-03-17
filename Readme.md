@@ -1,5 +1,7 @@
 # Logistic Map, Inverse Cobweb Diagram and Controlled Chaos (simplified)
 
+https://youtu.be/06u9cFxS_h0
+
 ## Logistic Function
 
 Let $f(x)$ be defined as
