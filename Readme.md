@@ -92,7 +92,9 @@ It has two solutions for r>2:
 $x_{o1} = \frac{r-\sqrt{(r-2)r}}{2r}$
 $x_{o2} = \frac{r+\sqrt{(r-2)r}}{2r}$
 
-eq 2: $f^{-1}(x_{o1}) = f(1/2)$
+eq 2: $f^{-1}(x_{o1}) = f(1/2)$, r>2
+
+$\frac{1}{2}\left(1+\sqrt{1-4\frac{r-\sqrt{(r-2)r}}{2r^2}}\right) = \frac{r}{4}$
 
 Solving by r, we get $r_o$
 
