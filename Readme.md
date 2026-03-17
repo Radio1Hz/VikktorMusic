@@ -92,7 +92,7 @@ $x_{o2} = \frac{r+\sqrt{(r-2)r}}{2r}$
 
 eq 2: $f^{-1}(x_{o1}) = f(1/2)$
 
-Solving by r, we get $r_o$ *
+Solving by r, we get $r_o$
 
 $r_o = 1 + \sqrt{1 + \frac{1}{3}\left(8 + (800 - 96\sqrt{69})^{1/3} + 2 \cdot 2^{2/3}(25 + 3\sqrt{69})^{1/3}\right)}$
 
@@ -100,20 +100,4 @@ $r_o \approx 3.8318740552833155684103627754961065557978278526036946304788904477$
 
 ## Bifurcation diagram for $f(x) = rx(1-x)$
 ## Bifurcation diagram for $f(x) = \frac{r}{4} sin (\pi x)$
-## *Calculation of $r_o$ 
 
-$\frac{1}{2}\left(1-\sqrt{1-4\frac{1}{2r}\frac{r-\sqrt{(r-2)r}}{r}}\right) = \frac{r}{4}$
-
-$\frac{1}{2}\left(1-\sqrt{1-4\frac{r-\sqrt{(r-2)r}}{2r^2}}\right) = \frac{r}{4}$
-
-$2-2\sqrt{1-\frac{2(r-\sqrt{r(r-2)})}{r^2}} = r$
-
-$4\left(1-\frac{2(r-\sqrt{r(r-2)})}{r^2}\right) = r^2-4r+4$
-
-$-8\left(r-\sqrt{r(r-2)}\right) = r^4 - 4r^3$
-
-$8\sqrt{r(r-2)} = r^4-4r^3+8r$
-
-$64r^2-128r = r^2(r^2-2r-4)^2(r-2)^2$
-
-$$
