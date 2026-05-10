@@ -20,7 +20,6 @@ class MathRenderer
 {
 
 protected:
-	juce::Point<float> math_center;
 	float math_max_size = 0;
 	float area_width = 0;
 	float area_height = 0;
@@ -42,7 +41,7 @@ protected:
 
 
 public:
-
+	juce::Point<float> math_center;
 	Rectangle<int> area;
 	Point<float> screen_pointer = juce::Point<float>(0, 0);
 	//OwnedArray<TreeNode> rootNode;
@@ -51,11 +50,12 @@ public:
 	int iterations = 200;
 	int generalIterator = 0;
 	int state = 0;
+	bool lightMode = false;
 	FunctionProvider function_provider = FunctionProvider();
 
 
 public:
-	MathRenderer(juce::Rectangle<int> area, juce::Point<float> math_center_point, float math_max_size) {
+	MathRenderer(juce::Rectangle<int> area, juce::Point<float> math_center_point, float math_max_size, bool isLightMode) {
 		this->math_center = math_center_point;
 		this->math_max_size = math_max_size;
 		this->area = area;
@@ -70,10 +70,10 @@ public:
 		
 		// Set background color for lambdaConvergenceImageX
 		Graphics imgGX(lambdaConvergenceImageX);
-		imgGX.fillAll(Colour::fromRGB(31,31,31));  // or any color you want as background
+		imgGX.fillAll(Colours::white);  // or any color you want as background
 		Graphics imgGY(lambdaConvergenceImageY);
-		imgGY.fillAll(Colour::fromRGB(31,31,31));  // or any color you want as background
-		
+		imgGY.fillAll(Colours::white);  // or any color you want as background
+		lightMode = isLightMode;
 		//generateCollatzTree(1);
 		//generateRandomTree(1);
 	}
@@ -128,6 +128,10 @@ public:
 	void MathRenderer::Draw(Graphics& g, const Rectangle<float> rectarea)
 	{
 		g.setColour(juce::Colours::lightgrey);
+		if (lightMode)
+		{
+			g.setColour(juce::Colours::black);
+		}
 		area_width = (float)rectarea.getWidth();
 		area_height = (float)rectarea.getHeight();
 		screen_math_ratio = std::min(area_width, area_height) / math_max_size;
@@ -185,17 +189,17 @@ private:
 
 		DrawCoordinateSys(g);
 		juce::Point<float> res = function_provider.LogisticFunction(lambda, start);
-
+		Colour textColor = lightMode ? juce::Colours::black : juce::Colours::white;
 		switch (state)
 		{
 				// Logistic function introduction
 			case 0:
 				g.setFont(30.0f);
-				g.setColour(juce::Colours::yellow);
+				g.setColour(textColor);
 				DrawLogisticFunction(g, false);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
-				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
+				DrawTextMath(g, Point<float>(0.7f, -0.1f), "f(x) = rx(1-x)", textColor);
+				//DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
+				//DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 				break;
 				// Inverse function introduction
 			case 1:
@@ -203,53 +207,51 @@ private:
 				g.setColour(juce::Colours::yellow);
 				DrawLogisticFunction(g, false);
 				DrawLogisticFunction(g, true);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
-				DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
-				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
+				DrawTextMath(g, Point<float>(0.7f, -0.1f), "f(x) = rx(1-x)", lightMode ? juce::Colours::black : juce::Colours::yellow);
+				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", lightMode ? juce::Colours::black : juce::Colours::red);
+				//DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
+				//DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 				break;
 				// Intersection points
 			case 2:
 				g.setFont(30.0f);
-				g.setColour(juce::Colours::yellow);
 				DrawLogisticFunction(g, false);
-				g.setColour(juce::Colours::red);
 				DrawLogisticFunction(g, true);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
+				DrawTextMath(g, Point<float>(0.7f, -0.1f), "f(x) = rx(1-x)", lightMode ? juce::Colours::black : juce::Colours::yellow);
+				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", lightMode ? juce::Colours::black : juce::Colours::red);
 				DrawIntersectionPoints(g);
 				break;
+				// Manual Iteration
 			case 3:
 				g.setFont(30.0f);
-				g.setColour(juce::Colours::yellow);
 				DrawLogisticFunction(g, false);
-				g.setColour(juce::Colours::red);
 				DrawLogisticFunction(g, true);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
-				DrawMathematicalLine(g, juce::Point<float>(start, 0), res, juce::Colours::aqua, true, 0.75f);
+				DrawTextMath(g, Point<float>(0.7f, -0.1f), "f(x) = rx(1-x)", lightMode ? juce::Colours::black : juce::Colours::yellow);
+				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", lightMode ? juce::Colours::black : juce::Colours::red);
+				//DrawMathematicalLine(g, juce::Point<float>(start, 0), res, lightMode ? juce::Colours::black : juce::Colours::red, true, 0.75f);
 				DrawLogisticIterations(g, false, generalIterator);
 				break;
+				// Auto Iterations
 			case 4:
 				g.setFont(30.0f);
 				g.setColour(juce::Colours::yellow);
 				DrawLogisticFunction(g, false);
 				g.setColour(juce::Colours::red);
 				DrawLogisticFunction(g, true);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = rx(1-x)", juce::Colours::yellow);
-				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", juce::Colours::red);
+				DrawTextMath(g, Point<float>(0.7f, -0.1f), "f(x) = rx(1-x)", lightMode ? juce::Colours::black : juce::Colours::yellow);
+				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = ry(1-y)", lightMode ? juce::Colours::black : juce::Colours::red);
 				DrawMathematicalLine(g, juce::Point<float>(start, 0), res, juce::Colours::aqua, true, 0.75f);
-				DrawLogisticIterations(g, false);
+				DrawLogisticIterations(g, false, 100);
 				DrawLambdaImage(g);
 				break;
 			case 5:
 				g.setFont(30.0f);
-				g.setColour(juce::Colours::yellow);
+				g.setColour(juce::Colours::blue);
 				DrawLogisticFunctionSin(g, false);
-				g.setColour(juce::Colours::red);
+				g.setColour(juce::Colours::blue);
 				DrawLogisticFunctionSin(g, true);
-				DrawTextMath(g, Point<float>(1.1f, -0.1f), "f(x) = (r/4)sin(PI*x)", juce::Colours::yellow);
-				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = (r/4)sin(PI*y)", juce::Colours::red);
+				DrawTextMath(g, Point<float>(0.7f, -0.1f), "f(x) = (r/4)sin(PI*x)", lightMode ? juce::Colours::black : juce::Colours::yellow);
+				DrawTextMath(g, Point<float>(0.0f, 1.1f), "f(y) = (r/4)sin(PI*y)", lightMode ? juce::Colours::black : juce::Colours::red);
 				DrawMathematicalLine(g, juce::Point<float>(start, 0), res, juce::Colours::aqua, true, 0.75f);
 				DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
 				DrawLogisticIterationsSin(g, false);
@@ -259,21 +261,14 @@ private:
 		default:
 			break;
 		}
-		
-
-		//DrawPointWithLabel(g, Point<float>(start, 0.0f), "x0");
-		//DrawPointWithLabel(g, Point<float>(0.0f, res.y), juce::String(res.y));
 		DrawPointWithLabel(g, juce::Point<float>(1, 0));
 		DrawPointWithLabel(g, juce::Point<float>(0, 1));
-		//DrawPointWithLabel(g, res);
-		//DrawPoint(g, juce::Point<float>(0, 1), juce::Colours::lightpink);
-
 	}
 
 	void MathRenderer::DrawTree(Graphics& g, TreeNode* node)
 	{
 		//float opc = rnd.nextFloat();
-		DrawPoint(g, node->location, Colours::lightgrey, 0.5f);
+		DrawPoint(g, node->location, 0.5f);
 		for (TreeNode* nO : node->childNodes)
 		{
 			DrawMathematicalLine(g, node->location, nO->location, Colours::lightgrey, false, 0.2f);
@@ -283,6 +278,7 @@ private:
 
 	void MathRenderer::DrawIntersectionPoints(Graphics& g)
 	{
+		Colour colour = Colour(lightMode ? juce::Colours::black : juce::Colours::aqua);
 		float x = 0;
 		juce::Point<float> res = function_provider.LogisticFunction(lambda, x);
 		if (lambda > 0)
@@ -296,7 +292,7 @@ private:
 			res = function_provider.LogisticFunction(lambda, x);
 			DrawPointWithLabel(g, juce::Point<float>(res.x, res.y), "X1");
 			DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
-			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
+			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), colour, true, 0.75f);
 		}
 
 		if (lambda > 3)
@@ -305,13 +301,13 @@ private:
 			res = function_provider.LogisticFunction(lambda, x);
 			DrawPointWithLabel(g, juce::Point<float>(res.x, res.y), "X2");
 			DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
-			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
+			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), colour, true, 0.75f);
 
 			x = (1 / (2 * lambda))*(lambda + 1 + sqrt(lambda * lambda - 2 * lambda - 3));
 			res = function_provider.LogisticFunction(lambda, x);
 			DrawPointWithLabel(g, juce::Point<float>(res.x, res.y), "X3");
 			DrawPointWithLabel(g, juce::Point<float>(0, res.y), juce::String(res.y));
-			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), juce::Colours::aqua, true, 0.75f);
+			DrawMathematicalLine(g, res, juce::Point<float>(0, res.y), colour, true, 0.75f);
 		}
 		
 
@@ -319,7 +315,7 @@ private:
 	void MathRenderer::DrawLambdaImage(Graphics& g, bool both = true)
 	{
         if (lambdaImageNeedsUpdate)
-            GenerateLambdaConvergenceImage();
+            GenerateLambdaConvergenceImage(state==5);
 		juce::String lambdaLabel = juce::String(("r: "));
 		lambdaLabel.append(juce::String(lambda), 7);
         // Just draw the pre-rendered image X
@@ -328,10 +324,9 @@ private:
 		Point<float> lineBottomX = juce::Point<float>(1.2f + (lambda)/(3.2f-1.2f), 0);
 		Point<float> lineTopX = juce::Point<float>(1.2f + (lambda) / (3.2f - 1.2f), 1);
 		
-        juce::Rectangle<float> lambdaRectangleX(topLeftX.x, topLeftX.y, 
-            bottomRightX.x - topLeftX.x, bottomRightX.y - topLeftX.y);
+        juce::Rectangle<float> lambdaRectangleX(topLeftX.x, topLeftX.y, bottomRightX.x - topLeftX.x, bottomRightX.y - topLeftX.y);
         g.drawImage(lambdaConvergenceImageX, lambdaRectangleX);
-		DrawMathematicalLine(g, lineBottomX, lineTopX, juce::Colours::yellow, false, 0.5f);
+		DrawMathematicalLine(g, lineBottomX, lineTopX, juce::Colours::blue, false, 0.5f);
 		DrawPointWithLabel(g, lineBottomX, lambdaLabel);
 
 		if (both)
@@ -351,19 +346,19 @@ private:
 	}
 	void MathRenderer::DrawCoordinateSys(Graphics& g)
 	{
-		g.setColour(juce::Colours::lightgrey);
+		Colour axisColor = lightMode ? juce::Colours::black : juce::Colours::lightgrey;
 		Point<float> point1 = zeroPoint;
 		Point<float> point2 = zeroPoint;
 		point1.addXY(-100.0f, 0);
 		point2.addXY(100.0f, 0);
-		DrawMathematicalLine(g, point1, point2, juce::Colours::lightgrey, false, 0.2f);
-		DrawMathematicalLine(g, point1, point2, juce::Colours::lightgrey, false, 0.2f);
+		DrawMathematicalLine(g, point1, point2, axisColor, false, 0.2f);
+		DrawMathematicalLine(g, point1, point2, axisColor, false, 0.2f);
 		point1 = zeroPoint;
 		point2 = zeroPoint;
 		point1.addXY(0, -100.0f);
 		point2.addXY(0, 100.0f);
-		DrawMathematicalLine(g, point1, point2, juce::Colours::lightgrey, false, 0.2f);
-		DrawMathematicalLine(g, point1, point2, juce::Colours::lightgrey, false, 0.2f);
+		DrawMathematicalLine(g, point1, point2, axisColor, false, 0.2f);
+		DrawMathematicalLine(g, point1, point2, axisColor, false, 0.2f);
 		juce::Rectangle<float> lambdaConvergenceRect = juce::Rectangle<float>(MathToScreenPoint(juce::Point<float>(1, 1)), MathToScreenPoint(juce::Point<float>(1 + lambda / 1.8f, 1)));
 		g.setColour(juce::Colours::black);
 		
@@ -380,18 +375,18 @@ private:
 		for (int i = 0; i < iterations; i++)
 		{
 			math_point = function_provider.LogisticFunctionSin(lambda, math_point.x);
-			DrawPoint(g, math_point, juce::Colours::lightblue);
+			DrawPoint(g, math_point);
 
 			line_segment.setEnd(MathToScreenPoint(math_point));
-			g.setColour(juce::Colours::lightgrey);
+			g.setColour(juce::Colours::black);
 			g.drawLine(line_segment, 1.0);
 
 			line_segment.setStart(MathToScreenPoint(math_point));
 
 			math_point = function_provider.LogisticFunctionInverseSin(lambda, math_point.y);
-			DrawPoint(g, math_point, juce::Colours::lightpink);
+			DrawPoint(g, math_point);
 			line_segment.setEnd(MathToScreenPoint(math_point));
-			g.setColour(juce::Colours::lightgrey);
+			g.setColour(juce::Colours::black);
 			g.drawLine(line_segment, 1.0);
 			line_segment.setStart(MathToScreenPoint(math_point));
 
@@ -407,32 +402,50 @@ private:
 		{
 			numIterations = iterations;
 		}
+		
+		g.setColour(juce::Colours::lightgrey);
+
 		for (int i = 0; i <= numIterations; i++)
 		{
-			math_point = function_provider.LogisticFunction(lambda, math_point.x);
-			if (abs(MathToScreenPoint(math_point).x) < 10000 && abs(MathToScreenPoint(math_point).y) < 10000)
+			if (state == 4)
 			{
-				DrawPoint(g, math_point, juce::Colours::lightblue);
-
 				line_segment.setEnd(MathToScreenPoint(math_point));
-				g.setColour(juce::Colours::lightgrey);
-				g.drawLine(line_segment, 1.0);
-
+				g.drawLine(line_segment, 0.5f);
 				line_segment.setStart(MathToScreenPoint(math_point));
-				if (i % 2 == 0 && i>0)
+				if (i % 2 == 0)
+				{
+					math_point = function_provider.LogisticFunction(lambda, math_point.x);
+					DrawPoint(g, math_point, 1.0f, 5.0f);
+					line_segment.setEnd(MathToScreenPoint(math_point));
+					g.drawLine(line_segment, 0.5f);
+				}
+				else
 				{
 					math_point = function_provider.LogisticFunctionInverse(lambda, math_point.y);
-					if (abs(MathToScreenPoint(math_point).x) < 10000 && abs(MathToScreenPoint(math_point).y) < 10000)
-					{
-						DrawPoint(g, math_point, juce::Colours::lightpink);
-						line_segment.setEnd(MathToScreenPoint(math_point));
-						g.setColour(juce::Colours::lightgrey);
-						g.drawLine(line_segment, 1.0);
-						line_segment.setStart(MathToScreenPoint(math_point));
-					}
+					DrawPoint(g, math_point, 1.0f, 5.0f);
 				}
 			}
-
+			else
+			{
+				if (i % 2 == 0)
+				{
+					DrawPointWithLabel(g, Point<float>(math_point.x, 0), "x" + String(i));
+					math_point = function_provider.LogisticFunction(lambda, math_point.x);
+					DrawPoint(g, math_point, 1.0f, 5.0f);
+					DrawMathematicalLine(g, Point<float>(math_point.x, 0), math_point, juce::Colours::black, true, 0.75f);
+					DrawPointWithLabel(g, Point<float>(0, math_point.y), "x" + String(i + 1));
+					DrawMathematicalLine(g, math_point, Point<float>(0, math_point.y), juce::Colours::black, true, 0.75f);
+				}
+				else
+				{
+					DrawPointWithLabel(g, Point<float>(0, math_point.y), "x" + String(i));
+					math_point = function_provider.LogisticFunctionInverse(lambda, math_point.y);
+					DrawPoint(g, math_point, 1.0f, 5.0f);
+					DrawMathematicalLine(g, math_point, Point<float>(math_point.x, 0), juce::Colours::black, true, 0.75f);
+					DrawPointWithLabel(g, Point<float>(math_point.x, 0), "x" + String(i + 1));
+					DrawMathematicalLine(g, Point<float>(0, math_point.y), math_point, juce::Colours::black, true, 0.75f);
+				}
+			}
 			if (i > numIterations * 0.8f && drawLambdaFunction)
 			{
 				Graphics lambdaG(lambdaConvergenceImageX);
@@ -455,7 +468,7 @@ private:
 			math_point = function_provider.LogisticFunctionSin(lambda, math_point.x);
 			if (abs(MathToScreenPoint(math_point).x) < 10000 && abs(MathToScreenPoint(math_point).y) < 10000)
 			{
-				DrawPoint(g, math_point, juce::Colours::lightblue);
+				DrawPoint(g, math_point);
 
 				line_segment.setEnd(MathToScreenPoint(math_point));
 				g.setColour(juce::Colours::lightgrey);
@@ -467,7 +480,7 @@ private:
 					math_point = function_provider.LogisticFunctionInverseSin(lambda, math_point.y);
 					if (abs(MathToScreenPoint(math_point).x) < 10000 && abs(MathToScreenPoint(math_point).y) < 10000)
 					{
-						DrawPoint(g, math_point, juce::Colours::lightpink);
+						DrawPoint(g, math_point);
 						line_segment.setEnd(MathToScreenPoint(math_point));
 						g.setColour(juce::Colours::lightgrey);
 						g.drawLine(line_segment, 1.0);
@@ -496,7 +509,7 @@ private:
 			{
 				math_y = -(y - x0.y) / screen_math_ratio;
 				if(math_y >= offset && math_y <= 1)
-				DrawSegment(g, function_provider.LogisticFunctionInverse(lambda, math_y), path_point, juce::Colours::red);
+				DrawSegment(g, function_provider.LogisticFunctionInverse(lambda, math_y), path_point, lightMode ? juce::Colours::black: juce::Colours::red);
 			}
 		}
 		else
@@ -505,7 +518,7 @@ private:
 			{
 				math_x = (x - x0.x) / screen_math_ratio;
 				if (math_x >= offset && math_x <= 1)
-				DrawSegment(g, function_provider.LogisticFunction(lambda, math_x), path_point, juce::Colours::yellow);
+				DrawSegment(g, function_provider.LogisticFunction(lambda, math_x), path_point, lightMode ? juce::Colours::black : juce::Colours::yellow);
 			}
 		}
 	}
@@ -523,7 +536,7 @@ private:
 			{
 				math_y = -(y - x0.y) / screen_math_ratio;
 				if (math_y >= offset && math_y <= 1)
-				DrawSegment(g, function_provider.LogisticFunctionInverseSin(lambda, math_y), path_point, juce::Colours::red);
+				DrawSegment(g, function_provider.LogisticFunctionInverseSin(lambda, math_y), path_point, juce::Colours::blue);
 			}
 		}
 		else
@@ -532,7 +545,7 @@ private:
 			{
 				math_x = (x - x0.x) / screen_math_ratio;
 				if (math_x >= offset && math_x <= 1)
-				DrawSegment(g, function_provider.LogisticFunctionSin(lambda, math_x), path_point, juce::Colours::yellow);
+				DrawSegment(g, function_provider.LogisticFunctionSin(lambda, math_x), path_point, juce::Colours::blue);
 			}
 		}
 	}
@@ -568,7 +581,15 @@ protected:
 	}
 	void MathRenderer::DrawPointWithLabel(Graphics& g, juce::Point<float> math_point_par, String label = "")
 	{
-		g.setColour(juce::Colours::lightgrey);
+		if (lightMode)
+		{
+			g.setColour(juce::Colours::black);
+		}
+		else
+		{
+			g.setColour(juce::Colours::lightgrey);
+		}
+		
 		juce::Rectangle<float> pointArea(point_size, point_size);
 		juce::String math_pointer_label = juce::String("(");
 		if (label != "")
@@ -582,23 +603,32 @@ protected:
 			math_pointer_label.append(juce::String(math_point_par.y), 8);
 			math_pointer_label.append(")", 1);
 		}
-
-
+		
 		juce::Point<float> screen_p = MathToScreenPoint(math_point_par);
 		pointArea.setCentre(screen_p);
 		FontOptions fOpt("Courier New", 14.80f, juce::Font::plain);
 		juce::Font f = juce::Font(fOpt);
 		g.setFont(14.0f);
 		g.drawEllipse(pointArea, 1.0f);
-		g.setColour(juce::Colours::darkgrey);
+
+		if (lightMode)
+		{
+			g.setColour(juce::Colours::white);
+		}
+		else
+		{
+			g.setColour(juce::Colours::darkgrey);
+		}
+
 		StringRef str(math_pointer_label);
 		g.fillRoundedRectangle(juce::Rectangle<float>(screen_p.x, screen_p.y, TextLayout::getStringWidth(f,str), 20), 5);
-		g.setColour(juce::Colours::white);
+		g.setColour(lightMode? juce::Colours::black: juce::Colours::white);
 		g.drawText(math_pointer_label, juce::Rectangle<float>(screen_p.x, screen_p.y, 200, 20), juce::Justification(0));
 	}
 
-	void MathRenderer::DrawPoint(Graphics& g, juce::Point<float> math_point_par, juce::Colour col = juce::Colours::lightgrey, float opacity = 1.0f, float diameter = 3.0f)
+	void MathRenderer::DrawPoint(Graphics& g, juce::Point<float> math_point_par, float opacity = 1.0f, float diameter = 3.0f)
 	{
+		juce::Colour col = lightMode ? juce::Colours::black : juce::Colours::lightgrey;
 		g.setColour(col);
 		juce::Rectangle<float> pointArea(diameter, diameter);
 		juce::Point<float> screen_p = MathToScreenPoint(math_point_par);
@@ -652,45 +682,16 @@ protected:
 		juce::Point<float> ret;
 		ret = juce::Point<float>(x0.x + math_point_par.x * screen_math_ratio, x0.y - math_point_par.y * screen_math_ratio);
 
-		//if (ret.x < this->area.getX())
-		//{
-		//    ret.x = this->area.getX();
-		//}
-
-		//if (ret.x > this->area.getX())
-		//{
-		//    ret.x = this->area.getX();
-		//}
-
-		//if (ret.x > screen_width)
-		//{
-		//    ret.x = screen_width;
-		//}
-
-		//if (ret.y < this->area.getY())
-		//{
-		//    ret.y = this->area.getY();
-		//}
-
-		//if (ret.y > this->area.getY())
-		//{
-		//    ret.y = this->area.getY();
-		//}
-
-		//if (ret.y > screen_height)
-		//{
-		//    ret.y = screen_height;
-		//}
 		return ret;
 	}
 	// Add a method to regenerate the image
-	void GenerateLambdaConvergenceImage()
+	void GenerateLambdaConvergenceImage(bool sinusoidalVariant = false)
 	{
 		Graphics lambdaGX(lambdaConvergenceImageX);
 		Graphics lambdaGY(lambdaConvergenceImageY);
 		//lambdaG.fillAll(Colours::black);
-		lambdaGX.setColour(Colours::lightgrey);
-		lambdaGY.setColour(Colours::lightgrey);
+		//lambdaGX.setColour(Colours::lightgrey);
+		//lambdaGY.setColour(Colours::lightgrey);
 		//lambdaG.drawRect(0, 0, lambdaConvergenceImageX.getWidth(), lambdaConvergenceImageX.getHeight(), 1);
 
 		// Draw all points at once
@@ -699,19 +700,42 @@ protected:
 
 		for (int i = 0; i < iterations; i++)
 		{
-			math_point = function_provider.LogisticFunction(lambda, math_point.x);
-			math_point = function_provider.LogisticFunctionInverse(lambda, math_point.y);
-
+			if (sinusoidalVariant)
+			{
+				math_point = function_provider.LogisticFunctionSin(lambda, math_point.x);
+				math_point = function_provider.LogisticFunctionInverseSin(lambda, math_point.y);
+			}
+			else
+			{
+				math_point = function_provider.LogisticFunction(lambda, math_point.x);
+				math_point = function_provider.LogisticFunctionInverse(lambda, math_point.y);
+			}
+			
 			if (i > iterations * 0.8f)
 			{
 				float px = lambdaConvergenceImageX.getWidth() * (lambda / 4.0f);
 				float py = lambdaConvergenceImageX.getHeight() - math_point.y * lambdaConvergenceImageX.getHeight();
-				lambdaGX.setColour(Colours::yellow);
+				if (sinusoidalVariant)
+				{
+					lambdaGX.setColour(lightMode ? Colours::blue : Colours::red);
+				}
+				else
+				{
+					lambdaGX.setColour(lightMode ? Colours::black : Colours::red);
+				}
 				lambdaGX.fillEllipse(px, py-2, 2, 2);
 				// Rotate 90 degrees counter-clockwise: (x, y) -> (y, width - x)
 				px = (math_point.x) * lambdaConvergenceImageY.getWidth();
 				py = lambdaConvergenceImageY.getHeight() - lambdaConvergenceImageY.getHeight() * (lambda / 4.0f);
-				lambdaGY.setColour(Colours::red);
+				if (sinusoidalVariant)
+				{
+					lambdaGY.setColour(lightMode ? Colours::blue : Colours::red);
+				}
+				else
+				{
+					lambdaGY.setColour(lightMode ? Colours::black : Colours::red);
+				}
+				
 				lambdaGY.fillEllipse(px, py, 2, 2);
 			}
 		}

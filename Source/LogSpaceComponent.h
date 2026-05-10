@@ -17,6 +17,7 @@
 #include "CommunicationAgent.h"
 #include "PlotComponent.h"
 #include "PlotComponentLogistic.h"
+#include "PlotComponentComplex.h"
 #include "AudioComponent.h"
 #include "MIDISynthComponent.h"
 #include "MIDITimelineComponent.h"
@@ -50,6 +51,7 @@ private:
 	OwnedArray<MarkovMatrixComponent> markovObjects;
 	OwnedArray<TimerComponent> timerObjects;
 	OwnedArray<PlotComponentLogistic> plotObjects;
+	OwnedArray<PlotComponentComplex> complexPlotObjects;
 	OwnedArray<AudioComponent> audioObjects;
 	OwnedArray<MIDISynthComponent> midiObjects;
 	OwnedArray<EuclidianRythmTimerComponent> euclidTimerObjects;
@@ -64,6 +66,7 @@ public:
 	{
 		rnd = Random::getSystemRandom();
 		initMenu();
+		//addNewPlotComplex();
 		addNewPlot();
 	}
 
@@ -168,7 +171,14 @@ public:
 		plotObjects.add(pO);
 		resized();
 	}
-
+	void LogSpaceComponent::addNewPlotComplex()
+	{
+		PlotComponentComplex* pO = new PlotComponentComplex();
+		//pO->iWillListenToYou(stateControllerObjects[0]);
+		addAndMakeVisible(pO);
+		complexPlotObjects.add(pO);
+		resized();
+	}
 	void LogSpaceComponent::addNewAudioComponent()
 	{
 		AudioComponent* aO = new AudioComponent();

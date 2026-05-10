@@ -21,7 +21,7 @@ private:
     ComplexNumber math_center_complex;
     FunctionProviderComplex function_provider_complex = FunctionProviderComplex();
 public:
-    MathRendererComplex(juce::Rectangle<int> area, juce::Point<float> math_center_point, float math_max_size) : MathRenderer(area, math_center_point, math_max_size) {
+    MathRendererComplex(juce::Rectangle<int> area, juce::Point<float> math_center_point, float math_max_size) : MathRenderer(area, math_center_point, math_max_size, false) {
         this->math_center_complex = ComplexNumber(math_center.x, math_center.y);
     }
 
@@ -74,9 +74,10 @@ public:
     {
         return juce::Point<float>(c.getX(), c.getY());
     }
+
     void DrawCoordinateSys(Graphics& g)
     {
-        g.setColour(juce::Colours::lightpink);
+        g.setColour(juce::Colours::darkred);
         g.drawHorizontalLine((int)x0.y, (float)area.getX(), (float)area_width);
         g.drawVerticalLine((int)x0.x, (float)area.getY(), (float)area_height);
 

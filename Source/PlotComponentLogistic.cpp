@@ -17,15 +17,27 @@ PlotComponentLogistic::PlotComponentLogistic()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     this->name = "Plot Logistic";
-	this->showInFullscreen = true;
+    this->showInFullscreen = true;
 
     addAndMakeVisible(sliderR);
     sliderR.setRange(0, 4);
     sliderR.addListener(this);
+    sliderR.setTextBoxStyle(Slider::TextBoxLeft, false, 80, 20); // Ensure textbox is visible
+    sliderR.setColour(Slider::textBoxTextColourId, juce::Colours::black); // Set textbox text color
+
+    if (lightMode)
+    {
+        sliderR.setColour(Slider::thumbColourId, juce::Colours::darkgrey);
+        labelR.setColour(Label::textColourId, juce::Colours::darkgrey);
+        sliderStart.setColour(Slider::textBoxTextColourId, juce::Colours::darkgrey); // Set textbox text color
+        labelStart.setColour(Label::textColourId, juce::Colours::darkgrey);
+    }
 
     addAndMakeVisible(sliderStart);
     sliderStart.setRange(0, 1);
     sliderStart.addListener(this);
+    sliderStart.setTextBoxStyle(Slider::TextBoxLeft, false, 80, 20); // Ensure textbox is visible
+    sliderStart.setColour(Slider::textBoxTextColourId, juce::Colours::black); // Set textbox text color
 
     addAndMakeVisible(labelR);
     labelR.setText("r (0-4)", juce::dontSendNotification);
@@ -36,7 +48,6 @@ PlotComponentLogistic::PlotComponentLogistic()
     labelStart.attachToComponent(&sliderStart, true);
 
     this->component_state = 0;
-
     // Add key listener and make focusable
     addKeyListener(this);
     setWantsKeyboardFocus(true);
@@ -111,7 +122,14 @@ void PlotComponentLogistic::controlDoubleClickEvent(const juce::MouseEvent& even
 
 void PlotComponentLogistic::paint (juce::Graphics& g)
 {
-    g.fillAll(Colour::fromRGB(31, 31, 31));  // or any color you want as background
+    if (lightMode)
+    {
+        g.fillAll(juce::Colours::white);
+    }
+    else
+    {
+        g.fillAll(Colour::fromRGB(31, 31, 31));
+    }
     drawOutline(g);
     sliderStart.setVisible(false);
     if (component_state > 2)
@@ -143,7 +161,7 @@ void PlotComponentLogistic::resized()
 
     if (!renderedInitialized)
     {
-        renderer = new MathRenderer(getReducedLocalBounds(), Point<float>(1.5, 0.5), 2.0);
+        renderer = new MathRenderer(getReducedLocalBounds(), Point<float>(1.5, 0.5), 2.0, lightMode);
         sliderStart.setValue(0.5);
         sliderR.setValue(1.0);
         renderer->SetNewFontSize(getFontSize());
@@ -163,7 +181,7 @@ void PlotComponentLogistic::controlMouseUpEvent(const juce::MouseEvent&)
 
     repaint();
 }
-void PlotComponentLogistic::controlDragEvent(const juce::MouseEvent&)
+void PlotComponentLogistic::controlDragEvent(const juce::MouseEvent& event)
 {
     repaint();
 }
@@ -176,6 +194,7 @@ bool PlotComponentLogistic::keyPressed(const KeyPress& key, Component* /*origina
         {
             renderer->state++;
             component_state = renderer->state;
+			renderer->generalIterator = 0;
             repaint();
             return true;
         }
@@ -187,6 +206,7 @@ bool PlotComponentLogistic::keyPressed(const KeyPress& key, Component* /*origina
         {
             renderer->state--;
             component_state = renderer->state;
+            renderer->generalIterator = 0;
             repaint();
             return true;
         }

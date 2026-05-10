@@ -1,28 +1,23 @@
 /*
   ==============================================================================
 
-    PlotComponentLogistic.h
-    Created: 21 Jun 2022 8:49:04pm
+    PlotComponentComplex.h
+    Created: 19 Apr 2026 1:49:24pm
     Author:  viktor
 
   ==============================================================================
 */
 
 #pragma once
-
 #include <JuceHeader.h>
 #include "BaseComponent.h"
 #include "CommunicationAgent.h"
-#include "MathRenderer.h"
-
-//==============================================================================
-/*
-*/
-class PlotComponentLogistic  : public BaseComponent, public CommunicationAgent, public Slider::Listener, public KeyListener
+#include "MathRendererComplex.h"
+class PlotComponentComplex : public BaseComponent, public CommunicationAgent, public Slider::Listener, public KeyListener
 {
 public:
-    PlotComponentLogistic();
-    ~PlotComponentLogistic() override;
+    PlotComponentComplex();
+    ~PlotComponentComplex() override;
     void sliderValueChanged(Slider* slider) override;
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     void zoomEvent(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
@@ -37,18 +32,13 @@ public:
 
 private:
     bool renderedInitialized = false;
-    MathRenderer* renderer;
+    MathRendererComplex* renderer;
     int generalIterator = 0;
     Point<float> dragStart;
     Point<float> dragEnd;
-    Slider sliderR;
-    Label labelR;
-    Slider sliderStart;
-    Label labelStart;
-	bool lightMode = true;
-    
+
     //static juce::Identifier myNodeType(float);
     juce::ValueTree RPoints(Array<float>);
     int RPointsResolution = 100;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlotComponentLogistic)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlotComponentComplex)
 };
