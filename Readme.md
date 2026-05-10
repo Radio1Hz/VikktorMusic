@@ -1,6 +1,6 @@
-# Logistic Map, Inverse Cobweb Diagram and Controlled Chaos (simplified)
+# Interpreting the Dynamics of the Logistic Map Using an Inverse Cobweb Diagram
 
-https://youtu.be/06u9cFxS_h0
+Visualization video: https://www.youtube.com/watch?v=2kVNS7NUNkw
 
 ## Logistic Function
 
@@ -19,7 +19,7 @@ Function $f(x)$ is an endofunction on the interval [0,1]
 
 The inverse function of $y = f(x)$ is:
 
-$f^{-1}(y) = \frac{1}{2}\left(1\pm\sqrt{1-4\frac{y}{r}}\right)$
+$f^{-1}(x) = \frac{1}{2}\left(1\pm\sqrt{1-4\frac{x}{r}}\right)$
 
 ## Intersection points
 
@@ -37,38 +37,6 @@ For $3 < r \le 4$ there are four intersection points:
 - $X_1 = \frac{r-1}{r}$
 - $X_2 = \frac{1}{2r}(r+1 - \sqrt{r^2 - 2r - 3})$
 - $X_3 = \frac{1}{2r}(r+1 + \sqrt{r^2 - 2r - 3})$
-
-## Iteration sequence
-
-If a procedure repeatedly feeds the output back into the function, the operation internally alternates between $f(x)$ and $f^{-1}(x)$, i.e.
-
-$$
-x_{n+1} =
-\begin{cases}
-f(x_n), & \text{if } n = 2k,\ k \in W \\
-f^{-1}(x_n), & \text{if } n = 2k + 1,\ k \in W
-\end{cases}
-$$
-
-For $x_0 \in [0,1]$:
-
-$x_1 = f(x_0)$
-
-$x_2 = f^{-1}(x_1) = f^{-1}(f(x_0))$ 
-
-$x_3 = f(x_2) = f(f^{-1}(f(x_0)))$
-
-$x_4 = f^{-1}(x_3) = f^{-1}(f(f^{-1}(f(x_0))))$
-
-For the Logistic function the sequence becomes:
-
-$$
-x_{n+1} =
-\begin{cases}
-r x_n (1 - x_n), & \text{if } n = 2k,\ k \in W \\
-\frac{1}{2}\left(1 \pm \sqrt{1 - \frac{4x_n}{r}}\right), & \text{if } n = 2k + 1,\ k \in W
-\end{cases}
-$$
 
 ## Inverse Cobweb Diagram
 
